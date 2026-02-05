@@ -14,10 +14,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment: publish
-    services:
-      docker:
-        image: docker:dind
-        privileged: true
     container:
       image: docker:git
     if: startsWith(github.ref, 'refs/tags/')

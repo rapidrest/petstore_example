@@ -72,10 +72,6 @@ jobs:
 
   test-run:
     runs-on: ubuntu-latest
-    services:
-      docker:
-        image: docker:dind
-        privileged: true
     container:
       image: docker:latest
     steps:
@@ -89,10 +85,6 @@ jobs:
 
   test-docker-build:
     runs-on: ubuntu-latest
-    services:
-      docker:
-        image: docker:dind
-        privileged: true
     container:
       image: docker:git
     steps:
