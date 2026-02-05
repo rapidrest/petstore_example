@@ -13,7 +13,6 @@ services:
             - datastores__logs__url=redis://redis
             - datastores__mongo__url=mongodb://mongo
             - NODE_ENV=dev
-            - safe_mode=true
         links:
             - redis
             - mongo

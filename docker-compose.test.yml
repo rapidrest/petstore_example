@@ -11,13 +11,10 @@ services:
             - datastores__events__url=redis://redis
             - datastores__logs__url=redis://redis
             - datastores__mongo__url=mongodb://mongo
-            - NODE_ENV=dev
-            - safe_mode=true
+            - NODE_ENV=production
         links:
             - redis
             - mongo
-        volumes:
-            - .:/app
     redis:
         image: redis
     mongo:
