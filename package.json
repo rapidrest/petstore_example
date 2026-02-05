@@ -6,8 +6,11 @@
 		"type": "git",
 		"url": "https://github.com/composer-js/petstore_example.git"
 	},
+	"author": "RapidREST <rapidrests@gmail.com>",
 	"license": "MIT",
-	"author": "Team ComposerJS",
+	"contributors": [
+        "Jean-Philippe Steinmetz"
+    ],
 	"files": [
 		"dist"
 	],
