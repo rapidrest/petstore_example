@@ -5,7 +5,7 @@ FROM node:lts-alpine AS builder
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY package.json yarn.lock .yarnrc.yml tsconfig.json RELEASE_NOTES.rst ./
+COPY package.json yarn.lock .yarnrc.yml tsconfig.json RELEASE_NOTES.md ./
 COPY .yarn/releases ./.yarn/releases
 COPY ./src /app/src
 
@@ -28,7 +28,7 @@ RUN --mount=type=secret,id=YARN_TOKEN if [ "$NODE_ENV" = "production" ]; then NP
 
 FROM node:lts-alpine AS runner
 WORKDIR /app
-COPY --from=builder /app/package.json /app/yarn.lock /app/.yarnrc.yml /app/tsconfig.json /app/RELEASE_NOTES.rst ./
+COPY --from=builder /app/package.json /app/yarn.lock /app/.yarnrc.yml /app/tsconfig.json /app/RELEASE_NOTES.md ./
 COPY --from=builder /app/.yarn/releases ./.yarn/releases
 COPY --from=builder /app/dis[t] ./dist
 COPY --from=builder /app/src ./src
