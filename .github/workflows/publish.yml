@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - "*"
+  workflow_run:
+    workflows: ["build"]
+    types:
+      - completed
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: publish
+    services:
+      docker:
+        image: docker:dind
+        privileged: true
+    container:
+      image: docker:git
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+          -u ${{ github.actor }} \
+          --password-stdin
+
+      - name: Build image
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+          docker build -t $IMAGE_NAME:latest .
+
+      - name: Push images
+        env:
+          REGISTRY: ${{ secrets.NEXUS_REGISTRY }}
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+          TAG=${GITHUB_REF#refs/tags/}
+
+          docker push $IMAGE_NAME:latest
+          docker tag $IMAGE_NAME:latest $IMAGE_NAME:$TAG
+          docker push $IMAGE_NAME:$TAG
+

@@ -1,0 +1,320 @@
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (C) 2026 Jean-Philippe Steinmetz
+///////////////////////////////////////////////////////////////////////////////
+import config from "./config";
+import * as request from "supertest";
+import { Server, ConnectionManager, ACLRecord, ObjectFactory } from "@composer-js/service-core";
+import { EventUtils, JWTUtils, Logger } from "@composer-js/core";
+import { MongoRepository, DataSource } from "typeorm";
+import { MongoMemoryServer } from "mongodb-memory-server";
+import Pet, { PetStatus } from "../src/models/Pet";
+import Tag from "../src/models/Tag";
+import Category from "../src/models/Category";
+const uuid = require("uuid");
+
+const mongod: MongoMemoryServer = new MongoMemoryServer({
+    instance: {
+        port: 9999,
+        dbName: "rrst-test",
+    },
+});
+
+jest.setTimeout(30000);
+
+describe("Pet Tests", () => {
+    const logger = Logger();
+    const objectFactory: ObjectFactory = new ObjectFactory(config, logger);
+    const server: Server = new Server(config, "./src", logger, objectFactory);
+    const baseUrl = "/pet";
+
+    const admin: any = {
+        uid: uuid.v4(),
+        roles: config.get("trusted_roles"),
+    };
+    const adminToken = JWTUtils.createToken(config.get("auth"), admin);
+    let user: any = undefined;
+    let authToken: any = undefined;
+    let repo: MongoRepository<Pet>;
+    let aclRepo: MongoRepository<any>;
+
+    const createPet = async function(data?: any): Promise<Pet> {
+        const obj: Pet = new Pet({
+            category: new Category({
+                name: "dog"
+            }),
+            name: "gigi",
+            photoUrls: ["image1.jpg", "image2.jpg", "image3.jpg"],
+            status: PetStatus.AVAILABLE,
+            tags: [new Tag({ name: "friendly" }), new Tag({ name: "white" })],
+            ...data
+        });
+        
+        const result: Pet = await repo.save(obj);
+
+        const records: ACLRecord[] = [];
+
+        // Owner has CRUD access
+        records.push({
+            userOrRoleId: user.uid,
+            create: true,
+            read: true,
+            update: true,
+            delete: true,
+            special: false,
+            full: false,
+        });
+
+        // Everyone has no access
+        records.push({
+            userOrRoleId: ".*",
+            create: false,
+            read: false,
+            update: false,
+            delete: false,
+            special: false,
+            full: false,
+        });
+
+        const acl: any = {
+            uid: result.uid,
+            dateCreated: new Date(),
+            dateModified: new Date(),
+            version: 0,
+            records,
+            parentUid: "Pet"
+        };
+        await aclRepo.save(aclRepo.create(acl));
+
+        return result;
+    }
+
+    const createPets = async function(num: number, data?: any): Promise<Pet[]> {
+        const results: Pet[] = [];
+
+        for (let i = 0; i < num; i++) {
+            results.push(await createPet(data));
+        }
+
+        return results;
+    }
+
+    beforeAll(async () => {
+        const connMgr: ConnectionManager = await objectFactory.newInstance(ConnectionManager, { name: "default" });
+        
+        await mongod.start();
+        await server.start();
+
+        let conn: any = connMgr.connections.get("acl");
+        if (conn instanceof DataSource) {
+            aclRepo = conn.getMongoRepository("AccessControlListMongo");
+        }
+        conn = connMgr.connections.get("mongo");
+        if (conn instanceof DataSource) {
+            repo = conn.getMongoRepository("Pet");
+        } else {
+            throw new Error("Could not find user connection");
+        }
+    });
+    
+    afterAll(async () => {
+        await server.stop();
+        await mongod.stop();
+    });
+
+    beforeEach(async () => {
+        user = {
+            uid: uuid.v4(),
+        };
+        authToken = JWTUtils.createToken(config.get("auth"), user);
+        EventUtils.init(config, logger, authToken);
+
+        try {
+            await repo.clear();
+        } catch (err) {
+            // The error "ns not found" occurs when the collection doesn't exist yet. We can ignore this error.
+            if (err.message !== "ns not found") {
+                throw err;
+            }
+        }
+    });
+
+    it("Can make count request.", async () => {
+        const objs: Pet[] = await createPets(5);
+
+        const result = await request(server.getApplication())
+            .head(baseUrl);
+
+        expect(result).toBeDefined();
+        expect(result.status).toBeGreaterThanOrEqual(200);
+        expect(result.status).toBeLessThan(300);
+        expect(result.headers).toHaveProperty("content-length");
+        expect(result.headers["content-length"]).toBe((objs.length).toString());
+    });
+
+    it("Can make create request.", async () => {
+        const obj: Pet = new Pet({
+            category: new Category({
+                name: "dog"
+            }),
+            name: "rex",
+            photoUrls: ["image1.jpg", "image2.jpg", "image3.jpg"],
+            status: PetStatus.AVAILABLE,
+            tags: [new Tag({ name: "timid" }), new Tag({ name: "black" })],
+        });
+
+        const result = await request(server.getApplication())
+            .post(baseUrl)
+            .set("Authorization", "jwt " + adminToken)
+            .send(obj);
+
+        expect(result).toBeDefined();
+        expect(result.status).toBeGreaterThanOrEqual(200);
+        expect(result.status).toBeLessThan(300);
+        expect(result.body).toBeDefined();
+        expect(result.body.category).toEqual(obj.category);
+        expect(result.body.name).toEqual(obj.name);
+        expect(result.body.photoUrls).toEqual(obj.photoUrls);
+        expect(result.body.status).toEqual(obj.status);
+        expect(result.body.tags).toEqual(obj.tags);
+
+        // Validate the contents were stored correctly
+        const existing: Pet | null = await repo.findOne({uid: obj.uid} as any);
+        expect(existing).toBeDefined();
+        if (existing) {
+            expect(existing.category).toEqual(obj.category);
+            expect(existing.name).toEqual(obj.name);
+            expect(existing.photoUrls).toEqual(obj.photoUrls);
+            expect(existing.status).toEqual(obj.status);
+            expect(existing.tags).toEqual(obj.tags);
+        }
+    });
+
+    it("Can make delete request.", async () => {
+        const obj: Pet = await createPet();
+        const url = baseUrl + "/" + obj.uid;
+
+        const result = await request(server.getApplication())
+            .delete(url)
+            .set("Authorization", "jwt " + adminToken);
+
+        expect(result).toBeDefined();
+        expect(result.status).toBeGreaterThanOrEqual(200);
+        expect(result.status).toBeLessThan(300);
+
+        // Validate the contents were removed
+        const count: number = await repo.count({uid: obj.uid});
+        expect(count).toBe(0);
+    });
+
+    it("Can make findAll request.", async () => {
+        const objs: Pet[] = await createPets(5);
+
+        const result = await request(server.getApplication())
+            .get(baseUrl);
+
+        expect(result).toBeDefined();
+        expect(result.status).toBeGreaterThanOrEqual(200);
+        expect(result.status).toBeLessThan(300);
+        expect(result.body).toBeDefined();
+        expect(result.body).toHaveLength(objs.length);
+    });
+
+    it("Can make findById request.", async () => {
+        const obj: Pet = await createPet();
+        const url = baseUrl + "/" + obj.uid;
+
+        const result = await request(server.getApplication())
+            .get(url);
+
+        expect(result).toBeDefined();
+        expect(result.status).toBeGreaterThanOrEqual(200);
+        expect(result.status).toBeLessThan(300);
+        expect(result.body).toBeDefined();
+        expect(result.body.category).toEqual(obj.category);
+        expect(result.body.name).toEqual(obj.name);
+        expect(result.body.photoUrls).toEqual(obj.photoUrls);
+        expect(result.body.status).toEqual(obj.status);
+        expect(result.body.tags).toEqual(obj.tags);
+    });
+
+    it("Can make truncate request.", async () => {
+        const objs: Pet[] = await createPets(5);
+        let count: number = await repo.count();
+        expect(count).toBe(objs.length);
+
+        const result = await request(server.getApplication())
+            .delete(baseUrl)
+            .set("Authorization", "jwt " + adminToken);
+
+        expect(result).toBeDefined();
+        expect(result.status).toBeGreaterThanOrEqual(200);
+        expect(result.status).toBeLessThan(300);
+
+        count = await repo.count();
+        expect(count).toBe(0);
+    });
+
+    it("Can make update request.", async () => {
+        const obj: Pet = await createPet();
+        const url = baseUrl + "/" + obj.uid;
+        obj.status = PetStatus.ADOPTED;
+
+        const result = await request(server.getApplication())
+            .put(url)
+            .set("Authorization", "jwt " + adminToken)
+            .send(obj);
+
+        expect(result).toBeDefined();
+        expect(result.status).toBeGreaterThanOrEqual(200);
+        expect(result.status).toBeLessThan(300);
+        expect(result.body).toBeDefined();
+        expect(result.body.category).toEqual(obj.category);
+        expect(result.body.name).toEqual(obj.name);
+        expect(result.body.photoUrls).toEqual(obj.photoUrls);
+        expect(result.body.status).toEqual(obj.status);
+        expect(result.body.tags).toEqual(obj.tags);
+
+        // Validate the contents were stored correctly
+        const existing: Pet | null = await repo.findOne({uid: obj.uid} as any);
+        expect(existing).toBeDefined();
+        if (existing) {
+            expect(existing.category).toEqual(obj.category);
+            expect(existing.name).toEqual(obj.name);
+            expect(existing.photoUrls).toEqual(obj.photoUrls);
+            expect(existing.status).toEqual(obj.status);
+            expect(existing.tags).toEqual(obj.tags);
+        }
+    });
+
+    it.skip("Can make update property request.", async () => {
+        const obj: Pet = await createPet();
+        const url = baseUrl + "/" + obj.uid + "/status";
+        obj.status = PetStatus.ADOPTED;
+
+        const result = await request(server.getApplication())
+            .put(url)
+            .set("Authorization", "jwt " + adminToken)
+            .send(obj.status);
+
+        expect(result).toBeDefined();
+        expect(result.status).toBeGreaterThanOrEqual(200);
+        expect(result.status).toBeLessThan(300);
+        expect(result.body).toBeDefined();
+        expect(result.body.category).toEqual(obj.category);
+        expect(result.body.name).toEqual(obj.name);
+        expect(result.body.photoUrls).toEqual(obj.photoUrls);
+        expect(result.body.status).toEqual(obj.status);
+        expect(result.body.tags).toEqual(obj.tags);
+
+        // Validate the contents were stored correctly
+        const existing: Pet | null = await repo.findOne({uid: obj.uid} as any);
+        expect(existing).toBeDefined();
+        if (existing) {
+            expect(existing.category).toEqual(obj.category);
+            expect(existing.name).toEqual(obj.name);
+            expect(existing.photoUrls).toEqual(obj.photoUrls);
+            expect(existing.status).toEqual(obj.status);
+            expect(existing.tags).toEqual(obj.tags);
+        }
+    });
+});

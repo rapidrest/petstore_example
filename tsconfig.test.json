@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "target": "es2019",
+        "module": "commonjs",
+        "lib": ["es6"],
+        "strict": false,
+        "sourceMap": true,
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "outDir": "dist",
+        "noImplicitAny": false,
+        "typeRoots": ["node_modules/@types"]
+    },
+    "include": ["src"],
+    "exclude": ["dist", "docs", "node_modules"]
+}

@@ -1,0 +1,23 @@
+services:
+    server:
+        build:
+            context: .
+        command: ["yarn", "debug"]
+        ports:
+            - "3000:3000"
+            - "9229:9229"
+        environment:
+            - datastores__acl__url=mongodb://mongo
+            - datastores__cache__url=redis://redis
+            - datastores__events__url=redis://redis
+            - datastores__logs__url=redis://redis
+            - datastores__mongo__url=mongodb://mongo
+            - NODE_ENV=dev
+            - safe_mode=true
+        links:
+            - redis
+            - mongo
+    redis:
+        image: redis
+    mongo:
+        image: mongo
