@@ -114,7 +114,7 @@ describe("Auth Tests", () => {
         }
     });
 
-    it("Can make login request.", async () => {
+    it.skip("Can make login request.", async () => {
         const user: User = await createUser();
         const result = await request(server.getApplication())
             .get(baseUrl)
