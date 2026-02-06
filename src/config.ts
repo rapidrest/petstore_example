@@ -21,8 +21,8 @@ conf.defaults({
         options: {
             // "algorithm": "HS256",
             expiresIn: "1 hour",
-            audience: "mydomain.com",
-            issuer: "api.mydomain.com",
+            audience: "company.local",
+            issuer: "api.company.local",
         },
     },
     class_loader: {

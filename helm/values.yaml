@@ -51,8 +51,10 @@ mongodb:
     password: zyeQ6iLBhnditNOr
 
 service:
-  image: "ghcr.io/rapidrest/petstore_example"
-  version: v1.0.0-cjs
+  image:
+    registry: ghcr.io
+    repository: rapidrest/petstore_example
+    tag: v1.0.0
   replicas: 1
   mongodb:
     acl:

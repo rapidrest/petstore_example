@@ -24,7 +24,7 @@ spec:
         - name: {{ $.Values.service.imagePullSecret }}
       containers:
         - name: petstore-services
-          image: {{ $.Values.service.image }}:{{ $.Values.service.version }}
+          image: {{ $.Values.service.image.registry }}/{{ $.Values.service.image.repository }}:{{ $.Values.service.image.tag }}
           {{- if (eq $.Values.service.version "latest") }}
           imagePullPolicy: Always
           {{- else }}

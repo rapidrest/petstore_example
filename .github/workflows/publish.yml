@@ -49,11 +49,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh api \
-            -X PATCH \
+          curl -X PATCH \
             -H "Accept: application/vnd.github+json" \
             /user/packages/container/${{ github.event.repository.name }}/visibility \
-            -f visibility=public
+            -d '{"visibility":"public"}'
 
   publish-helm-chart:
     runs-on: ubuntu-latest
