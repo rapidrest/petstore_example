@@ -39,7 +39,7 @@ jobs:
           REGISTRY: ${{ secrets.NEXUS_REGISTRY }}
         run: |
           IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
-          TAG=${GITHUB_REF#refs/tags/}
+          TAG=${GITHUB_REF#refs/tags/v}
 
           docker push $IMAGE_NAME:latest
           docker tag $IMAGE_NAME:latest $IMAGE_NAME:$TAG
@@ -87,12 +87,12 @@ jobs:
       - name: Package chart
         run: |
           helm package ./helm \
-            --version "${GITHUB_REF_NAME}" \
-            --app-version "${GITHUB_REF_NAME}"
+            --version "${GITHUB_REF#refs/tags/v}" \
+            --app-version "${GITHUB_REF#refs/tags/v}"
 
       - name: Push chart to GHCR
         run: |
-          CHART_VERSION="${GITHUB_REF_NAME}"
+          CHART_VERSION="${GITHUB_REF#refs/tags/v}"
           CHART_NAME=$(helm show chart ./helm | yq '.name')
           helm push "${CHART_NAME}-${CHART_VERSION}.tgz" \
             "oci://ghcr.io/${{ github.repository_owner }}/charts"
