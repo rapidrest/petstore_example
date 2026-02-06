@@ -12,6 +12,25 @@ const conf = require("nconf")
 conf.defaults({
     service_name: packageInfo.name,
     version: packageInfo.version,
+    // Settings pertaining to the signing and verification of authentication tokens
+    auth: {
+        // The default PassportJS authentication strategy to use
+        strategy: "passportjs.JWTStrategy",
+        // The password to be used when signing and verifying authentication tokens
+        secret: "MyPasswordIsSecure",
+        options: {
+            // "algorithm": "HS256",
+            expiresIn: "1 hour",
+            audience: "mydomain.com",
+            issuer: "api.mydomain.com",
+        },
+    },
+    class_loader: {
+        ignore: [
+            /server\..*/,
+            /config\..*/
+        ]
+    },
     cookie_secret: "COOKIE_SECRET",
     cors: {
         origin: ["http://localhost:3000"],
@@ -41,20 +60,8 @@ conf.defaults({
             database: "petstore_user",
         },
     },
-    // Specifies the role names that are considered to be trusted with administrative privileges.
-    trusted_roles: ["admin"],
-    // Settings pertaining to the signing and verification of authentication tokens
-    auth: {
-        // The default PassportJS authentication strategy to use
-        strategy: "passportjs.JWTStrategy",
-        // The password to be used when signing and verifying authentication tokens
-        secret: "MyPasswordIsSecure",
-        options: {
-            // "algorithm": "HS256",
-            expiresIn: "1 hour",
-            audience: "mydomain.com",
-            issuer: "api.mydomain.com",
-        },
+    logger: {
+        level: "info",
     },
     // TODO Remove 'scripts'
     scripts: {
@@ -63,15 +70,11 @@ conf.defaults({
             /config\..*/
         ]
     },
-    class_loader: {
-        ignore: [
-            /server\..*/,
-            /config\..*/
-        ]
-    },
     session: {
         secret: "SESSION_SECRET",
     },
+    // Specifies the role names that are considered to be trusted with administrative privileges.
+    trusted_roles: ["admin"],
 });
 
 export default conf;

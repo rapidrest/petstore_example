@@ -11,7 +11,9 @@ import { readFile } from "fs/promises";
 import * as process from "process";
 import * as os from "os";
 
-const logger = Logger();
+const logLevel: string = config.get("logger:level") || (process.env.environment === "production" ? "info" : "debug");
+const logger = Logger(logLevel, config.get("logger:file"));
+console.log("Log Level=" + logLevel);
 
 const objectFactory = new ObjectFactory(config, logger);
 let server: any = undefined;

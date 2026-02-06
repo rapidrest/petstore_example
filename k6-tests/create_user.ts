@@ -1,0 +1,31 @@
+import http from 'k6/http';
+import { check } from 'k6';
+import { uuidv4 } from './uuid.ts';
+
+export const options = {
+  vus: 100,
+  duration: '30s',
+  url: 'http://localhost:3000'
+};
+
+export function createUser(url: string) {
+  const headers = {
+    'Content-Type': "application/json"
+  };
+  const uid = uuidv4();
+  let user = {
+    username: uid,
+    password: "password",
+    firstName: "Test",
+    lastName: "k6",
+    email: `${uid}@rapidrest.dev`,
+    phone: "8188675309"
+  };
+  const res = http.post(url + "/user", JSON.stringify(user), { headers });
+  check(res, { "status is 2XX": (res) => res.status >= 200 && res.status < 300 });
+  return res.body;
+}
+
+export default function() {
+  createUser(options.url);
+}
