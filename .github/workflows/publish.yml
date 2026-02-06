@@ -93,3 +93,14 @@ jobs:
           CHART_NAME=$(helm show chart ./helm | yq '.name')
           helm push "${CHART_NAME}-${CHART_VERSION}.tgz" \
             "oci://ghcr.io/${{ github.repository_owner }}/charts"
+
+      - name: Make chart public
+        run: |
+          CHART_NAME=$(helm show chart ./helm | yq '.name')
+          PACKAGE_URL="https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/${CHART_NAME}/visibility"
+
+          curl -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "$PACKAGE_URL" \
+            -d '{"visibility":"public"}'
