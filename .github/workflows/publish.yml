@@ -103,7 +103,7 @@ jobs:
         run: |
           CHART_NAME="${{ steps.pkg.outputs.name }}"
           CHART_VERSION="${GITHUB_REF#refs/tags/v}"
-          helm push "${CHART_NAME}-${VERSION}.tgz" \
+          helm push "./helm/${CHART_NAME}-${CHART_VERSION}.tgz" \
             "oci://ghcr.io/${{ github.repository_owner }}/charts"
 
       - name: Make chart public
