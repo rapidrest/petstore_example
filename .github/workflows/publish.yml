@@ -21,6 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Extract package name
+        id: pkg
+        run: |
+          echo "name=$(yq '.name' package.json)" >> "$GITHUB_OUTPUT"
+
       - name: Login to GHCR
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
@@ -29,16 +34,14 @@ jobs:
 
       - name: Build image
         run: |
-          PACKAGE_NAME=$(cat package.json | yq '.name')
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$PACKAGE_NAME
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/${{ steps.pkg.outputs.name }}
           docker build -t $IMAGE_NAME:latest .
 
       - name: Push images
         env:
           REGISTRY: ${{ secrets.NEXUS_REGISTRY }}
         run: |
-          PACKAGE_NAME=$(cat package.json | yq '.name')
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$PACKAGE_NAME
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/${{ steps.pkg.outputs.name }}
           TAG=${GITHUB_REF#refs/tags/v}
 
           docker push $IMAGE_NAME:latest
@@ -49,10 +52,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PACKAGE_NAME=$(cat package.json | yq '.name')
           curl -X PATCH \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/$PACKAGE_NAME/visibility" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/${{ steps.pkg.outputs.name }}/visibility" \
             -d '{"visibility":"public"}'
 
   publish-helm-chart:
@@ -70,6 +73,11 @@ jobs:
         uses: azure/setup-helm@v4
         with:
           version: v3.14.0
+
+      - name: Extract chart name
+        id: pkg
+        run: |
+          echo "name=$(yq '.name' ./helm/Chart.yaml)" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GHCR
         run: |
@@ -93,17 +101,15 @@ jobs:
 
       - name: Push chart to GHCR
         run: |
+          CHART_NAME="${{ steps.pkg.outputs.name }}"
           CHART_VERSION="${GITHUB_REF#refs/tags/v}"
-          CHART_NAME=$(helm show chart ./helm | yq '.name')
-          helm push "${CHART_NAME}-${CHART_VERSION}.tgz" \
+          helm push "${CHART_NAME}-${VERSION}.tgz" \
             "oci://ghcr.io/${{ github.repository_owner }}/charts"
 
       - name: Make chart public
         run: |
-          CHART_NAME=$(helm show chart ./helm | yq '.name')
-
           curl -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/orgs/${{ github.repository_owner }}/packages/charts/$CHART_NAME/visibility" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/orgs/${{ github.repository_owner }}/packages/helm/${{ steps.pkg.outputs.name }}/visibility" \
             -d '{"visibility":"public"}'
