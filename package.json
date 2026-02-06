@@ -28,7 +28,7 @@
 		"test": "jest --coverage --forceExit --runInBand",
 		"test:prod": "npm run lint && npm run test -- --no-cache",
 		"test:watch": "jest --coverage --watch",
-		"version": "node scripts/update_helm_version.js",
+		"version": "node scripts/update_helm_version.js && git add helm/*",
 		"postversion": "git push --follow-tags"
 	},
 	"prettier": {
