@@ -1,30 +1,22 @@
-# The root domain name to use
 domain: company.local
 host: localhost
-
-# The type of environment to start. Set to `production` for production clusters, otherwise set to `dev`.
 environment: dev
-
-# Authentication config (JWT)
 auth:
-  audience: "{{ .Values.domain }}"
-  issuer: "api.{{ .Values.domain }}"
-  expiresIn: "1 hour"
-  secret: "{{ randAlphaNum 32 }}"
+  audience: '{{ .Values.domain }}'
+  issuer: api.{{ .Values.domain }}
+  expiresIn: 1 hour
+  secret: '{{ randAlphaNum 32 }}'
 cookies:
-  secret: "{{ randAlphaNum 32 }}"
+  secret: '{{ randAlphaNum 32 }}'
 sessions:
-  secret: "{{ randAlphaNum 32 }}"
-
+  secret: '{{ randAlphaNum 32 }}'
 common:
-  # The default storage class to use for perstent volume claims
   storageClass: default
   logs:
     level: info
-
 redis:
   create: true
-  url: "redis://db-redis-master"
+  url: redis://db-redis-master
   architecture: standalone
   auth:
     enabled: false
@@ -39,34 +31,31 @@ redis:
   networkPolicy:
     enabled: true
     allowExternal: false
-
 mongodb:
   create: false
-  url: mongodb+srv://rapidrests_db_user:zyeQ6iLBhnditNOr@petstore.6mgvsx4.mongodb.net/?appName=Petstore
+  url: >-
+    mongodb+srv://rapidrests_db_user:zyeQ6iLBhnditNOr@petstore.6mgvsx4.mongodb.net/?appName=Petstore
   architecture: standalone
-  fullnameOverride: "mongodb"
+  fullnameOverride: mongodb
   auth:
     enabled: false
     username: rapidrests_db_user
     password: zyeQ6iLBhnditNOr
-
 service:
   image:
     registry: ghcr.io
     repository: rapidrest/petstore_example
-    tag: v1.0.0
+    tag: 1.0.5-cjs
   replicas: 1
   mongodb:
     acl:
-      name: "access_control_lists"
-      host: ""
+      name: access_control_lists
+      host: ''
     mongo:
-      name: "petstore"
-      fullnameOverride: ""
-      host: ""
+      name: petstore
+      fullnameOverride: ''
+      host: ''
   config:
     logs: true
     metrics: true
     releaseNotes: true
-  # Override options to apply to the pod spec
-  # spec: {}

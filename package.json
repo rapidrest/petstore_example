@@ -1,6 +1,6 @@
 {
 	"name": "petstore",
-	"version": "1.0.4-cjs",
+	"version": "1.0.5-cjs",
 	"description": "An example NodeJS server that implements all features of ComposerJS.",
 	"repository": {
 		"type": "git",
