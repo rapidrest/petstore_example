@@ -30,7 +30,7 @@ jobs:
       - name: Build image
         run: |
           PACKAGE_NAME=$(cat package.json | yq '.name')
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/${{ PACKAGE_NAME }}
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$PACKAGE_NAME
           docker build -t $IMAGE_NAME:latest .
 
       - name: Push images
@@ -38,7 +38,7 @@ jobs:
           REGISTRY: ${{ secrets.NEXUS_REGISTRY }}
         run: |
           PACKAGE_NAME=$(cat package.json | yq '.name')
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/${{ PACKAGE_NAME }}
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$PACKAGE_NAME
           TAG=${GITHUB_REF#refs/tags/v}
 
           docker push $IMAGE_NAME:latest
@@ -52,7 +52,7 @@ jobs:
           PACKAGE_NAME=$(cat package.json | yq '.name')
           curl -X PATCH \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/${{ PACKAGE_NAME }}/visibility" \
+            "https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/$PACKAGE_NAME/visibility" \
             -d '{"visibility":"public"}'
 
   publish-helm-chart:
@@ -105,5 +105,5 @@ jobs:
           curl -X PATCH \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/orgs/${{ github.repository_owner }}/packages/charts/${CHART_NAME}/visibility" \
+            "https://api.github.com/orgs/${{ github.repository_owner }}/packages/charts/$CHART_NAME/visibility" \
             -d '{"visibility":"public"}'
