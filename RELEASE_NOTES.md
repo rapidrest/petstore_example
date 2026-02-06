@@ -2,7 +2,7 @@
 
 ## v1.0.0
 
-Implements the following RapidREST server features:
+Implements the following RapidREST features:
 
 * JWT authentication
 * MongoDB database support
@@ -16,3 +16,4 @@ Implements the following RapidREST server features:
  * Update
  * Update Property
 * 2nd Level Caching
+* Automatic OpenAPI Documentation
