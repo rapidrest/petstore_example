@@ -81,6 +81,20 @@ jobs:
           docker build -t ${{ github.event.repository.name }} . --no-cache
           docker rmi ${{ github.event.repository.name }}
 
+  test-helm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Run Lint
+        run: helm lint ./helm
+
   test-run:
     runs-on: ubuntu-latest
     container: 
