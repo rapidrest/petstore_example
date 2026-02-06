@@ -18,3 +18,4 @@ loggererror.log
 !.yarn/sdks
 !.yarn/versions
 **/.idea
+petstore-*.tgz

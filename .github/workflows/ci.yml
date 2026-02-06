@@ -2,22 +2,132 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - "**"
     tags:
-      - "*"
-  workflow_run:
-    workflows: ["build"]
-    types:
-      - completed
+      - "v*"
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: node:lts-bookworm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Cache node_modules, dist, docs
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            dist
+            docs
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn build
+
+      #- name: Build
+      #  run: yarn docs
+
+      - name: Lint
+        run: yarn lint
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    container:
+      image: node:lts-bookworm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run tests
+        run: yarn test
+
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit
+          path: junit.xml
+
+  test-docker-build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Docker build test
+        run: |
+          docker build -t ${{ github.event.repository.name }} . --no-cache
+          docker rmi ${{ github.event.repository.name }}
+
+  test-helm:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Run Lint
+        run: helm lint ./helm
+
+  test-run:
+    runs-on: ubuntu-latest
+    needs: test-docker-build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run test-run.sh
+        run: bash ./test-run.sh
+
+  validate:
+    runs-on: ubuntu-latest
+    needs: build
+    container:
+      image: node:lts-bookworm
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run validation script
+        run: |
+          set +e
+          bash ./validate.sh
+
   publish-docker-image:
     runs-on: ubuntu-latest
+    needs: test-run
+    if: startsWith(github.ref, 'refs/tags/v') && github.event.base_ref == 'refs/heads/master'
     permissions:
       contents: read
       packages: write
     environment: publish
-    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v4
 
@@ -60,11 +170,12 @@ jobs:
 
   publish-helm-chart:
     runs-on: ubuntu-latest
+    needs: test-run
+    if: startsWith(github.ref, 'refs/tags/v') && github.event.base_ref == 'refs/heads/master'
     permissions:
       contents: read
       packages: write
     environment: publish
-    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -103,7 +214,7 @@ jobs:
         run: |
           CHART_NAME="${{ steps.pkg.outputs.name }}"
           CHART_VERSION="${GITHUB_REF#refs/tags/v}"
-          helm push "./helm/${CHART_NAME}-${CHART_VERSION}.tgz" \
+          helm push "${CHART_NAME}-${CHART_VERSION}.tgz" \
             "oci://ghcr.io/${{ github.repository_owner }}/charts"
 
       - name: Make chart public
