@@ -72,8 +72,6 @@ jobs:
 
   test-docker-build:
     runs-on: ubuntu-latest
-    container:
-      image: docker:git
     steps:
       - uses: actions/checkout@v4
       - name: Docker build test
@@ -97,8 +95,6 @@ jobs:
 
   test-run:
     runs-on: ubuntu-latest
-    container: 
-      image: docker:latest
     needs: test-docker-build
     steps:
       - uses: actions/checkout@v4
