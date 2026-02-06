@@ -31,14 +31,22 @@ metadata:
 type: Opaque
 data:
   datastores__acl__database: {{ include "rrst.render" (dict "value" $.Values.service.mongodb.acl.name "context" $) | b64enc | quote }}
+  {{- if $.Values.mongodb.create }}
   datastores__acl__host: {{ include "rrst.render" (dict "value" $.Values.service.mongodb.acl.host "context" $) | default (printf "%s" $.Values.mongodb.fullnameOverride) | b64enc | quote }}
+  {{- end }}
   datastores__acl__type: {{ print "mongodb" | b64enc | quote }}
-  {{- if $.Values.service.mongodb.acl.url }}
+  {{- if $.Values.mongodb.url }}
+  datastores__acl__url: {{ (include "rrst.render" (dict "value" $.Values.mongodb.url "context" $) | b64enc | quote) }}
+  {{- else if $.Values.service.mongodb.acl.url }}
   datastores__acl__url: {{ (include "rrst.render" (dict "value" $.Values.service.mongodb.acl.url "context" $) | b64enc | quote) }}
   {{- end }}
-  datastores__mongo__database: {{ include "rrst.render" (dict "value" $.Values.mongodb.fullnameOverride "context" $) | b64enc | quote }}
+  datastores__mongo__database: {{ include "rrst.render" (dict "value" $.Values.service.mongodb.mongo.name "context" $) | b64enc | quote }}
+  {{- if $.Values.mongodb.create }}
   datastores__mongo__host: {{ include "rrst.render" (dict "value" $.Values.service.mongodb.mongo.host "context" $) | default (printf "%s" $.Values.mongodb.fullnameOverride) | b64enc | quote }}
+  {{- end }}
   datastores__mongo__type: {{ print "mongodb" | b64enc | quote }}
-  {{- if $.Values.service.mongodb.mongo.url }}
+  {{- if $.Values.mongodb.url }}
+  datastores__mongo__url: {{ include "rrst.render" (dict "value" $.Values.mongodb.url "context" $) | b64enc | quote }}
+  {{- else if $.Values.service.mongodb.mongo.url }}
   datastores__mongo__url: {{ include "rrst.render" (dict "value" $.Values.service.mongodb.mongo.url "context" $) | b64enc | quote }}
   {{- end }}

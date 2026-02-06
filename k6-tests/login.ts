@@ -13,7 +13,7 @@ export const options = {
 export function login(url: string, username: string, password: string) {
   const headers = {
     'Content-Type': "application/json",
-    'Authorization': `basic ${encoding.b64encode(`${username + Math.ceil(Math.random() * 10)}:${password}`)}`
+    'Authorization': `basic ${encoding.b64encode(`${username}:${password}`)}`
   };
   const res = http.get(url + "/user/login", { headers });
   check(res, { "status is 2XX": (res) => res.status >= 200 && res.status < 300 });
@@ -27,5 +27,5 @@ export function login(url: string, username: string, password: string) {
 }
 
 export default function() {
-  login(options.url, options.username, options.password);
+  login(options.url, options.username + Math.ceil(Math.random() * 10), options.password);
 }

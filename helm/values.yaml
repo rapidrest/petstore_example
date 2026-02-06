@@ -25,6 +25,7 @@ common:
 redis:
   create: true
   url: "redis://db-redis-master"
+  architecture: standalone
   auth:
     enabled: false
   fullnameOverride: db-redis
@@ -40,11 +41,14 @@ redis:
     allowExternal: false
 
 mongodb:
-  create: true
+  create: false
+  url: mongodb+srv://rapidrests_db_user:zyeQ6iLBhnditNOr@petstore.6mgvsx4.mongodb.net/?appName=Petstore
   architecture: standalone
   fullnameOverride: "mongodb"
   auth:
     enabled: false
+    username: rapidrests_db_user
+    password: zyeQ6iLBhnditNOr
 
 service:
   image: "ghcr.io/rapidrest/petstore_example"
