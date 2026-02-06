@@ -1,0 +1,66 @@
+# The root domain name to use
+domain: company.local
+host: localhost
+
+# The type of environment to start. Set to `production` for production clusters, otherwise set to `dev`.
+environment: dev
+
+# Authentication config (JWT)
+auth:
+  audience: "{{ .Values.domain }}"
+  issuer: "api.{{ .Values.domain }}"
+  expiresIn: "1 hour"
+  secret: "{{ randAlphaNum 32 }}"
+cookies:
+  secret: "{{ randAlphaNum 32 }}"
+sessions:
+  secret: "{{ randAlphaNum 32 }}"
+
+common:
+  # The default storage class to use for perstent volume claims
+  storageClass: default
+  logs:
+    level: info
+
+redis:
+  create: true
+  url: "redis://db-redis-master"
+  auth:
+    enabled: false
+  fullnameOverride: db-redis
+  usePassword: false
+  master:
+    persistence:
+      enabled: false
+  replica:
+    persistence:
+      enabled: false
+  networkPolicy:
+    enabled: true
+    allowExternal: false
+
+mongodb:
+  create: true
+  architecture: standalone
+  fullnameOverride: "mongodb"
+  auth:
+    enabled: false
+
+service:
+  image: "ghcr.io/rapidrest/petstore_example"
+  version: v1.0.0-cjs
+  replicas: 1
+  mongodb:
+    acl:
+      name: "access_control_lists"
+      host: ""
+    mongo:
+      name: "petstore"
+      fullnameOverride: ""
+      host: ""
+  config:
+    logs: true
+    metrics: true
+    releaseNotes: true
+  # Override options to apply to the pod spec
+  # spec: {}
