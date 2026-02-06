@@ -77,6 +77,10 @@ jobs:
             --username "${{ github.actor }}" \
             --password-stdin
 
+      - name: Add helm repos
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+
       - name: Update dependencies
         run: |
           helm dep up ./helm
