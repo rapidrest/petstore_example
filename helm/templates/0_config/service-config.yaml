@@ -6,9 +6,6 @@ metadata:
 data:
   cookie_secret: {{ tpl $.Values.cookies.secret . | quote }}
   session__secret: {{ tpl $.Values.sessions.secret . | quote }}
-  licensing__auth__options__algorithm: "ES384"
-  licensing__auth__options__audience: "rapidrest.dev"
-  licensing__auth__options__issuer: "api.rapidrest.dev"
   NODE_ENV: "{{ $.Values.environment }}"
   {{- $corsHosts := list "http://localhost:3000" $.Values.host }}
   cors__origins: {{ $corsHosts | toJson | quote }}

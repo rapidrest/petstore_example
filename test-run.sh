@@ -1,5 +1,5 @@
 #!/bin/bash
-docker compose -f ./docker-compose.test.yml up -d --build
+docker compose up -d --build
 startTime=`date +%s`
 
 status=`docker compose ps | grep server-1 | grep 'Up' | grep '(healthy)' | wc -l`
