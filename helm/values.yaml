@@ -15,7 +15,8 @@ common:
   logs:
     level: info
 ingress:
-  disable_hsts: false
+  hsts: true
+  tls: true
 redis:
   create: true
   url: redis://db-redis-master
