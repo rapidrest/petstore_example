@@ -14,6 +14,8 @@ common:
   storageClass: default
   logs:
     level: info
+ingress:
+  disable_hsts: false
 redis:
   create: true
   url: redis://db-redis-master
