@@ -3,14 +3,8 @@ kind: Ingress
 metadata:
   name: api-ingress
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    spec.ingressClassName: "nginx"
-    nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/proxy-body-size: "50g"
-    nginx.ingress.kubernetes.io/proxy-buffering: "on"
-    nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
     {{- if $.Values.ingress.tls }}
+    cert-manager.io/cluster-issuer: letsencrypt-prod
     {{- if or (not .Values.ingress.hsts) (contains .Values.domain ".local") }}
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/configuration-snippet: |
@@ -19,7 +13,13 @@ metadata:
       }
     {{- end }}
     {{- end }}
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/proxy-body-size: "50g"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
 spec:
+  ingressClassName: "nginx"
   {{- if $.Values.ingress.tls }}
   tls:
   - hosts:
@@ -27,9 +27,6 @@ spec:
     {{- if not (contains ".local" $.Values.domain) }}
     secretName: {{ $.Values.host }}-tls-cert
     {{- end }}
-  {{- else }}
-  hosts:
-  - {{ $.Values.host | quote }}
   {{- end }}
   rules:
   - host: {{ $.Values.host| quote }}
