@@ -12,4 +12,4 @@ spec:
       name: nodejs
       protocol: TCP
   selector:
-    app: petstore
+    app.kubernetes.io/instance: petstore-services
