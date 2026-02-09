@@ -4,18 +4,18 @@ kind: Deployment
 metadata:
   name: petstore-services
   labels:
-    app: petstore-services
+    app: petstore
     app.kubernetes.io/instance: petstore-services
     environment: {{ $.Values.environment }}
 spec:
   replicas: {{ $.Values.service.replicas }}
   selector:
     matchLabels:
-      app.kubernetes.io/instance: petstore-services
+      app: petstore
   template:
     metadata:
       labels:
-        app: petstore-services
+        app: petstore
         app.kubernetes.io/instance: petstore-services
         environment: {{ $.Values.environment }}
       annotations:

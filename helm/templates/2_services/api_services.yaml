@@ -4,7 +4,7 @@ kind: Service
 metadata:
   name: petstore-services
   labels:
-    app: petstore-services
+    app: petstore
     app.kubernetes.io/instance: petstore-services
 spec:
   ports:
@@ -13,4 +13,4 @@ spec:
       name: nodejs
       protocol: TCP
   selector:
-    app: petstore-services
+    app: petstore
