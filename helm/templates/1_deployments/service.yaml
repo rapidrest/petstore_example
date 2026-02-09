@@ -5,6 +5,7 @@ metadata:
   name: petstore-services
   labels:
     app: petstore-services
+    app.kubernetes.io/instance: petstore-services
     environment: {{ $.Values.environment }}
 spec:
   replicas: {{ $.Values.service.replicas }}
@@ -14,6 +15,7 @@ spec:
   template:
     metadata:
       labels:
+        app: petstore-services
         app.kubernetes.io/instance: petstore-services
         environment: {{ $.Values.environment }}
       annotations:
