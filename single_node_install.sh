@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 HOSTNAME=`hostname`
 IS_WSL=false
@@ -7,6 +7,12 @@ TLS=true
 VERSION="1.0.23-cjs"
 UNINSTALL=false
 SKIP_K3S=false
+# Internal vars
+total_steps=9
+current=0
+current_step=""
+previous_step=""
+running=true
 
 # Shared functions
 function addHelmRepo() {
@@ -18,6 +24,39 @@ function addHelmRepo() {
       helm repo add $REPO_NAME $REPO_URL
     fi
 }
+
+function draw_progress() {
+    local width=60
+    local filled=$(( width * current / total_steps ))
+    local empty=$(( width - filled ))
+
+    echo -ne "\033[1A\r"
+    printf "%s [%d/%d][%s%s]\n" \
+        "$current_step" \
+        "$current" "$total_steps" \
+        "$(printf '%*s' "$filled" | tr ' ' '=')" \
+        "$(printf '%*s' "$empty" | tr ' ' ' ')"
+}
+
+# Background refresher
+function progress_loop() {
+    echo
+    while $running; do
+        draw_progress
+        sleep 0.1
+    done
+    draw_progress
+}
+
+function run_step() {
+    previous_step=$current_step
+    current_step="$1"
+    if [[ $previous_step != "" ]]; then
+      echo "$previous_step: Complete"
+    fi
+    ((current++))
+}
+
 
 function uninstall() {
   echo "Restoring nginx.conf..."
@@ -76,26 +115,13 @@ do
         *) break;;
     esac
 done
-if ! command -v kubectl &> /dev/null
-then
-    if command -v snap >/dev/null 2>&1; then
-      sudo snap install --classic kubectl
-    else
-      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl";
-    fi
-fi
-if [[ "$KUBECONFIG" != "" ]]
-then
-  echo "KUBECONFIG currently defined as $KUBECONFIG, would you like to use this config or clear it?"
-  select choice in "Use" "Clear"; do
-    case $choice in
-        Use ) break;;
-        Clear ) unset KUBECONFIG; break;;
-    esac
-  done
-fi
+
+# Start background progress bar
+progress_loop &
+progress_pid=$!
 
 # Detect the OS distribution and set the correct package manager
+run_step "Updating system packages"
 if [[ -e /etc/redhat-release ]]; then
   echo "Detected RHEL based operating system."
   PMCMD="dnf"
@@ -117,16 +143,34 @@ else
   fi
 fi
 
+run_step "Installing kubectl"
+if ! command -v kubectl &> /dev/null
+then
+    if command -v snap >/dev/null 2>&1; then
+      sudo snap install --classic kubectl
+    else
+      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl";
+    fi
+fi
+if [[ "$KUBECONFIG" != "" ]]
+then
+  echo "KUBECONFIG currently defined as $KUBECONFIG, would you like to use this config or clear it?"
+  select choice in "Use" "Clear"; do
+    case $choice in
+        Use ) break;;
+        Clear ) unset KUBECONFIG; break;;
+    esac
+  done
+fi
+
 # For WSL check for another installation
+run_step "Installing kubernetes (k3s)"
 if [[ "$IS_WSL" = "true" ]]
 then
   if [[ `kubectl get nodes| grep ' Ready '| wc -l` -eq 1 ]]
   then
     SKIP_K3S=true
     echo "Skipping installation of k3s"
-  else
-    echo "Installing metrics server"
-    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
   fi
 fi
 
@@ -194,11 +238,15 @@ then
   fi # Check k8s is installed
 fi
 
+# Install metrics-server
+run_step "Installing metrics server"
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
 # Install Helm
+run_step "Installing helm"
 if [[ `helm version` ]]; then
   echo "helm is already installed."
 else
-  echo "Installing helm..."
   if command -v snap >/dev/null 2>&1; then
     snap install --classic kubectl
   else
@@ -211,7 +259,7 @@ else
 fi
 
 # Install ingress-nginx
-echo "Installing ingress-nginx..."
+run_step "Installing ingress-nginx"
 addHelmRepo ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 helm upgrade --install nginx ingress-nginx/ingress-nginx \
@@ -239,6 +287,7 @@ else
 fi
 
 # Set up nginx reverse proxy
+run_step "Installing nginx reverse proxy"
 if [[ -e /etc/redhat-release ]]; then
   if [ ! `dnf list installed | grep nginx` ]; then
     echo "Installing nginx for reverse proxy..."
@@ -305,7 +354,7 @@ echo "Reverse proxy is setup."
 if [[ "$TLS" = "true" ]]
 then
 # Install cert-manager
-echo "Installing cert-manager..."
+run_step "Installing cert-manager"
 addHelmRepo jetstack https://charts.jetstack.io
 helm repo update
 helm upgrade --install cert-manager jetstack/cert-manager \
@@ -347,15 +396,21 @@ spec:
 EOF
 fi
 
+run_step "Installing petstore"
 # Add Bitnami helm repo
 addHelmRepo bitnami https://charts.bitnami.com/bitnami
 helm repo up
 
 helm upgrade --install --create-namespace --namespace $NAMESPACE $NAMESPACE oci://ghcr.io/rapidrest/charts/petstore --version $VERSION --set domain=$DOMAIN --set host=$DOMAIN --set ingress.tls=$TLS
 
+# Stop background loop
+running=false
+wait "$progress_pid"
+
+echo "Installation complete."
+
 if [[ $DOMAIN =~ .*.local ]]
 then
-  echo "Petstore installation complete."
   echo "Please update the hosts file to resolve the following:"
   echo -e "\t $DOMAIN"
 fi
