@@ -143,21 +143,19 @@ if [[ -e /etc/redhat-release ]]; then
   echo "Detected RHEL based operating system."
   PMCMD="dnf"
   sudo dnf check-update
+elif [[ $(grep -i Microsoft /proc/version) ]]; then
+  echo "Bash is running on WSL"
+  PMCMD="apt"
+  sudo apt -qq update
+  IS_WSL=true
+# Check if /etc/debian_version exists
+elif [[ -e /etc/debian_version ]]; then
+  echo "Detected Debian/Ubuntu based operating system."
+  PMCMD="apt-get"
+  sudo apt-get update
 else
-  if [[ $(grep -i Microsoft /proc/version) ]]; then
-    echo "Bash is running on WSL"
-    PMCMD="apt"
-    sudo apt -qq update
-    IS_WSL=true
-  # Check if /etc/debian_version exists
-  elif [[ -e /etc/debian_version ]]; then
-    echo "Detected Debian/Ubuntu based operating system."
-    PMCMD="apt-get"
-    sudo apt-get update
-  else
-    echo "Unable to determine Linux distribution."
-    exit 1
-  fi
+  echo "Unable to determine Linux distribution."
+  exit 1
 fi
 
 run_step "Installing kubectl"
