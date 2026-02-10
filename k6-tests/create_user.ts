@@ -5,7 +5,10 @@ import { uuidv4 } from './uuid.ts';
 export const options = {
   vus: 100,
   duration: '30s',
-  url: 'http://localhost:3000'
+};
+
+export const config = {
+  url: __ENV.url || 'http://localhost:3000'
 };
 
 export function createUser(url: string) {
@@ -27,5 +30,5 @@ export function createUser(url: string) {
 }
 
 export default function() {
-  createUser(options.url);
+  createUser(config.url);
 }

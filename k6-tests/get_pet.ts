@@ -3,9 +3,12 @@ import { check } from 'k6';
 
 export const options = {
   vus: 100,
-  duration: '30s',
-  url: 'http://localhost:3000',
-  id: "snowball"
+  duration: '30s'
+};
+
+export const config = {
+  url: __ENV.url || 'http://localhost:3000',
+  id: __ENV.id || "snowball"
 };
 
 export function getPet(url: string, id: string) {
@@ -20,5 +23,5 @@ export function getPet(url: string, id: string) {
 }
 
 export default function() {
-  getPet(options.url, options.id);
+  getPet(config.url, config.id);
 }

@@ -4,10 +4,13 @@ import { check } from 'k6';
 
 export const options = {
   vus: 100,
-  duration: '30s',
-  url: 'http://localhost:3000',
-  username: "test_user",
-  password: "password"
+  duration: '30s'
+};
+
+export const config = {
+  url: __ENV.url || 'http://localhost:3000',
+  username: __ENV.username || "test_user",
+  password: __ENV.password || "password"
 };
 
 export function login(url: string, username: string, password: string) {
@@ -27,5 +30,5 @@ export function login(url: string, username: string, password: string) {
 }
 
 export default function() {
-  login(options.url, options.username + Math.ceil(Math.random() * 10), options.password);
+  login(config.url, config.username + Math.ceil(Math.random() * 10), config.password);
 }

@@ -4,10 +4,13 @@ import { check } from 'k6';
 export const options = {
   vus: 100,
   duration: '30s',
-  url: 'http://localhost:3000'
+};
+
+export const config = {
+  url: __ENV.url || 'http://localhost:3000'
 };
 
 export default function() {
-  const res = http.get(options.url + "/openapi.yaml");
+  const res = http.get(config.url + "/openapi.yaml");
   check(res, { "status is 200": (res) => res.status === 200 });
 }

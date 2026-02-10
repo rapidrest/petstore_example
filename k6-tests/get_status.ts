@@ -3,11 +3,14 @@ import { check } from 'k6';
 
 export const options = {
   vus: 100,
-  duration: '30s',
-  url: 'http://localhost:3000'
+  duration: '30s'
+};
+
+export const config = {
+  url: __ENV.url || 'http://localhost:3000'
 };
 
 export default function() {
-  const res = http.get(options.url + "/status");
+  const res = http.get(config.url + "/status");
   check(res, { "status is 200": (res) => res.status === 200 });
 }

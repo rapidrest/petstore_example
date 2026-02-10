@@ -7,10 +7,13 @@ import { uuidv4 } from './uuid.ts';
 export const options = {
   vus: 100,
   duration: '30s',
-  url: 'http://localhost:3000',
-  username: "test_user",
-  password: "password",
-  petId: "snowball"
+};
+
+export const config = {
+  url: __ENV.url || 'http://localhost:3000',
+  username: __ENV.username || "test_user",
+  password: __ENV.password || "password",
+  petId: __ENV.petid || "snowball"
 };
 
 export function createOrder(url: string, token: string, petId: string, quantity: number) {
@@ -36,6 +39,6 @@ export function createOrder(url: string, token: string, petId: string, quantity:
 }
 
 export default function() {
-  const token = login(options.url, options.username, options.password);
-  createOrder(options.url, token, options.petId, 1);
+  const token = login(config.url, config.username, config.password);
+  createOrder(config.url, token, config.petId, 1);
 }
