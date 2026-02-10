@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -e
-set -x
 HOSTNAME=`hostname`
 IS_WSL=false
 DOMAIN="cluster.local"
@@ -17,25 +16,25 @@ running=true
 
 # Shared functions
 function addHelmRepo() {
-    REPO_NAME=$1
-    REPO_URL=$2
-    if [[ `helm repo list|grep percona | wc -l` -eq 0 ]]; then
-      echo "Adding helm repo $REPO_NAME - $REPO_URL"
-      helm repo add $REPO_NAME $REPO_URL
-    fi
+  REPO_NAME=$1
+  REPO_URL=$2
+  if [[ `helm repo list|grep percona | wc -l` -eq 0 ]]; then
+    echo "Adding helm repo $REPO_NAME - $REPO_URL"
+    helm repo add $REPO_NAME $REPO_URL
+  fi
 }
 
 function draw_progress() {
-    local width=60
-    local filled=$(( width * current / total_steps ))
-    local empty=$(( width - filled ))
+  local width=60
+  local filled=$(( width * current / total_steps ))
+  local empty=$(( width - filled ))
 
-    echo -ne "\033[1A\r"
-    printf "%s [%d/%d][%s%s]\n" \
-        "$current_step" \
-        "$current" "$total_steps" \
-        "$(printf '%*s' "$filled" | tr ' ' '=')" \
-        "$(printf '%*s' "$empty" | tr ' ' ' ')"
+  echo -ne "\033[1A\r"
+  printf "%s [%d/%d][%s%s]\n" \
+      "$current_step" \
+      "$current" "$total_steps" \
+      "$(printf '%*s' "$filled" | tr ' ' '=')" \
+      "$(printf '%*s' "$empty" | tr ' ' ' ')"
 }
 
 # Background refresher
@@ -54,20 +53,20 @@ function progress_loop() {
 }
 
 function run_step() {
-    previous_step=$current_step
-    current_step="$1"
-    if [[ $previous_step != "" ]]; then
-      echo "$previous_step: Complete"
-    fi
-    ((current++))
+  previous_step=$current_step
+  current_step="$1"
+  if [[ "$previous_step" != "" ]]; then
+    echo "$previous_step: Complete"
+  fi
+  current=$current+1
 }
 
-cleanup() {
-    running=false
-    if [[ -n "$progress_pid" ]] && kill -0 "$progress_pid" 2>/dev/null; then
-        kill "$progress_pid" 2>/dev/null
-        wait "$progress_pid" 2>/dev/null
-    fi
+function cleanup() {
+  running=false
+  if [[ -n "$progress_pid" ]] && kill -0 "$progress_pid" 2>/dev/null; then
+      kill "$progress_pid" 2>/dev/null
+      wait "$progress_pid" 2>/dev/null
+  fi
 }
 
 function uninstall() {
