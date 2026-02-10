@@ -25,7 +25,7 @@ function uninstall() {
   echo "Removing nginx..."
   sudo apt-get remove nginx -y
   echo "Removing helm..."
-  if [[ `command -v snap >/dev/null 2>&1` ]]; then
+  if command -v snap >/dev/null 2>&1; then
     sudo snap remove helm
   else
     echo "Unable to remove helm. Please uninstall manually."
@@ -33,7 +33,7 @@ function uninstall() {
   echo "Removing k3s..."
   sudo /usr/local/bin/k3s-uninstall.sh
   echo "Removing kubectl..."
-  if [[ `command -v snap >/dev/null 2>&1` ]]; then
+  if command -v snap >/dev/null 2>&1; then
     sudo snap remove kubectl
   else
     echo "Unable to remove kubectl. Please uninstall manually."
@@ -78,7 +78,7 @@ do
 done
 if ! command -v kubectl &> /dev/null
 then
-    if [[ `command -v snap >/dev/null 2>&1` ]]; then
+    if command -v snap >/dev/null 2>&1; then
       sudo snap install --classic kubectl
     else
       curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl";
@@ -199,7 +199,7 @@ if [[ `helm version` ]]; then
   echo "helm is already installed."
 else
   echo "Installing helm..."
-  if [[ `command -v snap >/dev/null 2>&1` ]]; then
+  if command -v snap >/dev/null 2>&1; then
     snap install --classic kubectl
   else
     curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | sudo bash
