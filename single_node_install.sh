@@ -57,6 +57,13 @@ function run_step() {
     ((current++))
 }
 
+cleanup() {
+    running=false
+    if [[ -n "$progress_pid" ]] && kill -0 "$progress_pid" 2>/dev/null; then
+        kill "$progress_pid" 2>/dev/null
+        wait "$progress_pid" 2>/dev/null
+    fi
+}
 
 function uninstall() {
   echo "Restoring nginx.conf..."
@@ -115,6 +122,9 @@ do
         *) break;;
     esac
 done
+
+# Catch Ctrl-C, kill, termination, normal exit
+trap cleanup EXIT INT TERM
 
 # Start background progress bar
 progress_loop &
