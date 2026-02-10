@@ -38,6 +38,21 @@ This project provides scripts for running in Docker or Kubernetes. For Docker, y
 in the project source. For Kubernetes, a *helm* chart is available both in the project source and via GitHub Container
 Registry (ghcr.io).
 
+### Docker Compose
+
+To run this project on docker you must use the included *docker-compose* scripts in the project source. Open up a new
+shell to the cloned folder and build the Docker image using `docker-compose`.
+
+```bash
+docker-compose build
+```
+
+You can now run the server with the following command.
+
+```bash
+docker-compose up
+```
+
 ### Kubernetes
 
 A complete Helm chart is included for convenience to deploy and run on a Kubernetes cluster. Deployment to Kubernetes
@@ -57,19 +72,14 @@ helm dep up ./helm
 helm install --create-namespace --namespace petstore petstore ./helm
 ```
 
-### Docker Compose
+#### Single Node Cluster
 
-To run this project on docker you must use the included *docker-compose* scripts in the project source. Open up a new
-shell to the cloned folder and build the Docker image using `docker-compose`.
-
-```bash
-docker-compose build
-```
-
-You can now run the server with the following command.
+If you would like to run the project in a single-node Kubernetes cluster, the `single_node_install.sh` script is a
+great way to get started. This script will automatically set up everything needed to run *petstore* in a Kubernetes
+environment, including ingress with TLS support. Simply run the script from any linux compatible machine.
 
 ```bash
-docker-compose up
+./single_node_install.sh
 ```
 
 ## Debugging
