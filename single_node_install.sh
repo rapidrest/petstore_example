@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+set -x
 HOSTNAME=`hostname`
 IS_WSL=false
 DOMAIN="cluster.local"
@@ -18,8 +19,7 @@ running=true
 function addHelmRepo() {
     REPO_NAME=$1
     REPO_URL=$2
-    if [[ `helm repo list|grep percona | wc -l` -eq 0 ]]
-    then
+    if [[ `helm repo list|grep percona | wc -l` -eq 0 ]]; then
       echo "Adding helm repo $REPO_NAME - $REPO_URL"
       helm repo add $REPO_NAME $REPO_URL
     fi
@@ -40,12 +40,17 @@ function draw_progress() {
 
 # Background refresher
 function progress_loop() {
-    echo
-    while $running; do
-        draw_progress
-        sleep 0.1
-    done
-    draw_progress
+  if [[ "$1" != "--bg" ]]; then
+      echo "ERROR: progress_loop must be run in background" >&2
+      exit 1
+  fi
+
+  echo
+  while $running; do
+      draw_progress
+      sleep 0.1
+  done
+  draw_progress
 }
 
 function run_step() {
@@ -126,8 +131,10 @@ done
 # Catch Ctrl-C, kill, termination, normal exit
 trap cleanup EXIT INT TERM
 
+echo "Starting..."
+
 # Start background progress bar
-progress_loop &
+progress_loop --bg &
 progress_pid=$!
 
 # Detect the OS distribution and set the correct package manager
@@ -154,16 +161,14 @@ else
 fi
 
 run_step "Installing kubectl"
-if ! command -v kubectl &> /dev/null
-then
+if ! command -v kubectl &> /dev/null; then
     if command -v snap >/dev/null 2>&1; then
       sudo snap install --classic kubectl
     else
       curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl";
     fi
 fi
-if [[ "$KUBECONFIG" != "" ]]
-then
+if [[ "$KUBECONFIG" != "" ]]; then
   echo "KUBECONFIG currently defined as $KUBECONFIG, would you like to use this config or clear it?"
   select choice in "Use" "Clear"; do
     case $choice in
@@ -175,19 +180,15 @@ fi
 
 # For WSL check for another installation
 run_step "Installing kubernetes (k3s)"
-if [[ "$IS_WSL" = "true" ]]
-then
-  if [[ `kubectl get nodes| grep ' Ready '| wc -l` -eq 1 ]]
-  then
+if [[ "$IS_WSL" = "true" ]]; then
+  if [[ `kubectl get nodes| grep ' Ready '| wc -l` -eq 1 ]]; then
     SKIP_K3S=true
     echo "Skipping installation of k3s"
   fi
 fi
 
-if [ "SKIP_K3S" = "false" ]
-then
-  if [[ `ps -aef|grep "docker serve"|grep -v grep|wc -l` -ne 0 ]]
-  then
+if [ "SKIP_K3S" = "false" ]; then
+  if [[ `ps -aef|grep "docker serve"|grep -v grep|wc -l` -ne 0 ]]; then
     echo "Docker appears to be running and will cause issues with k3s"
     ps -aef|grep "docker serve"|grep -v grep
     exit 1
@@ -203,8 +204,7 @@ then
       echo "There was a problem installing k3s."
       exit 1
     fi
-    if [[ `grep "export KUBECONFIG=$KUBECONFIG" ~/.bashrc |wc -l` -eq 0 ]]
-    then
+    if [[ `grep "export KUBECONFIG=$KUBECONFIG" ~/.bashrc |wc -l` -eq 0 ]]; then
       echo "export KUBECONFIG=$KUBECONFIG" >> ~/.bashrc
     fi
 
@@ -334,8 +334,7 @@ stream {
     }
 }
 EOF'
-  if [[ -f /etc/nginx/sites-enabled/default ]]
-  then
+  if [[ -f /etc/nginx/sites-enabled/default ]]; then
     sudo rm /etc/nginx/sites-enabled/default
   fi
   sudo systemctl restart nginx
@@ -361,34 +360,33 @@ EOF'
 fi
 echo "Reverse proxy is setup."
 
-if [[ "$TLS" = "true" ]]
-then
-# Install cert-manager
-run_step "Installing cert-manager"
-addHelmRepo jetstack https://charts.jetstack.io
-helm repo update
-helm upgrade --install cert-manager jetstack/cert-manager \
-    --namespace cert-manager \
-    --create-namespace \
-    --set crds.enabled=true \
-    --set ingressShim.defaultIssuerName=letsencrypt-prod \
-    --set ingressShim.defaultIssuerKind=ClusterIssuer
-echo "Checking cert-manager has started..."
-result=`kubectl -n cert-manager get pods | grep -v 'Running' | wc -l`
-startTime=`date +%s`
-while [[ $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
-  sleep 2
-  echo "Waiting for cert-manager to start..."
+if [[ "$TLS" = "true" ]]; then
+  # Install cert-manager
+  run_step "Installing cert-manager"
+  addHelmRepo jetstack https://charts.jetstack.io
+  helm repo update
+  helm upgrade --install cert-manager jetstack/cert-manager \
+      --namespace cert-manager \
+      --create-namespace \
+      --set crds.enabled=true \
+      --set ingressShim.defaultIssuerName=letsencrypt-prod \
+      --set ingressShim.defaultIssuerKind=ClusterIssuer
+  echo "Checking cert-manager has started..."
   result=`kubectl -n cert-manager get pods | grep -v 'Running' | wc -l`
-done
-if [ $result -ne 1 ]; then
-  echo "There was a problem installing cert-manager..."
-  exit 1
-else
-  echo "cert-manager is running!"
-fi
+  startTime=`date +%s`
+  while [[ $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
+    sleep 2
+    echo "Waiting for cert-manager to start..."
+    result=`kubectl -n cert-manager get pods | grep -v 'Running' | wc -l`
+  done
+  if [ $result -ne 1 ]; then
+    echo "There was a problem installing cert-manager..."
+    exit 1
+  else
+    echo "cert-manager is running!"
+  fi
 
-cat << EOF | kubectl apply -f -
+  cat << EOF | kubectl apply -f -
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -419,8 +417,7 @@ wait "$progress_pid"
 
 echo "Installation complete."
 
-if [[ $DOMAIN =~ .*.local ]]
-then
+if [[ $DOMAIN =~ .*.local ]]; then
   echo "Please update the hosts file to resolve the following:"
   echo -e "\t $DOMAIN"
 fi
