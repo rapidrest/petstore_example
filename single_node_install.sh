@@ -8,10 +8,13 @@ VERSION="1.0.23-cjs"
 UNINSTALL=false
 SKIP_K3S=false
 # Internal vars
+LINES=$(tput lines)
+COLS=$(tput cols)
 total_steps=9
 current=0
-current_step=""
+current_step="Initializing..."
 previous_step=""
+progress_line=""
 running=true
 
 # Shared functions
@@ -25,16 +28,28 @@ function addHelmRepo() {
 }
 
 function draw_progress() {
-  local width=60
-  local filled=$(( width * current / total_steps ))
-  local empty=$(( width - filled ))
+  local template="$current_step... [$current/$total_steps]%s %d%% "
+  local template_length=${#template}
+  local bar_char='|'
+  local percent_done=$(( current * 100 / total_steps ))
+  local length=$(( COLS - template_length ))
+  local num_bars=$(( percent_done * length / 100 ))
 
-  echo -ne "\033[1A\r"
-  printf "%s [%d/%d][%s%s]\n" \
-      "$current_step" \
-      "$current" "$total_steps" \
-      "$(printf '%*s' "$filled" | tr ' ' '=')" \
-      "$(printf '%*s' "$empty" | tr ' ' ' ')"
+  local i
+  local s='['
+  for ((i = 0; i < num_bars; i++)); do
+    s+=$bar_char
+  done
+  for ((i = num_bars; i < length; i++)); do
+    s+=' '
+  done
+  s+=']'
+
+  printf '\e7' # save the cursor location
+  printf '\e[%d;%dH' "$LINES" 0 # move cursor to the bottom line
+  printf '\e[0K' # clear the line
+  printf "$template" "$s" "$percent_done" # print the progress bar
+  printf '\e8' # restore the cursor location
 }
 
 # Background refresher
@@ -47,7 +62,7 @@ function progress_loop() {
   echo
   while $running; do
       draw_progress
-      sleep 0.1
+      sleep 0.2
   done
   draw_progress
 }
@@ -56,9 +71,10 @@ function run_step() {
   previous_step=$current_step
   current_step="$1"
   if [[ "$previous_step" != "" ]]; then
-    echo "$previous_step: Complete"
+    echo "[$current/$total_steps] $previous_step... Done"
   fi
-  current=$current+1
+  current=$(( current + 1 ))
+  draw_progress
 }
 
 function cleanup() {
@@ -129,8 +145,6 @@ done
 
 # Catch Ctrl-C, kill, termination, normal exit
 trap cleanup EXIT INT TERM
-
-echo "Starting..."
 
 # Start background progress bar
 progress_loop --bg &
