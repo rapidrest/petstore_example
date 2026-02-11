@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+# set -e
 HOSTNAME=`hostname`
 IS_WSL=false
 DOMAIN="cluster.local"
@@ -10,7 +10,7 @@ SKIP_K3S=false
 # Internal vars
 LINES=$(tput lines)
 COLS=$(tput cols)
-total_steps=9
+total_steps=8
 current=0
 current_step="Initializing..."
 previous_step=""
@@ -28,10 +28,14 @@ function addHelmRepo() {
 }
 
 function draw_progress() {
-  local template="$current_step... [$current/$total_steps]%s %d%% "
+  local cur="$current"
+  local step="$current_step"
+  local current_step_length=${#step}
+  local template="%s... [%d/%d]%s %d%% "
   local template_length=${#template}
+  template_length=$(( template_length + current_step_length ))
   local bar_char='|'
-  local percent_done=$(( current * 100 / total_steps ))
+  local percent_done=$(( cur * 100 / total_steps ))
   local length=$(( COLS - template_length ))
   local num_bars=$(( percent_done * length / 100 ))
 
@@ -48,7 +52,11 @@ function draw_progress() {
   printf '\e7' # save the cursor location
   printf '\e[%d;%dH' "$LINES" 0 # move cursor to the bottom line
   printf '\e[0K' # clear the line
-  printf "$template" "$s" "$percent_done" # print the progress bar
+  if [[ $cur > 0 ]]; then
+    printf "$template" "$step" "$cur" "$total_steps" "$s" "$percent_done" # print the progress bar
+  else
+    printf ""
+  fi
   printf '\e8' # restore the cursor location
 }
 
@@ -64,14 +72,20 @@ function progress_loop() {
       draw_progress
       sleep 0.2
   done
-  draw_progress
 }
 
 function run_step() {
-  previous_step=$current_step
+  previous_step="$current_step"
   current_step="$1"
   if [[ "$previous_step" != "" ]]; then
-    echo "[$current/$total_steps] $previous_step... Done"
+    local step_length=${#previous_step}
+    local length=$(( COLS - step_length - 15 ))
+    local s=''
+    local i
+    for ((i = 0; i < length; i++)); do
+      s+=' '
+    done
+    printf "[%d/%d] %s...%s[\e[32mDone\e[0m]\n" "$current" "$total_steps" "$previous_step" "$s"
   fi
   current=$(( current + 1 ))
   draw_progress
@@ -147,8 +161,8 @@ done
 trap cleanup EXIT INT TERM
 
 # Start background progress bar
-progress_loop --bg &
-progress_pid=$!
+#progress_loop --bg &
+#progress_pid=$!
 
 # Detect the OS distribution and set the correct package manager
 run_step "Updating system packages"
@@ -227,7 +241,7 @@ if [ "SKIP_K3S" = "false" ]; then
     echo "Checking k3s has started..."
     result=`kubectl get nodes | grep ' Ready '| wc -l`
     startTime=`date +%s`
-    while [[ $result -eq 0 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
+    while [[ $running && $result -eq 0 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
       sleep 2
       echo "Waiting for k3s nodes to be ready..."
       result=`kubectl get nodes | grep ' Ready '| wc -l`
@@ -243,7 +257,7 @@ if [ "SKIP_K3S" = "false" ]; then
     echo "Checking calico has started..."
     result=`kubectl -n calico-system get pods | grep -v 'Running' | wc -l`
     startTime=`date +%s`
-    while [[ $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
+    while [[ $running && $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
       sleep 2
       echo "Waiting for calico-system to start..."
       result=`kubectl -n calico-system get pods | grep -v 'Running' | wc -l`
@@ -260,8 +274,8 @@ if [ "SKIP_K3S" = "false" ]; then
 fi
 
 # Install metrics-server
-run_step "Installing metrics server"
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+# run_step "Installing metrics server"
+# kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
 # Install Helm
 run_step "Installing helm"
@@ -295,7 +309,7 @@ helm upgrade --install nginx ingress-nginx/ingress-nginx \
 echo "Checking ingress-nginx has started..."
 result=`kubectl -n nginx get pods | grep -v 'Running' | wc -l`
 startTime=`date +%s`
-while [[ $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
+while [[ $running && $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
   sleep 2
   echo "Waiting for nginx-ingress to start..."
   result=`kubectl -n nginx get pods | grep -v 'Running' | wc -l`
@@ -356,7 +370,7 @@ EOF'
   sleep 10
   NGINX_READY=0
   startTime=`date +%s`
-  while [[ $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
+  while [[ $running && $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
     sleep 2
     echo "Waiting for nginx to start..."
     curl http://localhost
@@ -385,7 +399,7 @@ if [[ "$TLS" = "true" ]]; then
   echo "Checking cert-manager has started..."
   result=`kubectl -n cert-manager get pods | grep -v 'Running' | wc -l`
   startTime=`date +%s`
-  while [[ $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
+  while [[ $running && $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
     sleep 2
     echo "Waiting for cert-manager to start..."
     result=`kubectl -n cert-manager get pods | grep -v 'Running' | wc -l`
