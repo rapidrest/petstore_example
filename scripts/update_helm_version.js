@@ -16,7 +16,7 @@ fs.writeFileSync(valuesPath, yaml.dump(values), "utf8");
 const scriptRegex = /VERSION="\b\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?\b"/g;
 const scriptPath = path.join(__dirname, "..", "single_node_install.sh");
 const script = fs.readFileSync(scriptPath, { encoding: "utf-8" });
-let updated = script.replace(scriptRegex, version);
+let updated = script.replace(scriptRegex, `VERSION="${version}"`);
 fs.writeFileSync(scriptPath, updated, { encoding: "utf-8" });
 
 // Also update the example in the README with the correct tag
