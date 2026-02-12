@@ -121,7 +121,7 @@ function uninstall() {
   echo "Uninstall complete!"
 }
 
-GETOPT=$(getopt -o h --long domain,version,uninstall,install-cert-manager,skip-k3s,help -- "$@")
+GETOPT=$(getopt -o h --long domain:,version:,uninstall,install-cert-manager,skip-k3s,help -- "$@")
 eval set -- "$GETOPT"
 while true
 do
@@ -326,7 +326,7 @@ run_step "Installing nginx reverse proxy"
 if [[ -e /etc/redhat-release ]]; then
   if [ ! `dnf list installed | grep nginx` ]; then
     echo "Installing nginx for reverse proxy..."
-    sudo dnf install nginx -y
+    sudo dnf install nginx libnginx-mod-stream -y
     if [ $? -ne 0 ]; then
       echo "There was a problem installing nginx reverse proxy."
       exit 1
@@ -335,7 +335,7 @@ if [[ -e /etc/redhat-release ]]; then
 else
   if [[ ! `apt list --installed | grep nginx` ]]; then
     echo "Installing nginx for reverse proxy..."
-    sudo apt-get install nginx -y
+    sudo apt-get install nginx libnginx-mod-stream -y
     if [ $? -ne 0 ]; then
       echo "There was a problem installing nginx reverse proxy."
       exit 1

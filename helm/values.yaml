@@ -35,15 +35,14 @@ redis:
     enabled: true
     allowExternal: false
 mongodb:
-  create: false
-  url: >-
-    mongodb+srv://rapidrests_db_user:zyeQ6iLBhnditNOr@petstore.6mgvsx4.mongodb.net/?appName=Petstore
+  create: true
+  # url: <url>
   architecture: standalone
   fullnameOverride: mongodb
   auth:
     enabled: false
-    username: rapidrests_db_user
-    password: zyeQ6iLBhnditNOr
+    # username: <username>
+    # password: <password>
 service:
   image:
     registry: ghcr.io
