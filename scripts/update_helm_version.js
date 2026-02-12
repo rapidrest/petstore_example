@@ -13,7 +13,7 @@ values.service.image.tag = version;
 fs.writeFileSync(valuesPath, yaml.dump(values), "utf8");
 
 // Update the version in the single_node_install.sh script
-const scriptRegex = /VERSION="\b\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?\b"/g;
+const scriptRegex = /VERSION="?\b\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?\b"?/g;
 const scriptPath = path.join(__dirname, "..", "single_node_install.sh");
 const script = fs.readFileSync(scriptPath, { encoding: "utf-8" });
 let updated = script.replace(scriptRegex, `VERSION="${version}"`);
