@@ -32,7 +32,7 @@ git clone https://github.com/rapidrest/petstore_example.git
 | ------------ | :-------------------: |
 | Registry     | ghcr.io |
 | Repository   | /rapidrest/petstore |
-| Tag          | 1.0.25-cjs |
+| Tag          | 1.0.26-cjs |
 
 This project provides scripts for running in Docker or Kubernetes. For Docker, you will find *docker-compose* scripts
 in the project source. For Kubernetes, a *helm* chart is available both in the project source and via GitHub Container
@@ -61,7 +61,7 @@ is easy using either the published helm chart in GitHub or install from the helm
 #### From GHCR
 
 ```bash
-helm install --create-namespace --namespace petstore petstore oci://ghcr.io/rapidrest/charts/petstore --version 1.0.25-cjs
+helm install --create-namespace --namespace petstore petstore oci://ghcr.io/rapidrest/charts/petstore --version 1.0.26-cjs
 ```
 
 #### From Local
