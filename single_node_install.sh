@@ -336,6 +336,17 @@ spec:
       namespaces:
         from: All
 EOF
+result=`kubectl -n nginx-gateway get svc | grep -E '80:[0-9]{1,5}/TCP(443:[0-9]{1,5}/TCP)?' | wc -l`
+startTime=`date +%s`
+while [[ $running && $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
+  sleep 2
+  echo "Waiting for shared-gateway to be ready..."
+  result=`kubectl -n nginx-gateway get svc | grep -E '80:[0-9]{1,5}/TCP(443:[0-9]{1,5}/TCP)?' | wc -l`
+done
+if [ $result -ne 1 ]; then
+  echo "There was a problem setting up the shared-gateway..."
+  exit 1
+fi
 
 # Extract the HTTP and HTTPS ports bound to the shared gateway
 HTTP_PORT=`kubectl -n nginx-gateway get svc shared-gateway -o jsonpath='{.spec.ports[?(@.port==80)].nodePort}'`
@@ -408,13 +419,11 @@ echo "Reverse proxy is setup."
 if [[ "$TLS" = "true" ]]; then
   # Install cert-manager
   run_step "Installing cert-manager"
-  addHelmRepo jetstack https://charts.jetstack.io
-  helm repo update
-  helm upgrade --install cert-manager jetstack/cert-manager \
-      --namespace cert-manager \
-      --create-namespace \
-      --set crds.enabled=true \
-      --set featureGates="GatewayAPI=true"
+  kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/standard-install.yaml
+  helm upgrade --install cert-manager oci://quay.io/jetstack/charts/cert-manager --namespace cert-manager --create-namespace \
+    --set config.apiVersion="controller.config.cert-manager.io/v1alpha1" \
+    --set config.kind="ControllerConfiguration" \
+    --set config.enableGatewayAPI=true
   echo "Checking cert-manager has started..."
   result=`kubectl -n cert-manager get pods | grep -v 'Running' | wc -l`
   startTime=`date +%s`
@@ -434,17 +443,20 @@ if [[ "$TLS" = "true" ]]; then
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-    name: letsencrypt-prod
+  name: letsencrypt-prod
 spec:
-    acme:
-        server: https://acme-v02.api.letsencrypt.org/directory
-        email: admin@$HOSTNAME
-        privateKeySecretRef:
-            name: letsencrypt-prod
-        solvers:
-        - http01:
-            ingress:
-                class: nginx
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@$HOSTNAME
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - http01:
+      gatewayHTTPRoute:
+        parentRefs:
+          - name: shared-gateway
+            namespace: nginx-gateway
+            kind: Gateway
 EOF
 fi
 
