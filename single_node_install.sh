@@ -293,48 +293,11 @@ else
   fi
 fi
 
-# Install MetalLB
-echo "Installing MetalLB..."
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.5/config/manifests/metallb-native.yaml
-result=`kubectl -n metallb-system get pods | grep -v 'Running' | wc -l`
-startTime=`date +%s`
-while [[ $running && $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
-  sleep 2
-  echo "Waiting for metallb to start..."
-  result=`kubectl -n metallb-system get pods | grep -v 'Running' | wc -l`
-done
-if [ $result -ne 1 ]; then
-  echo "There was a problem installing metallb..."
-  exit 1
-else
-  echo "metallb is running!"
-fi
-cat << EOF | kubectl apply -f -
----
-apiVersion: metallb.io/v1beta1
-kind: IPAddressPool
-metadata:
-  name: internal-pool
-  namespace: metallb-system
-spec:
-  addresses:
-  - 192.168.42.10/32
----
-apiVersion: metallb.io/v1beta1
-kind: L2Advertisement
-metadata:
-  name: advert
-  namespace: metallb-system
-spec:
-  ipAddressPools:
-  - internal-pool
-EOF
-
 # Install nginx-gateway-fabric
 run_step "Installing nginx-gateway-fabric"
 kubectl kustomize "https://github.com/nginx/nginx-gateway-fabric/config/crd/gateway-api/standard?ref=v2.2.1" \
   | kubectl apply -f -
-helm install ngf oci://ghcr.io/nginx/charts/nginx-gateway-fabric --create-namespace -n nginx-gateway
+helm install ngf oci://ghcr.io/nginx/charts/nginx-gateway-fabric --create-namespace -n nginx-gateway --set nginx.service.type=NodePort
 echo "Checking nginx-gateway-fabric has started..."
 result=`kubectl -n nginx-gateway get pods | grep -v 'Running' | wc -l`
 startTime=`date +%s`
@@ -358,16 +321,16 @@ metadata:
   name: nginx-gateway-lb
   namespace: nginx-gateway
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app.kubernetes.io/name: nginx-gateway
   ports:
   - name: http
     port: 80
-    targetPort: 80
+    targetPort: 30080
   - name: https
     port: 443
-    targetPort: 443
+    targetPort: 30443
 EOF
 
 # Set up nginx reverse proxy
@@ -400,11 +363,11 @@ if [ `cat /etc/nginx/nginx.conf | grep "proxy_pass 127.0.0.1:30080" | wc -l` -eq
 stream {
     server {
         listen 80;
-        proxy_pass 192.168.42.10:80;
+        proxy_pass 127.0.0.1:30080;
     }
     server {
         listen 443;
-        proxy_pass 192.168.42.10:443;
+        proxy_pass 127.0.0.1:30443;
     }
 }
 EOF'
