@@ -293,33 +293,82 @@ else
   fi
 fi
 
-# Install ingress-nginx
-run_step "Installing ingress-nginx"
-addHelmRepo ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
-helm upgrade --install nginx ingress-nginx/ingress-nginx \
-    --namespace nginx \
-    --create-namespace \
-    --set rbac.create=true \
-    --set controller.service.externalTrafficPolicy=Local \
-    --set controller.service.nodePorts.http=30080 \
-    --set controller.service.nodePorts.https=30443 \
-    --set controller.service.type=NodePort \
-    --set-string controller.allowSnippetAnnotations=true,controller.config.use-forward-headers=true,controller.config.compute-full-forward-for=true,controller.config.ssl-protocols="TLSv1.2 TLSv1.3",controller.config.ssl-ciphers="ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384"
-echo "Checking ingress-nginx has started..."
-result=`kubectl -n nginx get pods | grep -v 'Running' | wc -l`
+# Install MetalLB
+echo "Installing MetalLB..."
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.5/config/manifests/metallb-native.yaml
+result=`kubectl -n metallb-system get pods | grep -v 'Running' | wc -l`
 startTime=`date +%s`
 while [[ $running && $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
   sleep 2
-  echo "Waiting for nginx-ingress to start..."
+  echo "Waiting for metallb to start..."
+  result=`kubectl -n metallb-system get pods | grep -v 'Running' | wc -l`
+done
+if [ $result -ne 1 ]; then
+  echo "There was a problem installing metallb..."
+  exit 1
+else
+  echo "metallb is running!"
+fi
+cat << EOF | kubectl apply -f -
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: internal-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.168.42.10/32
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: advert
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - internal-pool
+EOF
+
+# Install nginx-gateway-fabric
+run_step "Installing nginx-gateway-fabric"
+kubectl kustomize "https://github.com/nginx/nginx-gateway-fabric/config/crd/gateway-api/standard?ref=v2.2.1" \
+  | kubectl apply -f -
+helm install ngf oci://ghcr.io/nginx/charts/nginx-gateway-fabric --create-namespace -n nginx-gateway
+echo "Checking nginx-gateway-fabric has started..."
+result=`kubectl -n nginx-gateway get pods | grep -v 'Running' | wc -l`
+startTime=`date +%s`
+while [[ $running && $result -ne 1 && `expr \`date +%s\` - $startTime` -lt 1800 ]]; do
+  sleep 2
+  echo "Waiting for nginx-gateway-fabric to start..."
   result=`kubectl -n nginx get pods | grep -v 'Running' | wc -l`
 done
 if [ $result -ne 1 ]; then
-  echo "There was a problem installing ingress-nginx..."
+  echo "There was a problem installing nginx-gateway-fabric..."
   exit 1
 else
-  echo "ingress-nginx is running!"
+  echo "nginx-gateway-fabric is running!"
 fi
+
+# Configure the gateway for NodePort
+cat << EOF | kubectl apply -f -
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-gateway-lb
+  namespace: nginx-gateway
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: nginx-gateway
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
+EOF
 
 # Set up nginx reverse proxy
 run_step "Installing nginx reverse proxy"
@@ -351,11 +400,11 @@ if [ `cat /etc/nginx/nginx.conf | grep "proxy_pass 127.0.0.1:30080" | wc -l` -eq
 stream {
     server {
         listen 80;
-        proxy_pass 127.0.0.1:30080;
+        proxy_pass 192.168.42.10:80;
     }
     server {
         listen 443;
-        proxy_pass 127.0.0.1:30443;
+        proxy_pass 192.168.42.10:443;
     }
 }
 EOF'
@@ -434,7 +483,7 @@ run_step "Installing petstore"
 addHelmRepo bitnami https://charts.bitnami.com/bitnami
 helm repo up
 
-helm upgrade --install --create-namespace --namespace $NAMESPACE $NAMESPACE oci://ghcr.io/rapidrest/charts/petstore --version $VERSION --set domain=$DOMAIN --set host=$DOMAIN --set ingress.tls=$TLS
+helm upgrade --install --create-namespace --namespace $NAMESPACE $NAMESPACE oci://ghcr.io/rapidrest/charts/petstore --version $VERSION --set host=$DOMAIN --set gateway.tls=$TLS
 
 # Stop background loop
 running=false

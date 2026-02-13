@@ -1,4 +1,3 @@
-domain: company.local
 host: localhost
 environment: dev
 auth:
@@ -14,7 +13,7 @@ common:
   storageClass: default
   logs:
     level: info
-ingress:
+gateway:
   hsts: true
   tls: true
 redis:
