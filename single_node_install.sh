@@ -313,25 +313,33 @@ else
   echo "nginx-gateway-fabric is running!"
 fi
 
-# Configure the gateway for NodePort
+# Configure a single shared Gateway
 cat << EOF | kubectl apply -f -
-apiVersion: v1
-kind: Service
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
 metadata:
-  name: nginx-gateway-lb
+  name: shared-gateway
   namespace: nginx-gateway
 spec:
-  type: NodePort
-  selector:
-    app.kubernetes.io/name: nginx-gateway
-  ports:
+  gatewayClassName: nginx
+  listeners:
   - name: http
+    protocol: HTTP
     port: 80
-    targetPort: 30080
+    allowedRoutes:
+      namespaces:
+        from: All
   - name: https
+    protocol: HTTPS
     port: 443
-    targetPort: 30443
+    allowedRoutes:
+      namespaces:
+        from: All
 EOF
+
+# Extract the HTTP and HTTPS ports bound to the shared gateway
+HTTP_PORT=`kubectl -n nginx-gateway get svc shared-gateway -o jsonpath='{.spec.ports[?(@.port==80)].nodePort}'`
+HTTPS_PORT=`kubectl -n nginx-gateway get svc shared-gateway -o jsonpath='{.spec.ports[?(@.port==443)].nodePort}'`
 
 # Set up nginx reverse proxy
 run_step "Installing nginx reverse proxy"
@@ -358,19 +366,19 @@ if [ `cat /etc/nginx/nginx.conf | grep "proxy_pass 127.0.0.1:30080" | wc -l` -eq
   echo "Backing up nginx.conf..."
   sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
   echo "Writing nginx configuration..."
-  sudo bash -c 'cat << EOF >> /etc/nginx/nginx.conf
+  cat << EOF >> /etc/nginx/nginx.conf
 
 stream {
     server {
         listen 80;
-        proxy_pass 127.0.0.1:30080;
+        proxy_pass 127.0.0.1:$HTTP_PORT;
     }
     server {
         listen 443;
-        proxy_pass 127.0.0.1:30443;
+        proxy_pass 127.0.0.1:$HTTPS_PORT;
     }
 }
-EOF'
+EOF
   if [[ -f /etc/nginx/sites-enabled/default ]]; then
     sudo rm /etc/nginx/sites-enabled/default
   fi
@@ -406,8 +414,7 @@ if [[ "$TLS" = "true" ]]; then
       --namespace cert-manager \
       --create-namespace \
       --set crds.enabled=true \
-      --set ingressShim.defaultIssuerName=letsencrypt-prod \
-      --set ingressShim.defaultIssuerKind=ClusterIssuer
+      --set featureGates="GatewayAPI=true"
   echo "Checking cert-manager has started..."
   result=`kubectl -n cert-manager get pods | grep -v 'Running' | wc -l`
   startTime=`date +%s`
@@ -446,7 +453,9 @@ run_step "Installing petstore"
 addHelmRepo bitnami https://charts.bitnami.com/bitnami
 helm repo up
 
-helm upgrade --install --create-namespace --namespace $NAMESPACE $NAMESPACE oci://ghcr.io/rapidrest/charts/petstore --version $VERSION --set host=$DOMAIN --set gateway.tls=$TLS
+helm upgrade --install --create-namespace --namespace $NAMESPACE $NAMESPACE oci://ghcr.io/rapidrest/charts/petstore \
+  --version $VERSION --set host=$DOMAIN --set gateway.tls=$TLS --set gateway.hsts=$TLS \
+  --set gateway.name=shared-gateway --set gateway.namespace=nginx-gateway
 
 # Stop background loop
 running=false
