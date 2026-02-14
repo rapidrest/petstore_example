@@ -295,6 +295,7 @@ fi
 
 # Install nginx-gateway-fabric
 run_step "Installing nginx-gateway-fabric"
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/standard-install.yaml
 kubectl kustomize "https://github.com/nginx/nginx-gateway-fabric/config/crd/gateway-api/standard?ref=v2.2.1" \
   | kubectl apply -f -
 helm install ngf oci://ghcr.io/nginx/charts/nginx-gateway-fabric --create-namespace -n nginx-gateway --set nginx.service.type=NodePort
@@ -419,11 +420,12 @@ echo "Reverse proxy is setup."
 if [[ "$TLS" = "true" ]]; then
   # Install cert-manager
   run_step "Installing cert-manager"
-  kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/standard-install.yaml
+  
   helm upgrade --install cert-manager oci://quay.io/jetstack/charts/cert-manager --namespace cert-manager --create-namespace \
     --set config.apiVersion="controller.config.cert-manager.io/v1alpha1" \
     --set config.kind="ControllerConfiguration" \
-    --set config.enableGatewayAPI=true
+    --set config.enableGatewayAPI=true \
+    --set installCRDs=true
   echo "Checking cert-manager has started..."
   result=`kubectl -n cert-manager get pods | grep -v 'Running' | wc -l`
   startTime=`date +%s`
@@ -449,14 +451,14 @@ spec:
     server: https://acme-v02.api.letsencrypt.org/directory
     email: admin@$HOSTNAME
     privateKeySecretRef:
-      name: letsencrypt-prod
+      name: letsencrypt-issuer-key
     solvers:
     - http01:
-      gatewayHTTPRoute:
-        parentRefs:
-          - name: shared-gateway
-            namespace: nginx-gateway
-            kind: Gateway
+        gatewayHTTPRoute:
+          parentRefs:
+            - name: shared-gateway
+              namespace: nginx-gateway
+              kind: Gateway
 EOF
 fi
 
