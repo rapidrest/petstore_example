@@ -1,8 +1,8 @@
 host: localhost
 environment: dev
 auth:
-  audience: '{{ .Values.domain }}'
-  issuer: api.{{ .Values.domain }}
+  audience: '{{ .Values.host }}'
+  issuer: api.{{ .Values.host }}
   expiresIn: 1 hour
   secret: '{{ randAlphaNum 32 }}'
 cookies:
