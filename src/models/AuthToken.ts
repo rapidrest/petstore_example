@@ -20,7 +20,7 @@ export default class AuthToken {
 
     constructor(other?: any) {
         if (other) {
-            this.token = other.token !== undefined ? other.token : this.token;
+            this.token = "token" in other ? other.token : this.token;
         }
     }
 }

@@ -21,8 +21,8 @@ conf.defaults({
         options: {
             // "algorithm": "HS256",
             expiresIn: "1 hour",
-            audience: "company.local",
-            issuer: "api.company.local",
+            audience: "petstore-localdb.pando.cloud",
+            issuer: "api.petstore-localdb.pando.cloud",
         },
     },
     class_loader: {

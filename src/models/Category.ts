@@ -23,7 +23,7 @@ export default class Category extends SimpleEntity {
         super(other);
         
         if (other) {
-            this.name = other.name !== undefined ? other.name.trim() : this.name;
+            this.name = "name" in  other ? other.name.trim() : this.name;
         }
     }
 }

@@ -91,11 +91,11 @@ export default class Pet extends BaseMongoEntity {
         super(other);
         
         if (other) {
-            this.category = other.category !== undefined ? other.category : this.category;
-            this.name = other.name !== undefined ? other.name.trim() : this.name;
-            this.photoUrls = other.photoUrls !== undefined ? other.photoUrls : this.photoUrls;
-            this.tags = other.tags !== undefined ? other.tags : this.tags;
-            this.status = other.status !== undefined ? other.status : this.status;
+            this.category = "category" in other ? other.category : this.category;
+            this.name = "name" in other ? other.name.trim() : this.name;
+            this.photoUrls = "photoUrls" in other ? other.photoUrls : this.photoUrls;
+            this.tags = "tags" in other ? other.tags : this.tags;
+            this.status = "status" in other ? other.status : this.status;
         }
     }
 }

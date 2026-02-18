@@ -103,13 +103,13 @@ export default class User extends BaseMongoEntity {
         super(other);
         
         if (other) {
-            this.username = other.username !== undefined ? other.username.trim() : this.username;
-            this.firstName = other.firstName !== undefined ? other.firstName.trim() : this.firstName;
-            this.lastName = other.lastName !== undefined ? other.lastName.trim() : this.lastName;
-            this.email = other.email !== undefined ? other.email.trim() : this.email;
-            this.password = other.password !== undefined ? other.password.trim() : this.password;
-            this.phone = other.phone !== undefined ? other.phone.trim() : this.phone;
-            this.userStatus = other.userStatus !== undefined ? other.userStatus : this.userStatus;
+            this.username = "username" in other ? other.username.trim() : this.username;
+            this.firstName = "firstName" in other ? other.firstName.trim() : this.firstName;
+            this.lastName = "lastName" in other ? other.lastName.trim() : this.lastName;
+            this.email = "email" in other ? other.email.trim() : this.email;
+            this.password = "password" in other ? other.password.trim() : this.password;
+            this.phone = "phone" in other ? other.phone.trim() : this.phone;
+            this.userStatus = "userStatus" in other ? other.userStatus : this.userStatus;
         }
     }
 }

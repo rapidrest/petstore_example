@@ -88,11 +88,11 @@ export default class Order extends BaseMongoEntity {
         super(other);
         
         if (other) {
-            this.petId = other.petId !== undefined ? other.petId : this.petId;
-            this.quantity = other.quantity !== undefined ? other.quantity : this.quantity;
-            this.shipDate = other.shipDate !== undefined ? other.shipDate : this.shipDate;
-            this.status = other.status !== undefined ? other.status : this.status;
-            this.complete = other.complete !== undefined ? other.complete : this.complete;
+            this.petId = "petId" in other ? other.petId : this.petId;
+            this.quantity = "quantity" in other ? other.quantity : this.quantity;
+            this.shipDate = "shipDate" in other ? other.shipDate : this.shipDate;
+            this.status = "status" in other ? other.status : this.status;
+            this.complete = "complete" in other ? other.complete : this.complete;
         }
     }
 }
