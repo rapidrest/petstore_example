@@ -99,6 +99,13 @@ export default class User extends BaseMongoEntity {
     @Column()
     public userStatus: UserStatus = UserStatus.OFFLINE;
 
+    /**
+     * 
+     */
+    @Description("")
+    @Column()
+    public roles: string[] = [];
+
     constructor(other?: any) {
         super(other);
         
@@ -110,6 +117,7 @@ export default class User extends BaseMongoEntity {
             this.password = "password" in other ? other.password.trim() : this.password;
             this.phone = "phone" in other ? other.phone.trim() : this.phone;
             this.userStatus = "userStatus" in other ? other.userStatus : this.userStatus;
+            this.roles = "roles" in other ? other.roles : this.roles;
         }
     }
 }
