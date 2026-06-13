@@ -17,7 +17,7 @@ export function createUser(url: string) {
   };
   const uid = uuidv4();
   let user = {
-    username: uid,
+    name: uid,
     password: "password",
     firstName: "Test",
     lastName: "k6",

@@ -8,11 +8,12 @@ import {
     ModelRoute,
     RepoUtils,
     UpdateObject,
-    ApiErrorMessages
-} from "@composer-js/service-core";
-import { Response as XResponse, Request as XRequest } from "express";
+    ApiErrorMessages,
+    HttpResponse,
+    HttpRequest
+} from "@rapidrest/service-core";
 import User from "../models/User";
-import { ApiError, JWTUser, ObjectDecorators, UserUtils} from "@composer-js/core";
+import { ApiError, JWTUser, ObjectDecorators, UserUtils} from "@rapidrest/core";
 
 const { Description, Returns, Summary, TypeInfo } = DocDecorators;
 const { Config } = ObjectDecorators;
@@ -55,7 +56,7 @@ class UserRoute extends ModelRoute<User> {
     private async count(
         @Param() params: any,
         @Query() query: any,
-        @Response res: XResponse,
+        @Response res: HttpResponse,
         @AuthUser user: JWTUser
     ): Promise<any> {
         return super.doCount({ params, query, res, user });
@@ -78,7 +79,7 @@ class UserRoute extends ModelRoute<User> {
     @Returns([User])
     @Post()
     @Validate("validateCreate")
-    private async create(obj: User | User[], @Request req: XRequest, @AuthUser user: JWTUser): Promise<User | Array<User>> {
+    private async create(obj: User | User[], @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<User | Array<User>> {
         return super.doCreate(obj, { user, req });
     }
 
@@ -90,7 +91,7 @@ class UserRoute extends ModelRoute<User> {
     @Returns([null])
     @Auth(["jwt"])
     @Delete("/:id")
-    private async delete(@Param("id") id: string, @Request req: XRequest, @AuthUser user: JWTUser): Promise<void> {
+    private async delete(@Param("id") id: string, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<void> {
         return super.doDelete(id, { user, req });
     }
 
@@ -153,7 +154,7 @@ class UserRoute extends ModelRoute<User> {
     @Auth(["jwt"])
     @Put("/:id")
     @Validate("validateUpdate")
-    private async update(@Param("id") id: string, obj: UpdateObject<User>, @Request req: XRequest, @AuthUser user: JWTUser): Promise<User> {
+    private async update(@Param("id") id: string, obj: UpdateObject<User>, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<User> {
         return super.doUpdate(id, obj, { user });
     }
 

@@ -6,11 +6,12 @@ import {
     DocDecorators,
     ModelRoute,
     RepoUtils,
-    UpdateObject
-} from "@composer-js/service-core";
-import { Response as XResponse, Request as XRequest } from "express";
+    UpdateObject,
+    HttpResponse,
+    HttpRequest
+} from "@rapidrest/service-core";
 import Pet from "../models/Pet";
-import { JWTUser, ObjectDecorators} from "@composer-js/core";
+import { JWTUser, ObjectDecorators} from "@rapidrest/core";
 
 const { Description, Returns, Summary, TypeInfo } = DocDecorators;
 const { Init } = ObjectDecorators;
@@ -49,7 +50,7 @@ class PetRoute extends ModelRoute<Pet> {
     private async count(
         @Param() params: any,
         @Query() query: any,
-        @Response res: XResponse,
+        @Response res: HttpResponse,
         @AuthUser user: JWTUser
     ): Promise<any> {
         return super.doCount({ params, query, res, user });
@@ -68,7 +69,7 @@ class PetRoute extends ModelRoute<Pet> {
     @Auth(["jwt"])
     @Post()
     @Validate("validateCreate")
-    private async create(obj: Pet | Pet[], @Request req: XRequest, @AuthUser user: JWTUser): Promise<Pet | Array<Pet>> {
+    private async create(obj: Pet | Pet[], @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<Pet | Array<Pet>> {
         return super.doCreate(obj, { user, req });
     }
 
@@ -80,7 +81,7 @@ class PetRoute extends ModelRoute<Pet> {
     @Returns([null])
     @Auth(["jwt"])
     @Delete("/:id")
-    private async delete(@Param("id") id: string, @Request req: XRequest, @AuthUser user: JWTUser): Promise<void> {
+    private async delete(@Param("id") id: string, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<void> {
         return super.doDelete(id, { user, req });
     }
 
@@ -132,7 +133,7 @@ class PetRoute extends ModelRoute<Pet> {
     @Auth(["jwt"])
     @Put("/:id")
     @Validate("validateUpdate")
-    private async update(@Param("id") id: string, obj: UpdateObject<Pet>, @Request req: XRequest, @AuthUser user: JWTUser): Promise<Pet> {
+    private async update(@Param("id") id: string, obj: UpdateObject<Pet>, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<Pet> {
         return super.doUpdate(id, obj, { user });
     }
 

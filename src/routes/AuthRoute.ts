@@ -2,15 +2,17 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import * as argon from "argon2";
-import { ApiError, JWTUser, JWTUtils, ObjectDecorators } from "@composer-js/core";
+import { ApiError, JWTUser, JWTUtils, ObjectDecorators } from "@rapidrest/core";
 import {
     RouteDecorators,
     DocDecorators,
     ApiErrorMessages,
-    RepoUtils
-} from "@composer-js/service-core";
-import { BasicStrategy } from "passport-http";
-import * as passport from "passport";
+    RepoUtils,
+    BasicStrategy,
+    AuthMiddleware,
+    ObjectFactory,
+    BasicStrategyOptions
+} from "@rapidrest/service-core";
 import User, { UserStatus } from "../models/User";
 import AuthToken from "../models/AuthToken";
 
@@ -31,9 +33,15 @@ const AuthUser = RouteDecorators.User;
 @Description("Handles all REST API requests for the endpoint `/user/login`.")
 @Route("/")
 class AuthRoute {
+    @Inject(AuthMiddleware)
+    private authMiddleware?: AuthMiddleware;
+
     @Config("auth")
     private jwtConfig?: any;
 
+    @Inject(ObjectFactory)
+    private objectFactory?: ObjectFactory;
+    
     @Inject(RepoUtils, { name: User.name, args: [User] })
     protected userUtils?: RepoUtils<User>;
 
@@ -42,30 +50,42 @@ class AuthRoute {
      */
     @Init
     private async initialize() {
-        passport.use("basic",
-            new BasicStrategy(async (username: string, password: string, done: Function) => {
-                if (!this.userUtils) {
-                    throw new Error("User repository not set.");
-                }
+        if (!this.authMiddleware) {
+            throw new Error("authMiddleware is not set.");
+        }
+        if (!this.objectFactory) {
+            throw new Error("objectFactory is not set.");
+        }
 
-                let user: User = await this.userUtils.findOne(username);
-                if (!user) {
-                    return done(null, false);
-                }
+        const options: BasicStrategyOptions = new BasicStrategyOptions();
+        options.verify = async (name: string, password: string): Promise<JWTUser | undefined> => {
+            if (!this.userUtils) {
+                throw new Error("User repository not set.");
+            }
 
-                const success: boolean = await argon.verify(user.password, password);
-                if (!success) {
-                    return done(null, false);
-                }
+            let user: User = await this.userUtils.findOne(name);
+            if (!user) {
+                throw new Error("Invalid name or password");
+            }
 
-                user = await this.userUtils.update({
-                    uid: user.uid,
-                    version: user.version,
-                    userStatus: UserStatus.ONLINE
-                }, user, { ignoreACL: true });
-                return done(null, user);
-            })
-        );
+            const success: boolean = await argon.verify(user.password, password);
+            if (!success) {
+                throw new Error("Invalid name or password");
+            }
+
+            user = await this.userUtils.update({
+                uid: user.uid,
+                version: user.version,
+                userStatus: UserStatus.ONLINE
+            }, user, { ignoreACL: true });
+
+            return user;
+        };
+        const strategy: BasicStrategy = await this.objectFactory.newInstance(BasicStrategy, {
+            name: "default",
+            args: [options],
+        });
+        this.authMiddleware.register(strategy.name, strategy);
     }
 
     /**
@@ -81,7 +101,7 @@ class AuthRoute {
             throw new ApiError(ApiErrorMessages.AUTH_FAILED, 401, "Invalid user or password.");
         }
 
-        const token: string = JWTUtils.createToken(this.jwtConfig, user);
+        const token: string = await JWTUtils.createToken(this.jwtConfig, user);
         return new AuthToken({
             token
         });

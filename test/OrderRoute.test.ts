@@ -2,10 +2,9 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import config from "./config";
-import * as request from "supertest";
-import { Server, ConnectionManager, ACLRecord, ObjectFactory } from "@composer-js/service-core";
-import { EventUtils, JWTUtils, Logger } from "@composer-js/core";
-import { MongoRepository, DataSource } from "typeorm";
+import { request } from "@rapidrest/service-core/dist/lib/test/request.js";
+import { Server, ConnectionManager, ACLRecord, ObjectFactory, MongoConnection, MongoRepository } from "@rapidrest/service-core";
+import { EventUtils, JWTUtils, Logger } from "@rapidrest/core";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Order, { OrderStatus } from "../src/models/Order";
 import Pet from "../src/models/Pet";
@@ -28,7 +27,7 @@ describe("Order Tests", () => {
         uid: uuidv4(),
         roles: config.get("trusted_roles"),
     };
-    const adminToken = JWTUtils.createToken(config.get("auth"), admin);
+    const adminToken = JWTUtils.createTokenSync(config.get("auth"), admin);
     let user: any = undefined;
     let authToken: any = undefined;
     let repo: MongoRepository<Order>;
@@ -79,7 +78,7 @@ describe("Order Tests", () => {
             records,
             parentUid: "Order"
         };
-        await aclRepo.save(aclRepo.create(acl));
+        await aclRepo.save(acl);
 
         return result;
     }
@@ -138,23 +137,22 @@ describe("Order Tests", () => {
             records,
             parentUid: "Pet"
         };
-        await aclRepo.save(aclRepo.create(acl));
+        await aclRepo.save(acl);
 
         return result;
     }
 
     beforeAll(async () => {
-        const connMgr: ConnectionManager = await objectFactory.newInstance(ConnectionManager, { name: "default" });
-
         await mongod.start();
         await server.start();
 
-        let conn: any = connMgr.connections.get("acl");
-        if (conn instanceof DataSource) {
+        const connMgr: ConnectionManager | undefined = objectFactory.getInstance(ConnectionManager);
+        let conn: any = connMgr?.connections.get("acl");
+        if (conn instanceof MongoConnection) {
             aclRepo = conn.getMongoRepository("AccessControlListMongo");
         }
-        conn = connMgr.connections.get("mongo");
-        if (conn instanceof DataSource) {
+        conn = connMgr?.connections.get("mongo");
+        if (conn instanceof MongoConnection) {
             repo = conn.getMongoRepository("Order");
             petRepo = conn.getMongoRepository("Pet");
         } else {
@@ -165,14 +163,15 @@ describe("Order Tests", () => {
     afterAll(async () => {
         await server.stop();
         await mongod.stop();
+        await objectFactory.destroy();
     });
 
     beforeEach(async () => {
         user = {
             uid: uuidv4(),
         };
-        authToken = JWTUtils.createToken(config.get("auth"), user);
-        EventUtils.init(config, logger, authToken);
+        authToken = await JWTUtils.createToken(config.get("auth"), user);
+        await EventUtils.init(config, logger, authToken);
 
         try {
             await repo.clear();

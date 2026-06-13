@@ -41,7 +41,7 @@ conf.defaults({
     // Settings pertaining to the signing and verification of authentication tokens
     auth: {
         // The default PassportJS authentication strategy to use
-        strategy: "passportjs.JWTStrategy",
+        strategy: "auth.JWTStrategy",
         // The password to be used when signing and verifying authentication tokens
         secret: "MyPasswordIsSecure",
         options: {
@@ -50,6 +50,9 @@ conf.defaults({
             audience: "company.local",
             issuer: "api.company.local",
         },
+    },
+    metrics: {
+        authRequired: false,
     },
     // TODO Remove 'scripts'
     scripts: {

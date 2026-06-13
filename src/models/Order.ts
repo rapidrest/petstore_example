@@ -1,10 +1,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import { Column, Entity, Index } from "typeorm";
-import { BaseMongoEntity, DocDecorators, ModelDecorators } from "@composer-js/service-core";
+import { BaseMongoEntity, DocDecorators, ModelDecorators, PersistenceDecorators } from "@rapidrest/service-core";
 import Pet from "./Pet";
-
+const { Column, Entity } = PersistenceDecorators;
 const { DataStore, Protect, Reference } = ModelDecorators;
 const { Description } = DocDecorators;
 

@@ -7,11 +7,11 @@ import {
     ModelRoute,
     RepoUtils,
     UpdateObject,
-    ApiErrorMessages
-} from "@composer-js/service-core";
-import { Response as XResponse, Request as XRequest } from "express";
+    HttpRequest,
+    HttpResponse,
+} from "@rapidrest/service-core";
 import Order from "../models/Order";
-import { ApiError, JWTUser, ObjectDecorators} from "@composer-js/core";
+import { JWTUser, ObjectDecorators} from "@rapidrest/core";
 
 const { Description, Returns, Summary, TypeInfo } = DocDecorators;
 const { Init } = ObjectDecorators;
@@ -52,7 +52,7 @@ class OrderRoute extends ModelRoute<Order> {
     private async count(
         @Param() params: any,
         @Query() query: any,
-        @Response res: XResponse,
+        @Response res: HttpResponse,
         @AuthUser user: JWTUser
     ): Promise<any> {
         return super.doCount({ params, query, res, user });
@@ -71,7 +71,7 @@ class OrderRoute extends ModelRoute<Order> {
     @Auth(["jwt"])
     @Post()
     @Validate("validateCreate")
-    private async create(obj: Order | Order[], @Request req: XRequest, @AuthUser user: JWTUser): Promise<Order | Array<Order>> {
+    private async create(obj: Order | Order[], @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<Order | Array<Order>> {
         return super.doCreate(obj, { user, req });
     }
 
@@ -83,7 +83,7 @@ class OrderRoute extends ModelRoute<Order> {
     @Returns([null])
     @Auth(["jwt"])
     @Delete("/:id")
-    private async delete(@Param("id") id: string, @Request req: XRequest, @AuthUser user: JWTUser): Promise<void> {
+    private async delete(@Param("id") id: string, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<void> {
         return super.doDelete(id, { user, req });
     }
 
@@ -137,7 +137,7 @@ class OrderRoute extends ModelRoute<Order> {
     @Auth(["jwt"])
     @Put("/:id")
     @Validate("validateUpdate")
-    private async update(@Param("id") id: string, obj: UpdateObject<Order>, @Request req: XRequest, @AuthUser user: JWTUser): Promise<Order> {
+    private async update(@Param("id") id: string, obj: UpdateObject<Order>, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<Order> {
         return super.doUpdate(id, obj, { user });
     }
 

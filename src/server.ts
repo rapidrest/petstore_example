@@ -5,8 +5,8 @@
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import config from "./config";
-import { JWTUtils, EventUtils, Logger, OASUtils } from "@composer-js/core";
-import { ObjectFactory, Server } from "@composer-js/service-core";
+import { JWTUtils, EventUtils, Logger, OASUtils } from "@rapidrest/core";
+import { ObjectFactory, Server } from "@rapidrest/service-core";
 
 import * as fs from "fs";
 import { readFile } from "fs/promises";
@@ -37,13 +37,13 @@ const start = async function (config: any, logger: any) {
     // Initialize EventUtils to be able to send out telemetry events
     const auth: any = config.get("auth");
     delete auth.options.expiresIn;
-    const token: string = JWTUtils.createToken(auth,
+    const token: string = await JWTUtils.createToken(auth,
         {
             uid: `${config.get("service_name")}-${os.hostname()}`,
             name: `${config.get("service_name")}-${os.hostname()}`,
             roles: config.get("trusted_roles"),
         });
-    EventUtils.init(config, logger, token);
+    await EventUtils.init(config, logger, token);
 
     // Create and start the server
     server = new Server(config, _dirname, logger, objectFactory);

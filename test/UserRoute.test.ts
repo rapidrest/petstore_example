@@ -4,10 +4,9 @@
 import "reflect-metadata";
 import config from "./config";
 import { hash } from "argon2";
-import * as request from "supertest";
-import { Server, ConnectionManager, ACLRecord, ObjectFactory } from "@composer-js/service-core";
-import { EventUtils, JWTUtils, Logger } from "@composer-js/core";
-import { MongoRepository, DataSource } from "typeorm";
+import { request } from "@rapidrest/service-core/dist/lib/test/request.js";
+import { Server, ConnectionManager, ACLRecord, ObjectFactory, MongoConnection, MongoRepository } from "@rapidrest/service-core";
+import { EventUtils, JWTUtils, Logger } from "@rapidrest/core";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import User, { UserStatus } from "../src/models/User";
 import { v4 as uuidv4 } from "uuid";
@@ -29,7 +28,7 @@ describe("User Tests", () => {
         uid: uuidv4(),
         roles: config.get("trusted_roles"),
     };
-    const adminToken = JWTUtils.createToken(config.get("auth"), admin);
+    const adminToken = JWTUtils.createTokenSync(config.get("auth"), admin);
     let user: any = undefined;
     let authToken: any = undefined;
     let repo: MongoRepository<User>;
@@ -37,7 +36,7 @@ describe("User Tests", () => {
 
     const createUser = async function(data?: any): Promise<User> {
         const obj: User = new User({
-            username: "tutone",
+            name: "tutone",
             firstName: "Tommy",
             lastName: "Tutone",
             email: "tommy.tutone@gmail.com",
@@ -81,7 +80,7 @@ describe("User Tests", () => {
             records,
             parentUid: "User"
         };
-        await aclRepo.save(aclRepo.create(acl));
+        await aclRepo.save(acl);
 
         return result;
     }
@@ -91,7 +90,7 @@ describe("User Tests", () => {
 
         for (let i = 0; i < num; i++) {
             results.push(await createUser({
-                username: `${data?.username || "tutone"}#${i}`,
+                name: `${data?.name || "tutone"}#${i}`,
                 ...data
             }));
         }
@@ -100,17 +99,16 @@ describe("User Tests", () => {
     }
 
     beforeAll(async () => {
-        const connMgr: ConnectionManager = await objectFactory.newInstance(ConnectionManager, { name: "default" });
-
         await mongod.start();
         await server.start();
 
-        let conn: any = connMgr.connections.get("acl");
-        if (conn instanceof DataSource) {
+        const connMgr: ConnectionManager | undefined = objectFactory.getInstance(ConnectionManager);
+        let conn: any = connMgr?.connections.get("acl");
+        if (conn instanceof MongoConnection) {
             aclRepo = conn.getMongoRepository("AccessControlListMongo");
         }
-        conn = connMgr.connections.get("mongo");
-        if (conn instanceof DataSource) {
+        conn = connMgr?.connections.get("mongo");
+        if (conn instanceof MongoConnection) {
             repo = conn.getMongoRepository("User");
         } else {
             throw new Error("Could not find user connection");
@@ -120,14 +118,15 @@ describe("User Tests", () => {
     afterAll(async () => {
         await server.stop();
         await mongod.stop();
+        await objectFactory.destroy();
     });
 
     beforeEach(async () => {
         user = {
             uid: uuidv4(),
         };
-        authToken = JWTUtils.createToken(config.get("auth"), user);
-        EventUtils.init(config, logger, authToken);
+        authToken = await JWTUtils.createToken(config.get("auth"), user);
+        await EventUtils.init(config, logger, authToken);
 
         try {
             await repo.clear();
@@ -155,7 +154,7 @@ describe("User Tests", () => {
 
     it("Can make create request.", async () => {
         const obj: User = new User({
-            username: "tutone",
+            name: "tutone",
             firstName: "Tommy",
             lastName: "Tutone",
             email: "tommy.tutone@gmail.com",
@@ -172,7 +171,7 @@ describe("User Tests", () => {
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
         expect(result.body).toBeDefined();
-        expect(result.body.username).toEqual(obj.username);
+        expect(result.body.name).toEqual(obj.name);
         expect(result.body.firstName).toEqual(obj.firstName);
         expect(result.body.lastName).toEqual(obj.lastName);
         expect(result.body.email).toEqual(obj.email);
@@ -183,7 +182,7 @@ describe("User Tests", () => {
         const existing: User | null = await repo.findOne({uid: obj.uid} as any);
         expect(existing).toBeDefined();
         if (existing) {
-            expect(existing.username).toEqual(obj.username);
+            expect(existing.name).toEqual(obj.name);
             expect(existing.firstName).toEqual(obj.firstName);
             expect(existing.lastName).toEqual(obj.lastName);
             expect(existing.email).toEqual(obj.email);
@@ -235,7 +234,7 @@ describe("User Tests", () => {
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
         expect(result.body).toBeDefined();
-        expect(result.body.username).toEqual(obj.username);
+        expect(result.body.name).toEqual(obj.name);
         expect(result.body.firstName).toEqual(obj.firstName);
         expect(result.body.lastName).toEqual(obj.lastName);
         expect(result.body.email).toEqual(obj.email);
@@ -275,7 +274,7 @@ describe("User Tests", () => {
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
         expect(result.body).toBeDefined();
-        expect(result.body.username).toEqual(obj.username);
+        expect(result.body.name).toEqual(obj.name);
         expect(result.body.firstName).toEqual(obj.firstName);
         expect(result.body.lastName).toEqual(obj.lastName);
         expect(result.body.email).toEqual(obj.email);
@@ -286,7 +285,7 @@ describe("User Tests", () => {
         const existing: User | null = await repo.findOne({uid: obj.uid} as any);
         expect(existing).toBeDefined();
         if (existing) {
-            expect(existing.username).toEqual(obj.username);
+            expect(existing.name).toEqual(obj.name);
             expect(existing.firstName).toEqual(obj.firstName);
             expect(existing.lastName).toEqual(obj.lastName);
             expect(existing.email).toEqual(obj.email);
@@ -309,7 +308,7 @@ describe("User Tests", () => {
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
         expect(result.body).toBeDefined();
-        expect(result.body.username).toEqual(obj.username);
+        expect(result.body.name).toEqual(obj.name);
         expect(result.body.firstName).toEqual(obj.firstName);
         expect(result.body.lastName).toEqual(obj.lastName);
         expect(result.body.email).toEqual(obj.email);
@@ -320,7 +319,7 @@ describe("User Tests", () => {
         const existing: User | null = await repo.findOne({uid: obj.uid} as any);
         expect(existing).toBeDefined();
         if (existing) {
-            expect(existing.username).toEqual(obj.username);
+            expect(existing.name).toEqual(obj.name);
             expect(existing.firstName).toEqual(obj.firstName);
             expect(existing.lastName).toEqual(obj.lastName);
             expect(existing.email).toEqual(obj.email);

@@ -1,10 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import { Column, Entity } from "typeorm";
-import { DocDecorators, ModelDecorators, SimpleEntity } from "@composer-js/service-core";
-
-const { Identifier } = ModelDecorators;
+import { DocDecorators, PersistenceDecorators, SimpleEntity } from "@rapidrest/service-core";
+const { Column } = PersistenceDecorators;
 const { Description } = DocDecorators;
 
 /**

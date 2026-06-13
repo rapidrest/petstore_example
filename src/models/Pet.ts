@@ -1,11 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import { Column, Entity, Index } from "typeorm";
-import { BaseMongoEntity, DocDecorators, ModelDecorators } from "@composer-js/service-core";
+import { BaseMongoEntity, DocDecorators, ModelDecorators, PersistenceDecorators } from "@rapidrest/service-core";
 import Category from "./Category";
 import Tag from "./Tag";
-
+const { Column, Entity, Index } = PersistenceDecorators;
 const { Cache, DataStore, Identifier, Protect } = ModelDecorators;
 const { Description } = DocDecorators;
 

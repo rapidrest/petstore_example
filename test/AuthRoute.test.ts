@@ -3,14 +3,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 import config from "./config";
 import { hash } from "argon2";
-import * as request from "supertest";
-import { Server, ConnectionManager, ObjectFactory, ACLRecord } from "@composer-js/service-core";
-import { JWTUtils, Logger } from "@composer-js/core";
-
+import { request } from "@rapidrest/service-core/dist/lib/test/request.js";
+import { Server, ConnectionManager, ObjectFactory, ACLRecord, MongoConnection, MongoRepository } from "@rapidrest/service-core";
+import { JWTUtils, Logger } from "@rapidrest/core";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { DataSource, MongoRepository } from "typeorm";
 import User, { UserStatus } from "../src/models/User";
-import { v4 as uuidv4 } from "uuid";
 
 const mongod: MongoMemoryServer = new MongoMemoryServer({
     instance: {
@@ -29,7 +26,7 @@ describe("Auth Tests", () => {
 
     const createUser = async function(data?: any): Promise<User> {
         const obj: User = new User({
-            username: "tutone",
+            name: "tutone",
             firstName: "Tommy",
             lastName: "Tutone",
             email: "tommy.tutone@gmail.com",
@@ -73,23 +70,22 @@ describe("Auth Tests", () => {
             records,
             parentUid: "User"
         };
-        await aclRepo.save(aclRepo.create(acl));
+        await aclRepo.save(acl);
 
         return result;
     }
 
     beforeAll(async () => {
-        const connMgr: ConnectionManager = await objectFactory.newInstance(ConnectionManager, { name: "default" });
-
         await mongod.start();
         await server.start();
 
-        let conn: any = connMgr.connections.get("acl");
-        if (conn instanceof DataSource) {
+        const connMgr: ConnectionManager | undefined = objectFactory.getInstance(ConnectionManager);
+        let conn: any = connMgr?.connections.get("acl");
+        if (conn instanceof MongoConnection) {
             aclRepo = conn.getMongoRepository("AccessControlListMongo");
         }
-        conn = connMgr.connections.get("mongo");
-        if (conn instanceof DataSource) {
+        conn = connMgr?.connections.get("mongo");
+        if (conn instanceof MongoConnection) {
             userRepo = conn.getMongoRepository("User");
         } else {
             throw new Error("Could not find user connection");
@@ -99,6 +95,7 @@ describe("Auth Tests", () => {
     afterAll(async () => {
         await server.stop();
         await mongod.stop();
+        await objectFactory.destroy();
     });
 
     beforeEach(async () => {
@@ -116,7 +113,7 @@ describe("Auth Tests", () => {
         const user: User = await createUser();
         const result = await request(server.getApplication())
             .get(baseUrl)
-            .set("Authorization", "basic " + Buffer.from(`${user.username}:password`).toString("base64"));
+            .set("Authorization", "basic " + Buffer.from(`${user.name}:password`).toString("base64"));
 
         expect(result).toBeDefined();
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -132,8 +129,8 @@ describe("Auth Tests", () => {
 
     it("Can make logout request.", async () => {
         const user: User = await createUser();
-        const authToken = JWTUtils.createToken(config.get("auth"), user as any);
-        const url = baseUrl + "/user/logout";
+        const authToken = await JWTUtils.createToken(config.get("auth"), user as any);
+        const url = "/user/logout";
 
         const result = await request(server.getApplication())
             .get(url)

@@ -46,7 +46,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"username\": \"\",\r\n    \"password\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\",\r\n    \"email\": \"\",\r\n    \"phone\": \"\"\r\n}",
+              "raw": "{\r\n    \"name\": \"\",\r\n    \"password\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\",\r\n    \"email\": \"\",\r\n    \"phone\": \"\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -154,7 +154,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"uid\": \"{{uid}}\"\r\n    \"username\": \"\",\r\n    \"password\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\",\r\n    \"email\": \"\",\r\n    \"phone\": \"\"\r\n}",
+              "raw": "{\r\n    \"uid\": \"{{uid}}\"\r\n    \"name\": \"\",\r\n    \"password\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\",\r\n    \"email\": \"\",\r\n    \"phone\": \"\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"

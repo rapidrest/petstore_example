@@ -1,7 +1,17 @@
 import { defineConfig } from 'vitest/config';
 import swc from 'unplugin-swc';
+import { resolve } from 'path';
 
 export default defineConfig({
+    resolve: {
+        alias: {
+            '@rapidrest/service-core/dist/lib/test/request.js': resolve('node_modules/@rapidrest/service-core/dist/lib/test/request.js'),
+            '@rapidrest/service-core/dist/lib/test/requestws.js': resolve('node_modules/@rapidrest/service-core/dist/lib/test/requestws.js'),
+        },
+    },
+    ssr: {
+        noExternal: ['@rapidrest/service-core', '@rapidrest/core'],
+    },
     plugins: [
         swc.vite({
             jsc: {
@@ -13,7 +23,7 @@ export default defineConfig({
                     decoratorMetadata: true,
                     legacyDecorator: true,
                 },
-                target: 'es2022',
+                target: 'es2020',
             },
         }),
     ],
@@ -21,12 +31,13 @@ export default defineConfig({
         globals: true,
         environment: 'node',
         include: ['test/**/*.test.ts'],
-        globalSetup: ['./pretest.js'],
-        setupFiles: ['reflect-metadata'],
         fileParallelism: false,
         pool: 'forks',
-        testTimeout: 1200000,
-        hookTimeout: 60000,
+        poolOptions: {
+            forks: {
+                execArgv: ['--no-experimental-strip-types'],
+            },
+        },
         clearMocks: true,
         coverage: {
             enabled: true,

@@ -1,9 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import { Column, Entity, Index } from "typeorm";
-import { BaseMongoEntity, DocDecorators, ModelDecorators } from "@composer-js/service-core";
-
+import { BaseMongoEntity, DocDecorators, ModelDecorators, PersistenceDecorators } from "@rapidrest/service-core";
+const { Column, Entity, Index } = PersistenceDecorators;
 const { Cache, DataStore, Identifier, Protect } = ModelDecorators;
 const { Description } = DocDecorators;
 
@@ -55,7 +54,7 @@ export default class User extends BaseMongoEntity {
     @Identifier
     @Index()
     @Column()
-    public username: string = "";
+    public name: string = "";
 
     /**
      * 
@@ -110,7 +109,7 @@ export default class User extends BaseMongoEntity {
         super(other);
         
         if (other) {
-            this.username = "username" in other ? other.username.trim() : this.username;
+            this.name = "name" in other ? other.name.trim() : this.name;
             this.firstName = "firstName" in other ? other.firstName.trim() : this.firstName;
             this.lastName = "lastName" in other ? other.lastName.trim() : this.lastName;
             this.email = "email" in other ? other.email.trim() : this.email;
