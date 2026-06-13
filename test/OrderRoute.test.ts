@@ -9,7 +9,7 @@ import { MongoRepository, DataSource } from "typeorm";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Order, { OrderStatus } from "../src/models/Order";
 import Pet from "../src/models/Pet";
-const uuid = require("uuid");
+import { v4 as uuidv4 } from "uuid";
 
 const mongod: MongoMemoryServer = new MongoMemoryServer({
     instance: {
@@ -18,8 +18,6 @@ const mongod: MongoMemoryServer = new MongoMemoryServer({
     },
 });
 
-jest.setTimeout(1200000);
-
 describe("Order Tests", () => {
     const logger = Logger();
     const objectFactory: ObjectFactory = new ObjectFactory(config, logger);
@@ -27,7 +25,7 @@ describe("Order Tests", () => {
     const baseUrl = "/store/order";
 
     const admin: any = {
-        uid: uuid.v4(),
+        uid: uuidv4(),
         roles: config.get("trusted_roles"),
     };
     const adminToken = JWTUtils.createToken(config.get("auth"), admin);
@@ -98,14 +96,14 @@ describe("Order Tests", () => {
 
     const createPet = async function(data?: any): Promise<Pet> {
         const obj: Pet = new Pet({
-            petId: uuid.v4(),
+            petId: uuidv4(),
             quantity: 1,
             shipDate: new Date(),
             status: "",
             complete: false,
             ...data
         });
-        
+
         const result: Pet = await petRepo.save(obj);
 
         const records: ACLRecord[] = [];
@@ -147,7 +145,7 @@ describe("Order Tests", () => {
 
     beforeAll(async () => {
         const connMgr: ConnectionManager = await objectFactory.newInstance(ConnectionManager, { name: "default" });
-        
+
         await mongod.start();
         await server.start();
 
@@ -163,7 +161,7 @@ describe("Order Tests", () => {
             throw new Error("Could not find user connection");
         }
     });
-    
+
     afterAll(async () => {
         await server.stop();
         await mongod.stop();
@@ -171,7 +169,7 @@ describe("Order Tests", () => {
 
     beforeEach(async () => {
         user = {
-            uid: uuid.v4(),
+            uid: uuidv4(),
         };
         authToken = JWTUtils.createToken(config.get("auth"), user);
         EventUtils.init(config, logger, authToken);

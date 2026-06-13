@@ -1,9 +1,9 @@
 {
     "compilerOptions": {
-        "moduleResolution": "node",
-        "target": "es2019",
-        "module": "commonjs",
-        "lib": ["es6"],
+        "moduleResolution": "Bundler",
+        "target": "ES2020",
+        "module": "ESNext",
+        "lib": ["ES2020"],
         "strict": false,
         "sourceMap": false,
         "declaration": false,

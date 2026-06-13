@@ -10,7 +10,7 @@ import { EventUtils, JWTUtils, Logger } from "@composer-js/core";
 import { MongoRepository, DataSource } from "typeorm";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import User, { UserStatus } from "../src/models/User";
-const uuid = require("uuid");
+import { v4 as uuidv4 } from "uuid";
 
 const mongod: MongoMemoryServer = new MongoMemoryServer({
     instance: {
@@ -19,8 +19,6 @@ const mongod: MongoMemoryServer = new MongoMemoryServer({
     },
 });
 
-jest.setTimeout(30000);
-
 describe("User Tests", () => {
     const logger = Logger();
     const objectFactory: ObjectFactory = new ObjectFactory(config, logger);
@@ -28,7 +26,7 @@ describe("User Tests", () => {
     const baseUrl = "/user";
 
     const admin: any = {
-        uid: uuid.v4(),
+        uid: uuidv4(),
         roles: config.get("trusted_roles"),
     };
     const adminToken = JWTUtils.createToken(config.get("auth"), admin);
@@ -48,7 +46,7 @@ describe("User Tests", () => {
             userStatus: UserStatus.OFFLINE,
             ...data
         });
-        
+
         const result: User = await repo.save(obj);
 
         const records: ACLRecord[] = [];
@@ -103,7 +101,7 @@ describe("User Tests", () => {
 
     beforeAll(async () => {
         const connMgr: ConnectionManager = await objectFactory.newInstance(ConnectionManager, { name: "default" });
-        
+
         await mongod.start();
         await server.start();
 
@@ -118,7 +116,7 @@ describe("User Tests", () => {
             throw new Error("Could not find user connection");
         }
     });
-    
+
     afterAll(async () => {
         await server.stop();
         await mongod.stop();
@@ -126,7 +124,7 @@ describe("User Tests", () => {
 
     beforeEach(async () => {
         user = {
-            uid: uuid.v4(),
+            uid: uuidv4(),
         };
         authToken = JWTUtils.createToken(config.get("auth"), user);
         EventUtils.init(config, logger, authToken);

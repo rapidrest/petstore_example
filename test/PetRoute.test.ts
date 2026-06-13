@@ -10,7 +10,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import Pet, { PetStatus } from "../src/models/Pet";
 import Tag from "../src/models/Tag";
 import Category from "../src/models/Category";
-const uuid = require("uuid");
+import { v4 as uuidv4 } from "uuid";
 
 const mongod: MongoMemoryServer = new MongoMemoryServer({
     instance: {
@@ -19,8 +19,6 @@ const mongod: MongoMemoryServer = new MongoMemoryServer({
     },
 });
 
-jest.setTimeout(30000);
-
 describe("Pet Tests", () => {
     const logger = Logger();
     const objectFactory: ObjectFactory = new ObjectFactory(config, logger);
@@ -28,7 +26,7 @@ describe("Pet Tests", () => {
     const baseUrl = "/pet";
 
     const admin: any = {
-        uid: uuid.v4(),
+        uid: uuidv4(),
         roles: config.get("trusted_roles"),
     };
     const adminToken = JWTUtils.createToken(config.get("auth"), admin);
@@ -48,7 +46,7 @@ describe("Pet Tests", () => {
             tags: [new Tag({ name: "friendly" }), new Tag({ name: "white" })],
             ...data
         });
-        
+
         const result: Pet = await repo.save(obj);
 
         const records: ACLRecord[] = [];
@@ -100,7 +98,7 @@ describe("Pet Tests", () => {
 
     beforeAll(async () => {
         const connMgr: ConnectionManager = await objectFactory.newInstance(ConnectionManager, { name: "default" });
-        
+
         await mongod.start();
         await server.start();
 
@@ -115,7 +113,7 @@ describe("Pet Tests", () => {
             throw new Error("Could not find user connection");
         }
     });
-    
+
     afterAll(async () => {
         await server.stop();
         await mongod.stop();
@@ -123,7 +121,7 @@ describe("Pet Tests", () => {
 
     beforeEach(async () => {
         user = {
-            uid: uuid.v4(),
+            uid: uuidv4(),
         };
         authToken = JWTUtils.createToken(config.get("auth"), user);
         EventUtils.init(config, logger, authToken);

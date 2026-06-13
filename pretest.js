@@ -1,6 +1,6 @@
-const { MongoMemoryServer } = require("mongodb-memory-server");
+import { MongoMemoryServer } from "mongodb-memory-server";
 
-const download = async () => {
+export default async function setup() {
     const maxRetries = 3;
     for (let i = 0; i < maxRetries; i++) {
         try {
@@ -17,5 +17,3 @@ const download = async () => {
         }
     }
 }
-
-download();

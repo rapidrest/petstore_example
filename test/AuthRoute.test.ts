@@ -10,7 +10,7 @@ import { JWTUtils, Logger } from "@composer-js/core";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { DataSource, MongoRepository } from "typeorm";
 import User, { UserStatus } from "../src/models/User";
-const uuid = require("uuid");
+import { v4 as uuidv4 } from "uuid";
 
 const mongod: MongoMemoryServer = new MongoMemoryServer({
     instance: {
@@ -18,8 +18,6 @@ const mongod: MongoMemoryServer = new MongoMemoryServer({
         dbName: "rrst-test",
     },
 });
-
-jest.setTimeout(30000);
 
 describe("Auth Tests", () => {
     const logger = Logger();
@@ -40,7 +38,7 @@ describe("Auth Tests", () => {
             userStatus: UserStatus.OFFLINE,
             ...data
         });
-        
+
         const result: User = await userRepo.save(obj);
 
         const records: ACLRecord[] = [];
@@ -82,7 +80,7 @@ describe("Auth Tests", () => {
 
     beforeAll(async () => {
         const connMgr: ConnectionManager = await objectFactory.newInstance(ConnectionManager, { name: "default" });
-        
+
         await mongod.start();
         await server.start();
 
@@ -97,7 +95,7 @@ describe("Auth Tests", () => {
             throw new Error("Could not find user connection");
         }
     });
-    
+
     afterAll(async () => {
         await server.stop();
         await mongod.stop();

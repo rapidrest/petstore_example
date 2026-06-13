@@ -1,8 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-const packageInfo = require("../package.json");
-const conf = require("nconf")
+import { createRequire } from "module";
+import nconf from "nconf";
+
+const _require = createRequire(import.meta.url);
+const packageInfo = _require("../package.json");
+
+const conf = nconf
     .argv()
     .env({
         separator: "__",

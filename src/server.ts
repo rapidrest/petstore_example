@@ -2,6 +2,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 import config from "./config";
 import { JWTUtils, EventUtils, Logger, OASUtils } from "@composer-js/core";
 import { ObjectFactory, Server } from "@composer-js/service-core";
@@ -10,6 +12,9 @@ import * as fs from "fs";
 import { readFile } from "fs/promises";
 import * as process from "process";
 import * as os from "os";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const logLevel: string = config.get("logger:level") || (process.env.environment === "production" ? "info" : "debug");
 const logger = Logger(logLevel, config.get("logger:file"));
