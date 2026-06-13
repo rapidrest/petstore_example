@@ -14,8 +14,6 @@ ENV NODE_ENV ${NODE_ENV}
 RUN echo Building as $NODE_ENV
 # Install any needed packages specified in requirements.txt
 RUN apt update && apt upgrade -y
-# Per https://github.com/nodejs/docker-node#nodealpine
-RUN apt install --no-cache gcompat
 RUN npm install --global nodemon
 RUN corepack enable
 
@@ -34,8 +32,6 @@ COPY --from=builder /app/dis[t] ./dist
 COPY --from=builder /app/src ./src
 # Add curl for health check
 RUN apt update && apt upgrade -f && apt install curl -y
-# Per https://github.com/nodejs/docker-node#nodealpine
-RUN apt install --no-cache gcompat
 RUN npm install --global nodemon
 RUN corepack enable
 
