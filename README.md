@@ -1,8 +1,11 @@
 # Petstore
 
-An example RapidREST server based upon OpenAPI's petstore example specification.
+An example server based upon OpenAPI's petstore example specification.
 
-The project implements the following RapidREST features:
+NOTE: This is a fork of the main project that uses Express.js+Passport.js+TypeORM instead of RapidREST. It is intended
+for benchmarking purposes only.
+
+The project implements the following features:
 
 * JWT authentication
 * MongoDB database support

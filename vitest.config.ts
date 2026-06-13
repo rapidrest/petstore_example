@@ -1,17 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import swc from 'unplugin-swc';
-import { resolve } from 'path';
 
 export default defineConfig({
-    resolve: {
-        alias: {
-            '@rapidrest/service-core/dist/lib/test/request.js': resolve('node_modules/@rapidrest/service-core/dist/lib/test/request.js'),
-            '@rapidrest/service-core/dist/lib/test/requestws.js': resolve('node_modules/@rapidrest/service-core/dist/lib/test/requestws.js'),
-        },
-    },
-    ssr: {
-        noExternal: ['@rapidrest/service-core', '@rapidrest/core'],
-    },
     plugins: [
         swc.vite({
             jsc: {
@@ -33,10 +23,8 @@ export default defineConfig({
         include: ['test/**/*.test.ts'],
         fileParallelism: false,
         pool: 'forks',
-        poolOptions: {
-            forks: {
-                execArgv: ['--no-experimental-strip-types'],
-            },
+        forks: {
+            execArgv: ['--no-experimental-strip-types'],
         },
         clearMocks: true,
         coverage: {

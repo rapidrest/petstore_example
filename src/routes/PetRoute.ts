@@ -1,155 +1,116 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import {
-    RouteDecorators,
-    DocDecorators,
-    ModelRoute,
-    RepoUtils,
-    UpdateObject,
-    HttpResponse,
-    HttpRequest
-} from "@rapidrest/service-core";
+import { Router } from "express";
+import { DataSource } from "typeorm";
 import Pet from "../models/Pet.js";
-import { JWTUser, ObjectDecorators} from "@rapidrest/core";
 
-const { Description, Returns, Summary, TypeInfo } = DocDecorators;
-const { Init } = ObjectDecorators;
-const {
-    Auth,
-    Delete,
-    Get,
-    Head,
-    Model,
-    Query,
-    Param,
-    Post,
-    Put,
-    Request,
-    Response,
-    Route,
-    Validate
-} = RouteDecorators;
-const AuthUser = RouteDecorators.User;
+export function createPetRouter(passportInstance: any, _config: any, dataSource: DataSource): Router {
+    const router = Router();
+    const repo = dataSource.getMongoRepository(Pet);
+    const jwtAuth = passportInstance.authenticate("jwt", { session: false });
 
-/**
- * Handles all REST API requests for the endpoint `/pet`.
- * 
- * @author <AUTHOR>
- */
-@Model(Pet)
-@Route("/pet")
-class PetRoute extends ModelRoute<Pet> {
-    protected repoUtilsClass: any = RepoUtils;
+    /** HEAD / — return count in Content-Length (no auth required) */
+    router.head("/", async (_req, res) => {
+        try {
+            const count = await repo.count();
+            res.setHeader("Content-Length", count.toString());
+            res.status(200).end();
+        } catch {
+            res.status(500).end();
+        }
+    });
 
-    @Summary("Count Pets")
-    @Description("Returns the total count of Pets in the datastore based on the given criteria "
-        + "in the header as `Content-Length`.")
-    @Returns([Object])
-    @Head()
-    private async count(
-        @Param() params: any,
-        @Query() query: any,
-        @Response res: HttpResponse,
-        @AuthUser user: JWTUser
-    ): Promise<any> {
-        return super.doCount({ params, query, res, user });
-    }
+    /** POST / — create one or many pets */
+    router.post("/", jwtAuth, async (req, res) => {
+        try {
+            const body = req.body;
+            if (Array.isArray(body)) {
+                const pets = body.map((p) => new Pet(p));
+                const saved = await repo.save(pets);
+                return res.status(201).json(saved);
+            } else {
+                const pet = new Pet(body);
+                const saved = await repo.save(pet);
+                return res.status(201).json(saved);
+            }
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    });
 
-    public async validateCreate(obj: Partial<Pet> | Partial<Pet>[], @AuthUser user: JWTUser) {
-        return super.doValidate(obj, { user });
-    }
+    /** GET / — find all pets (no auth required) */
+    router.get("/", async (_req, res) => {
+        try {
+            const pets = await repo.find();
+            return res.json(pets);
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    });
 
-    /**
-     * Create a new Pet.
-     */
-    @Summary("Create Pet")
-    @Description("Create a new Pet.")
-    @Returns([Pet])
-    @Auth(["jwt"])
-    @Post()
-    @Validate("validateCreate")
-    private async create(obj: Pet | Pet[], @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<Pet | Array<Pet>> {
-        return super.doCreate(obj, { user, req });
-    }
+    /** GET /:id — find pet by uid (no auth required) */
+    router.get("/:id", async (req, res) => {
+        try {
+            const pet = await repo.findOne({ where: { uid: req.params.id } as any });
+            if (!pet) return res.status(404).json({ message: "Pet not found" });
+            return res.json(pet);
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    });
 
-    /**
-     * Deletes the Pet
-     */
-    @Summary("Delete pet by ID")
-    @Description("Deletes the pet from the service.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Delete("/:id")
-    private async delete(@Param("id") id: string, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<void> {
-        return super.doDelete(id, { user, req });
-    }
+    /** PUT /:id — full update */
+    router.put("/:id", jwtAuth, async (req, res) => {
+        try {
+            const existing = await repo.findOne({ where: { uid: req.params.id } as any });
+            if (!existing) return res.status(404).json({ message: "Pet not found" });
+            const { _id, ...updates } = req.body;
+            Object.assign(existing, updates);
+            existing.dateModified = new Date();
+            const saved = await repo.save(existing);
+            return res.json(saved);
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    });
 
-    /**
-     * Returns all Pets from the system that the user has access to
-     */
-    @Summary("Find All Pets")
-    @Description("Returns all Pets from the system that the user has access to.")
-    @Returns([[Array, Pet]])
-    @Get()
-    private async findAll(@Param() params: any, @Query() query: any, @AuthUser user: JWTUser): Promise<Array<Pet>> {
-        return super.doFindAll({ params, query, user });
-    }
+    /** PUT /:id/:property — patch a single property */
+    router.put("/:id/:property", jwtAuth, async (req, res) => {
+        try {
+            const { id, property } = req.params;
+            const existing = await repo.findOne({ where: { uid: id } as any });
+            if (!existing) return res.status(404).json({ message: "Pet not found" });
+            (existing as any)[property] = req.body;
+            existing.dateModified = new Date();
+            const saved = await repo.save(existing);
+            return res.json(saved);
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    });
 
-    /**
-     * Returns a single Pet from the system that the user has access to
-     */
-    @Summary("Find pet by ID")
-    @Description("Returns a single Pet from the system that the user has access to.")
-    @Returns([Pet])
-    @Get("/:id")
-    private async findById(@Param("id") id: string, @Query() query: any, @AuthUser user: JWTUser): Promise<Pet | null> {
-        return super.doFindById(id, { query, user });
-    }
+    /** DELETE /:id — delete by uid */
+    router.delete("/:id", jwtAuth, async (req, res) => {
+        try {
+            const existing = await repo.findOne({ where: { uid: req.params.id } as any });
+            if (!existing) return res.status(404).json({ message: "Pet not found" });
+            await repo.deleteOne({ uid: req.params.id });
+            return res.status(204).end();
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    });
 
-    @Summary("Truncate Pets")
-    @Description("Deletes all Pets from the datastore that the user has access to.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Delete()
-    public async truncate(
-        @Param() params: any,
-        @Query() query: any,
-        @AuthUser user: JWTUser
-    ): Promise<void> {
-        return super.doTruncate({ params, query, user });
-    }
+    /** DELETE / — truncate all pets */
+    router.delete("/", jwtAuth, async (_req, res) => {
+        try {
+            await repo.deleteMany({});
+            return res.status(204).end();
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    });
 
-    public async validateUpdate(@Param("id") id: string, obj: UpdateObject<Pet>, @AuthUser user: JWTUser) {
-        return super.doValidate(obj, { user });
-    }
-
-    /**
-     * Updates a single Pet
-     */
-    @Summary("Update pet by ID")
-    @Description("Updates a single Pet.")
-    @Returns([Pet])
-    @Auth(["jwt"])
-    @Put("/:id")
-    @Validate("validateUpdate")
-    private async update(@Param("id") id: string, obj: UpdateObject<Pet>, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<Pet> {
-        return super.doUpdate(id, obj, { user });
-    }
-
-    @Summary("Update pet by ID and property")
-    @Put(":id/:property")
-    @Description("Updates a single property of an existing pet.")
-    @TypeInfo([Object])
-    @Returns([Pet])
-    protected updateProperty(
-        @Param("id") id: string,
-        @Param("property") propertyName: string,
-        obj: any,
-        @AuthUser user: JWTUser
-    ): Promise<Pet> {
-        return super.doUpdateProperty(id, propertyName, obj, { user });
-    }
+    return router;
 }
-
-export default PetRoute;

@@ -1,20 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import { DocDecorators } from "@rapidrest/service-core";
-const { Description } = DocDecorators;
 
-/**
- * 
- *
- * @author <AUTHOR>
- */
-@Description("")
 export default class AuthToken {
-    /**
-     * 
-     */
-    @Description("")
     public token: string = "";
 
     constructor(other?: any) {

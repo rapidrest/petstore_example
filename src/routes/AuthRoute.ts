@@ -1,136 +1,65 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import * as argon from "argon2";
-import { ApiError, JWTUser, JWTUtils, ObjectDecorators } from "@rapidrest/core";
-import {
-    RouteDecorators,
-    DocDecorators,
-    ApiErrorMessages,
-    RepoUtils,
-    BasicStrategy,
-    AuthMiddleware,
-    ObjectFactory,
-    BasicStrategyOptions
-} from "@rapidrest/service-core";
+import { Router } from "express";
+import { sign } from "jsonwebtoken";
+import { DataSource } from "typeorm";
 import User, { UserStatus } from "../models/User.js";
-import AuthToken from "../models/AuthToken.js";
 
-const { Config, Init, Inject } = ObjectDecorators;
-const { Summary, Description, Returns } = DocDecorators;
-const {
-    Auth,
-    Get,
-    Route,
-} = RouteDecorators;
-const AuthUser = RouteDecorators.User;
+export function createAuthRouter(passportInstance: any, config: any, dataSource: DataSource): Router {
+    const router = Router();
+    const userRepo = dataSource.getMongoRepository(User);
+    const jwtConfig = config.get("auth");
 
-/**
- * Handles all REST API requests for the endpoint `/user/login`.
- * 
- * @author <AUTHOR>
- */
-@Description("Handles all REST API requests for the endpoint `/user/login`.")
-@Route("/")
-class AuthRoute {
-    @Inject(AuthMiddleware)
-    private authMiddleware?: AuthMiddleware;
-
-    @Config("auth")
-    private jwtConfig?: any;
-
-    @Inject(ObjectFactory)
-    private objectFactory?: ObjectFactory;
-    
-    @Inject(RepoUtils, { name: User.name, args: [User] })
-    protected userUtils?: RepoUtils<User>;
+    const basicAuth = passportInstance.authenticate("basic", { session: false });
+    const jwtAuth = passportInstance.authenticate("jwt", { session: false });
 
     /**
-     * Called on server startup to initialize the route with any defaults.
+     * GET /user/login
+     * Authenticates via HTTP Basic and returns a JWT token.
      */
-    @Init
-    private async initialize() {
-        if (!this.authMiddleware) {
-            throw new Error("authMiddleware is not set.");
-        }
-        if (!this.objectFactory) {
-            throw new Error("objectFactory is not set.");
-        }
+    router.get("/user/login", basicAuth, async (req, res) => {
+        try {
+            const user = req.user as User;
 
-        const options: BasicStrategyOptions = new BasicStrategyOptions();
-        options.verify = async (name: string, password: string): Promise<JWTUser | undefined> => {
-            if (!this.userUtils) {
-                throw new Error("User repository not set.");
-            }
+            user.userStatus = UserStatus.ONLINE;
+            user.dateModified = new Date();
+            await userRepo.save(user);
 
-            let user: User | undefined = await this.userUtils.findOne(name);
+            const payload = { uid: user.uid, name: user.name, email: user.email, roles: user.roles };
+            const token = sign(payload, jwtConfig.secret, {
+                expiresIn: jwtConfig.options?.expiresIn ?? "1h",
+                audience: jwtConfig.options?.audience,
+                issuer: jwtConfig.options?.issuer,
+            });
+
+            return res.json({ token });
+        } catch (err) {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    });
+
+    /**
+     * GET /user/logout
+     * Marks the authenticated user as OFFLINE.
+     */
+    router.get("/user/logout", jwtAuth, async (req, res) => {
+        try {
+            const payload = req.user as any;
+            const user = await userRepo.findOne({ where: { uid: payload.uid } as any });
             if (!user) {
-                throw new Error("Invalid name or password");
+                return res.status(404).json({ message: "User not found" });
             }
 
-            const success: boolean = await argon.verify(user.password, password);
-            if (!success) {
-                throw new Error("Invalid name or password");
-            }
+            user.userStatus = UserStatus.OFFLINE;
+            user.dateModified = new Date();
+            await userRepo.save(user);
 
-            user = await this.userUtils.update({
-                uid: user.uid,
-                version: user.version,
-                userStatus: UserStatus.ONLINE
-            }, user, { ignoreACL: true });
-
-            return user;
-        };
-        const strategy: BasicStrategy = await this.objectFactory.newInstance(BasicStrategy, {
-            name: "default",
-            args: [options],
-        });
-        this.authMiddleware.register(strategy.name, strategy);
-    }
-
-    /**
-     * Authenticates the user using HTTP Basic and returns a JSON Web Token access token to be used with future API requests.
-     */
-    @Summary("login")
-    @Description("Authenticates the user using HTTP Basic and returns a JSON Web Token access token to be used with future API requests.")
-    @Returns([AuthToken, undefined])
-    @Auth(["basic"])
-    @Get("/user/login")
-    private async login(@AuthUser user: JWTUser): Promise<AuthToken | undefined> {
-        if (!user) {
-            throw new ApiError(ApiErrorMessages.AUTH_FAILED, 401, "Invalid user or password.");
+            return res.status(200).json({});
+        } catch (err) {
+            return res.status(500).json({ message: "Internal server error" });
         }
+    });
 
-        const token: string = await JWTUtils.createToken(this.jwtConfig, user);
-        return new AuthToken({
-            token
-        });
-    }
-
-    /**
-     * Logs out the current user
-     */
-    @Summary("logout")
-    @Description("Logs out the current user.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Get("/user/logout")
-    private async logout(@AuthUser user: JWTUser): Promise<void> {
-        if (!this.userUtils) {
-            throw new Error("User repository not set.");
-        }
-        
-        let foundUser: User | undefined = await this.userUtils.findOne(user.uid);
-        if (!foundUser) {
-            throw new ApiError(ApiErrorMessages.NOT_FOUND, 404, "User not found.");
-        }
-
-        await this.userUtils.update({
-            uid: foundUser.uid,
-            version: foundUser.version,
-            userStatus: UserStatus.OFFLINE
-        }, foundUser, { ignoreACL: true });
-    }
+    return router;
 }
-
-export default AuthRoute;

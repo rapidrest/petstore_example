@@ -1,183 +1,146 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import * as argon from "argon2";
-import {
-    RouteDecorators,
-    DocDecorators,
-    ModelRoute,
-    RepoUtils,
-    UpdateObject,
-    ApiErrorMessages,
-    HttpResponse,
-    HttpRequest
-} from "@rapidrest/service-core";
+import { Router } from "express";
+import { hash as argonHash } from "argon2";
+import { DataSource } from "typeorm";
 import User from "../models/User.js";
-import { ApiError, JWTUser, ObjectDecorators, UserUtils} from "@rapidrest/core";
 
-const { Description, Returns, Summary, TypeInfo } = DocDecorators;
-const { Config } = ObjectDecorators;
-const {
-    Auth,
-    Delete,
-    Get,
-    Head,
-    Model,
-    Query,
-    Param,
-    Post,
-    Put,
-    Request,
-    Response,
-    Route,
-    Validate
-} = RouteDecorators;
-const AuthUser = RouteDecorators.User;
+export function createUserRouter(passportInstance: any, config: any, dataSource: DataSource): Router {
+    const router = Router();
+    const repo = dataSource.getMongoRepository(User);
+    const jwtAuth = passportInstance.authenticate("jwt", { session: false });
+    const trustedRoles: string[] = config.get("trusted_roles") || ["admin"];
 
-/**
- * Handles all REST API requests for the endpoint `/user`.
- * 
- * @author <AUTHOR>
- */
-@Model(User)
-@Route("/user")
-class UserRoute extends ModelRoute<User> {
-    protected repoUtilsClass: any = RepoUtils;
+    const isAdmin = (jwtUser: any): boolean =>
+        Array.isArray(jwtUser?.roles) && jwtUser.roles.some((r: string) => trustedRoles.includes(r));
 
-    @Config("trusted_roles", ["admin"])
-    protected trustedRoles: string[] = [];
+    /** HEAD / — return count in Content-Length */
+    router.head("/", jwtAuth, async (_req, res) => {
+        try {
+            const count = await repo.count();
+            res.setHeader("Content-Length", count.toString());
+            res.status(200).end();
+        } catch {
+            res.status(500).end();
+        }
+    });
 
-    @Summary("Count Users")
-    @Description("Returns the total count of Users in the datastore based on the given criteria "
-        + "in the header as `Content-Length`.")
-    @Returns([Object])
-    @Auth(["jwt"])
-    @Head()
-    private async count(
-        @Param() params: any,
-        @Query() query: any,
-        @Response res: HttpResponse,
-        @AuthUser user: JWTUser
-    ): Promise<any> {
-        return super.doCount({ params, query, res, user });
-    }
-
-    public async validateCreate(obj: Partial<User> | Partial<User>[], @AuthUser user: JWTUser) {
-        await super.doValidate(obj, { user });
-
-        obj = Array.isArray(obj) ? obj : [obj];
-        for (const user of obj) {
-            if (user.password) {
-                user.password = await argon.hash(user.password);
+    /** POST / — create one or many users (no auth required) */
+    router.post("/", async (req, res) => {
+        try {
+            const body = req.body;
+            if (Array.isArray(body)) {
+                const users = await Promise.all(
+                    body.map(async (u) => {
+                        const user = new User(u);
+                        if (user.password) user.password = await argonHash(user.password);
+                        return user;
+                    })
+                );
+                const saved = await repo.save(users);
+                return res.status(201).json(saved);
+            } else {
+                const user = new User(body);
+                if (user.password) user.password = await argonHash(user.password);
+                const saved = await repo.save(user);
+                return res.status(201).json(saved);
             }
+        } catch (err) {
+            return res.status(500).json({ message: "Internal server error" });
         }
-    }
+    });
 
-    /**
-     * Create a new User.
-     */
-    @Summary("Create User")
-    @Description("Create a new User.")
-    @Returns([User])
-    @Post()
-    @Validate("validateCreate")
-    private async create(obj: User | User[], @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<User | Array<User>> {
-        return super.doCreate(obj, { user, req });
-    }
-
-    /**
-     * Deletes the User
-     */
-    @Summary("Delete user by ID")
-    @Description("Deletes the user from the service.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Delete("/:id")
-    private async delete(@Param("id") id: string, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<void> {
-        return super.doDelete(id, { user, req });
-    }
-
-    /**
-     * Returns all Users from the system that the user has access to
-     */
-    @Summary("Find All Users")
-    @Description("Returns all Users from the system that the user has access to.")
-    @Returns([[Array, User]])
-    @Auth(["jwt"])
-    @Get()
-    private async findAll(@Param() params: any, @Query() query: any, @AuthUser user: JWTUser): Promise<Array<User>> {
-        return super.doFindAll({ params, query, user });
-    }
-
-    /**
-     * Returns a single User from the system that the user has access to
-     */
-    @Summary("Find user by ID")
-    @Description("Returns a single User from the system that the user has access to.")
-    @Returns([User])
-    @Auth(["jwt"])
-    @Get("/:id")
-    private async findById(@Param("id") id: string, @Query() query: any, @AuthUser user: JWTUser): Promise<User | null> {
-        return super.doFindById(id, { query, user });
-    }
-
-    @Summary("Truncate Users")
-    @Description("Deletes all Users from the datastore that the user has access to.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Delete()
-    public async truncate(
-        @Param() params: any,
-        @Query() query: any,
-        @AuthUser user: JWTUser
-    ): Promise<void> {
-        return super.doTruncate({ params, query, user });
-    }
-
-    public async validateUpdate(@Param("id") id: string, obj: UpdateObject<User>, @AuthUser user: JWTUser) {
-        await super.doValidate(obj, { user });
-
-        // Only admins and the user itself can make changes
-        if (!UserUtils.hasRoles(user, this.trustedRoles) && (id !== user.uid || obj.uid !== user.uid)) {
-            throw new ApiError(ApiErrorMessages.AUTH_PERMISSION_FAILURE, 403, ApiErrorMessages.AUTH_PERMISSION_FAILURE);
+    /** GET / — find all users */
+    router.get("/", jwtAuth, async (_req, res) => {
+        try {
+            const users = await repo.find();
+            return res.json(users);
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
         }
+    });
 
-        if (obj.password) {
-            obj.password = await argon.hash(obj.password);
+    /** GET /:id — find user by uid */
+    router.get("/:id", jwtAuth, async (req, res) => {
+        try {
+            const user = await repo.findOne({ where: { uid: req.params.id } as any });
+            if (!user) return res.status(404).json({ message: "User not found" });
+            return res.json(user);
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
         }
-    }
+    });
 
-    /**
-     * Updates a single User
-     */
-    @Summary("Update user by ID")
-    @Description("Updates a single User.")
-    @Returns([User])
-    @Auth(["jwt"])
-    @Put("/:id")
-    @Validate("validateUpdate")
-    private async update(@Param("id") id: string, obj: UpdateObject<User>, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<User> {
-        return super.doUpdate(id, obj, { user });
-    }
+    /** PUT /:id — full update */
+    router.put("/:id", jwtAuth, async (req, res) => {
+        try {
+            const id = req.params.id;
+            const jwtUser = req.user as any;
 
-    @Summary("Update user by ID and property")
-    @Put(":id/:property")
-    @Description("Updates a single property of an existing user.")
-    @TypeInfo([Object])
-    @Returns([User])
-    protected updateProperty(
-        @Param("id") id: string,
-        @Param("property") propertyName: string,
-        obj: any,
-        @AuthUser user: JWTUser
-    ): Promise<User> {
-        // Only admins and the user itself can make changes
-        if (!UserUtils.hasRoles(user, this.trustedRoles) && (id !== user.uid || obj.uid !== user.uid)) {
-            throw new ApiError(ApiErrorMessages.AUTH_PERMISSION_FAILURE, 403, ApiErrorMessages.AUTH_PERMISSION_FAILURE);
+            if (!isAdmin(jwtUser) && id !== jwtUser.uid) {
+                return res.status(403).json({ message: "Permission denied" });
+            }
+
+            const existing = await repo.findOne({ where: { uid: id } as any });
+            if (!existing) return res.status(404).json({ message: "User not found" });
+
+            const { _id, ...updates } = req.body;
+            if (updates.password) updates.password = await argonHash(updates.password);
+
+            Object.assign(existing, updates);
+            existing.dateModified = new Date();
+            const saved = await repo.save(existing);
+            return res.json(saved);
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
         }
+    });
 
-        return super.doUpdateProperty(id, propertyName, obj, { user });
-    }
+    /** PUT /:id/:property — patch a single property */
+    router.put("/:id/:property", jwtAuth, async (req, res) => {
+        try {
+            const { id, property } = req.params;
+            const jwtUser = req.user as any;
+
+            if (!isAdmin(jwtUser) && id !== jwtUser.uid) {
+                return res.status(403).json({ message: "Permission denied" });
+            }
+
+            const existing = await repo.findOne({ where: { uid: id } as any });
+            if (!existing) return res.status(404).json({ message: "User not found" });
+
+            const value = req.body;
+            (existing as any)[property] = value;
+            existing.dateModified = new Date();
+            const saved = await repo.save(existing);
+            return res.json(saved);
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    });
+
+    /** DELETE /:id — delete by uid */
+    router.delete("/:id", jwtAuth, async (req, res) => {
+        try {
+            const existing = await repo.findOne({ where: { uid: req.params.id } as any });
+            if (!existing) return res.status(404).json({ message: "User not found" });
+            await repo.deleteOne({ uid: req.params.id });
+            return res.status(204).end();
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    });
+
+    /** DELETE / — truncate all users */
+    router.delete("/", jwtAuth, async (_req, res) => {
+        try {
+            await repo.deleteMany({});
+            return res.status(204).end();
+        } catch {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    });
+
+    return router;
 }
-
-export default UserRoute;

@@ -2,62 +2,39 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+import "reflect-metadata";
+import http from "http";
+import winston from "winston";
 import config from "./config.js";
-import { JWTUtils, EventUtils, Logger, OASUtils } from "@rapidrest/core";
-import { ObjectFactory, Server } from "@rapidrest/service-core";
-
-import * as fs from "fs";
-import { readFile } from "fs/promises";
-import * as os from "os";
-
-const _filename = fileURLToPath(import.meta.url);
-const _dirname = dirname(_filename);
+import { createDataSource } from "./data-source.js";
+import { createApp } from "./app.js";
 
 const logLevel: string = config.get("logger:level") || (process.env.environment === "production" ? "info" : "debug");
-const logger = Logger(logLevel, config.get("logger:file"));
-console.log("Log Level=" + logLevel);
+const logger = winston.createLogger({
+    level: logLevel,
+    format: winston.format.combine(winston.format.timestamp(), winston.format.simple()),
+    transports: [new winston.transports.Console()],
+});
 
-const objectFactory = new ObjectFactory(config, logger);
-let server: any = undefined;
+const port = config.get("port") || 3000;
+let server: http.Server | undefined;
 
-const start = async function (config: any, logger: any) {
-    // Load the release notes file
-    let releaseNotes: string | undefined = undefined;
-    try {
-        if (fs.existsSync(`${_dirname}/../RELEASE_NOTES.rst`)) {
-            releaseNotes = await readFile(`${_dirname}/../RELEASE_NOTES.rst`, { encoding: "utf-8" });
-        }
-    } catch (err) {
-        logger.debug(err);
-    }
+const start = async (): Promise<void> => {
+    const dataSource = createDataSource(config);
+    await dataSource.initialize();
+    logger.info("Database connected");
 
-    // Initialize EventUtils to be able to send out telemetry events
-    const auth: any = config.get("auth");
-    delete auth.options.expiresIn;
-    const token: string = await JWTUtils.createToken(auth,
-        {
-            uid: `${config.get("service_name")}-${os.hostname()}`,
-            name: `${config.get("service_name")}-${os.hostname()}`,
-            roles: config.get("trusted_roles"),
-        });
-    await EventUtils.init(config, logger, token);
+    const app = createApp(config, dataSource);
+    server = app.listen(port, () => {
+        logger.info(`Server listening on port ${port}`);
+    });
 
-    // Create and start the server
-    server = new Server(config, _dirname, logger, objectFactory);
-    await server.start();
+    process.on("SIGINT", async () => {
+        logger.info("Shutting down...");
+        server?.close();
+        await dataSource.destroy();
+        process.exit(0);
+    });
 };
 
-void start(config, logger);
-
-process.on("SIGINT", async () => {
-    logger.info("Shutting down...");
-    if (server) {
-        await server.stop();
-    }
-    if (objectFactory) {
-        await objectFactory.destroy();
-    }
-    process.exit(0);
-});
+void start();
