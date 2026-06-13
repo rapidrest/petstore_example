@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM node:lts-alpine AS builder
+FROM node:lts-trixie-slim AS builder
 
 # Set the working directory to /app
 WORKDIR /app
@@ -13,9 +13,9 @@ ARG NODE_ENV=production
 ENV NODE_ENV ${NODE_ENV}
 RUN echo Building as $NODE_ENV
 # Install any needed packages specified in requirements.txt
-RUN apk update && apk upgrade -f
+RUN apt update && apt upgrade -y
 # Per https://github.com/nodejs/docker-node#nodealpine
-RUN apk add --no-cache gcompat
+RUN apt install --no-cache gcompat
 RUN npm install --global nodemon
 RUN corepack enable
 
@@ -26,16 +26,16 @@ RUN --mount=type=secret,id=YARN_TOKEN if [ "$NODE_ENV" = "production" ]; then NP
 # Uncomment to Update package.json to include live scripting libraries
 RUN --mount=type=secret,id=YARN_TOKEN if [ "$NODE_ENV" = "production" ]; then NPM_TOKEN=$(cat /run/secrets/YARN_TOKEN) yarn remove ts-node typescript; NPM_TOKEN=$(cat /run/secrets/YARN_TOKEN) yarn add ts-node typescript; fi
 
-FROM node:lts-alpine AS runner
+FROM node:lts-trixie-slim AS runner
 WORKDIR /app
 COPY --from=builder /app/package.json /app/yarn.lock /app/.yarnrc.yml /app/tsconfig.json /app/RELEASE_NOTES.md ./
 COPY --from=builder /app/.yarn/releases ./.yarn/releases
 COPY --from=builder /app/dis[t] ./dist
 COPY --from=builder /app/src ./src
 # Add curl for health check
-RUN apk update && apk upgrade -f && apk add curl
+RUN apt update && apt upgrade -f && apt install curl -y
 # Per https://github.com/nodejs/docker-node#nodealpine
-RUN apk add --no-cache gcompat
+RUN apt install --no-cache gcompat
 RUN npm install --global nodemon
 RUN corepack enable
 

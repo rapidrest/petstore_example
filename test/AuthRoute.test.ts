@@ -129,7 +129,7 @@ describe("Auth Tests", () => {
 
     it("Can make logout request.", async () => {
         const user: User = await createUser();
-        const authToken = await JWTUtils.createToken(config.get("auth"), user as any);
+        const authToken = await JWTUtils.createToken(config.get("auth"), user);
         const url = "/user/logout";
 
         const result = await request(server.getApplication())
