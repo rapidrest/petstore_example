@@ -10,7 +10,6 @@ import { ObjectFactory, Server } from "@rapidrest/service-core";
 
 import * as fs from "fs";
 import { readFile } from "fs/promises";
-import * as process from "process";
 import * as os from "os";
 
 const _filename = fileURLToPath(import.meta.url);
