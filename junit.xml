@@ -1,56 +1,56 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="26" failures="0" errors="0" time="3.5131755">
-    <testsuite name="test/AuthRoute.test.ts" timestamp="2026-06-13T06:11:05.957Z" hostname="Jane" tests="2" failures="0" errors="0" skipped="1" time="0.6429652">
+<testsuites name="vitest tests" tests="26" failures="0" errors="0" time="3.4092303">
+    <testsuite name="test/AuthRoute.test.ts" timestamp="2026-06-13T06:22:05.151Z" hostname="Jane" tests="2" failures="0" errors="0" skipped="1" time="0.6012595">
         <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make login request." time="0">
             <skipped/>
         </testcase>
-        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make logout request." time="0.0625093">
+        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make logout request." time="0.0628016">
             <system-out>
-2026-06-13T06:11:04.159Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:cccbe1e0-41bb-4573-bcac-19ded82ac0c0]
+2026-06-13T06:22:05.004Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:124ba089-4be4-4316-8813-0257576a6624]
 
-2026-06-13T06:11:04.165Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:87e9ac74-800c-4e81-b891-766fc54a7164]
+2026-06-13T06:22:05.006Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:277111df-d570-4337-ad99-afc8f0a234f1]
 
             </system-out>
         </testcase>
     </testsuite>
-    <testsuite name="test/OrderRoute.test.ts" timestamp="2026-06-13T06:11:05.960Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="0.7795102">
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make count request." time="0.0341377">
+    <testsuite name="test/OrderRoute.test.ts" timestamp="2026-06-13T06:22:05.155Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="0.7290066">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make count request." time="0.0333706">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make create request." time="0.0217054">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make create request." time="0.0211396">
             <system-out>
-2026-06-13T06:11:02.455Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:473e4123-f2b3-4242-b37e-c47f4caf577b]
+2026-06-13T06:22:01.633Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:3ae812dd-78fa-4580-8dac-09d9ae8ecb7f]
 
-2026-06-13T06:11:02.458Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:ea4d86ac-59f6-4e1f-a9bb-b1734fc1fc63]
+2026-06-13T06:22:01.636Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:bea24417-1ebe-4c65-91ea-3dd0d24012dd]
 
-2026-06-13T06:11:02.464Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:f8087955-5b3a-4878-b944-120d1e33e74e]
+2026-06-13T06:22:01.642Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:1713d402-ac1f-425f-a3b8-0e327097f1e0]
 
             </system-out>
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make delete request." time="0.0188775">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make delete request." time="0.0180804">
             <system-out>
-2026-06-13T06:11:02.482Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:645f359e-1eaa-4cf7-81c5-f4849272a6ed]
+2026-06-13T06:22:01.659Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:0682d911-babc-4009-9261-48124e3bf7d4]
 
-2026-06-13T06:11:02.483Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:003270d9-deaf-4c90-a104-70c38aaeb8ee]
+2026-06-13T06:22:01.660Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:4ddd3c9a-8bd3-47a7-8ab2-41f54e697a8a]
 
             </system-out>
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findAll request." time="0.0220559">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findAll request." time="0.021748">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findById request." time="0.0225896">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findById request." time="0.0229003">
             <system-out>
-2026-06-13T06:11:02.529Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:d218948e-e714-4693-b8de-56a058c18b2b]
+2026-06-13T06:22:01.705Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:33ea5efc-a530-4658-8932-8310e99b83c2]
 
             </system-out>
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make truncate request." time="0.0226258">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make truncate request." time="0.0238191">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make update request." time="0.0234329">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make update request." time="0.0217094">
             <system-out>
-2026-06-13T06:11:02.569Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:b3202a7d-6a3a-41da-a47a-8ab204bc83d5]
+2026-06-13T06:22:01.747Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:1e0b57e3-2f14-4130-90c0-9bbf39274bf7]
 
-2026-06-13T06:11:02.572Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:e67ac0dd-f32d-4319-b3d7-cbcfc85f6cf6]
+2026-06-13T06:22:01.749Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:42269acb-5b71-46c8-a03f-f20038b89ac9]
 
-2026-06-13T06:11:02.575Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:9c91a54d-5817-4793-9f3a-e78627a53f08]
+2026-06-13T06:22:01.752Z [34mdebug[39m: Creating new instance of class [models.Order] with name [models.Order:c9d0708c-9e02-4805-ab07-57d3f353af63]
 
             </system-out>
         </testcase>
@@ -58,44 +58,44 @@
             <skipped/>
         </testcase>
     </testsuite>
-    <testsuite name="test/PetRoute.test.ts" timestamp="2026-06-13T06:11:05.963Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="0.6559739">
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make count request." time="0.0271301">
+    <testsuite name="test/PetRoute.test.ts" timestamp="2026-06-13T06:22:05.157Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="0.7560723">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make count request." time="0.0271609">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make create request." time="0.014735">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make create request." time="0.0128716">
             <system-out>
-2026-06-13T06:11:05.727Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:43717e2f-cf41-474a-a512-884cb5f9ad47]
+2026-06-13T06:22:03.402Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:f2474a33-5acd-4148-b4bb-9a88cd7acb22]
 
-2026-06-13T06:11:05.727Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:9e5dcff2-b5fa-4956-b21a-744cdeb224a7]
+2026-06-13T06:22:03.402Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:455a301a-dc66-4286-a85d-7f68c68f842c]
 
-2026-06-13T06:11:05.734Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:59dc703e-5fc7-46fe-bbd4-6e510483f44d]
+2026-06-13T06:22:03.408Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:1a603c13-eb82-4488-b529-2710ba74b5f9]
 
             </system-out>
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make delete request." time="0.015642">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make delete request." time="0.0126644">
             <system-out>
-2026-06-13T06:11:05.748Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:388a9ed0-5fdd-456d-b0f0-aab8d105df7d]
+2026-06-13T06:22:03.420Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:a9ee9cfb-e916-4da7-a002-365517ddef8d]
 
-2026-06-13T06:11:05.750Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:a0c7e763-da19-4661-bb3f-6a8bfdcc0f9f]
+2026-06-13T06:22:03.422Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:b81c98c3-b72d-47c3-b0a0-ccc9998d30d9]
 
             </system-out>
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findAll request." time="0.0174944">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findAll request." time="0.0218865">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findById request." time="0.0127574">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findById request." time="0.0106423">
             <system-out>
-2026-06-13T06:11:05.781Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:9232ef38-b796-4559-90f6-fb2622932a92]
+2026-06-13T06:22:03.455Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:13f4cd1b-bee5-4683-b058-99731faa5aea]
 
             </system-out>
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make truncate request." time="0.0183599">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make truncate request." time="0.0136081">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make update request." time="0.0160184">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make update request." time="0.0166201">
             <system-out>
-2026-06-13T06:11:05.811Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:ead2d486-9221-48b7-aef7-8227f997f873]
+2026-06-13T06:22:03.482Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:1e09d501-a131-4be6-8f3f-21e6f73d107a]
 
-2026-06-13T06:11:05.813Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:ea2b0198-3955-47a6-90a2-804045300c62]
+2026-06-13T06:22:03.483Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:3dbe1556-f007-4f32-b46b-a1b06ac3d64e]
 
-2026-06-13T06:11:05.817Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:c1a2942c-1be4-479f-9634-a50f19f1288c]
+2026-06-13T06:22:03.486Z [34mdebug[39m: Creating new instance of class [models.Pet] with name [models.Pet:2b361f7c-fa18-46b7-acc1-4063ca5e332e]
 
             </system-out>
         </testcase>
@@ -103,44 +103,44 @@
             <skipped/>
         </testcase>
     </testsuite>
-    <testsuite name="test/UserRoute.test.ts" timestamp="2026-06-13T06:11:05.964Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="1.4347262">
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make count request." time="0.1847868">
+    <testsuite name="test/UserRoute.test.ts" timestamp="2026-06-13T06:22:05.159Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="1.3228919">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make count request." time="0.199994">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make create request." time="0.0808579">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make create request." time="0.0697498">
             <system-out>
-2026-06-13T06:11:00.262Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:8ecc56c2-c1ad-405f-b275-6645d0a0fb08]
+2026-06-13T06:21:59.506Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:6be0e3a4-1024-4371-95e1-32ea41bfc36b]
 
-2026-06-13T06:11:00.300Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:c7177ab2-44b0-4cd0-b8bf-813188bed71c]
+2026-06-13T06:21:59.536Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:63d9f4b9-2b3d-4340-b9a9-23b0407c70f2]
 
-2026-06-13T06:11:00.307Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:1e3e5d1f-e2ca-40be-9b59-b6058b863df9]
+2026-06-13T06:21:59.544Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:440ff9cb-5986-410a-87b3-2d1be26eea29]
 
             </system-out>
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make delete request." time="0.044348">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make delete request." time="0.0451279">
             <system-out>
-2026-06-13T06:11:00.350Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:f7256583-788e-451a-a299-f385f349a611]
+2026-06-13T06:21:59.587Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:1ca1f0f9-ad28-4e2c-a626-01c875f64cbe]
 
-2026-06-13T06:11:00.352Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:bbc7d405-ac1b-41db-b0f9-cb8770d4acdd]
+2026-06-13T06:21:59.589Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:f7ad5497-70ce-4dc4-9184-446ecfa3235b]
 
             </system-out>
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findAll request." time="0.1845229">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findAll request." time="0.1498233">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findById request." time="0.046951">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findById request." time="0.0406308">
             <system-out>
-2026-06-13T06:11:00.584Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:b757d525-7511-4db3-b1e1-0b4aee17f0f4]
+2026-06-13T06:21:59.780Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:b1658b43-ca6a-4f55-b4fa-45d6eb7f3eb0]
 
             </system-out>
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make truncate request." time="0.1817191">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make truncate request." time="0.1685705">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make update request." time="0.0775743">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make update request." time="0.0762682">
             <system-out>
-2026-06-13T06:11:00.808Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:a682e8db-5f9d-4017-98dc-584c0777959d]
+2026-06-13T06:21:59.990Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:6ef46175-cd43-4b23-8618-515f3d206de2]
 
-2026-06-13T06:11:00.840Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:2182f6f3-3f7f-44e7-a74e-ab6ada40d4ed]
+2026-06-13T06:22:00.022Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:6ba41f2d-4434-4cdd-b019-fa3eab4622ad]
 
-2026-06-13T06:11:00.844Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:9a612bb3-8f2e-4cd9-bf91-33b7baad24cf]
+2026-06-13T06:22:00.026Z [34mdebug[39m: Creating new instance of class [models.User] with name [models.User:374c3843-4472-4a1c-8758-6272ba9fe726]
 
             </system-out>
         </testcase>

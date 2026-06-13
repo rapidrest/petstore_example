@@ -6,9 +6,9 @@ import { request } from "@rapidrest/service-core/dist/lib/test/request.js";
 import { Server, ConnectionManager, ACLRecord, ObjectFactory, MongoConnection, MongoRepository } from "@rapidrest/service-core";
 import { EventUtils, JWTUtils, Logger } from "@rapidrest/core";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import Pet, { PetStatus } from "../src/models/Pet";
-import Tag from "../src/models/Tag";
-import Category from "../src/models/Category";
+import Pet, { PetStatus } from "../src/models/Pet.js";
+import Tag from "../src/models/Tag.js";
+import Category from "../src/models/Category.js";
 import { v4 as uuidv4 } from "uuid";
 
 const mongod: MongoMemoryServer = new MongoMemoryServer({

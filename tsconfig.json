@@ -1,19 +1,17 @@
 {
     "compilerOptions": {
-        "moduleResolution": "Bundler",
+        "moduleResolution": "NodeNext",
         "target": "ES2020",
-        "module": "ESNext",
-        "lib": ["ES2020"],
-        "strict": false,
+        "module": "NodeNext",
+        "strict": true,
         "sourceMap": false,
         "declaration": false,
         "allowSyntheticDefaultImports": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "rootDir": "./src",
-        "outDir": "dist",
-        "noImplicitAny": false
+        "noImplicitAny": false,
+        "rootDir": "src",
+        "outDir": "dist"
     },
-    "include": ["src"],
-    "exclude": ["dist", "docs", "node_modules"]
+    "include": ["src"]
 }

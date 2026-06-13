@@ -4,7 +4,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import config from "./config";
+import config from "./config.js";
 import { JWTUtils, EventUtils, Logger, OASUtils } from "@rapidrest/core";
 import { ObjectFactory, Server } from "@rapidrest/service-core";
 

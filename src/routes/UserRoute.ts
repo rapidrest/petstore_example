@@ -12,7 +12,7 @@ import {
     HttpResponse,
     HttpRequest
 } from "@rapidrest/service-core";
-import User from "../models/User";
+import User from "../models/User.js";
 import { ApiError, JWTUser, ObjectDecorators, UserUtils} from "@rapidrest/core";
 
 const { Description, Returns, Summary, TypeInfo } = DocDecorators;
@@ -67,7 +67,9 @@ class UserRoute extends ModelRoute<User> {
 
         obj = Array.isArray(obj) ? obj : [obj];
         for (const user of obj) {
-            user.password = await argon.hash(user.password);
+            if (user.password) {
+                user.password = await argon.hash(user.password);
+            }
         }
     }
 

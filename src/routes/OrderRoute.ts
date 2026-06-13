@@ -10,7 +10,7 @@ import {
     HttpRequest,
     HttpResponse,
 } from "@rapidrest/service-core";
-import Order from "../models/Order";
+import Order from "../models/Order.js";
 import { JWTUser, ObjectDecorators} from "@rapidrest/core";
 
 const { Description, Returns, Summary, TypeInfo } = DocDecorators;

@@ -2,7 +2,7 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import { BaseMongoEntity, DocDecorators, ModelDecorators, PersistenceDecorators } from "@rapidrest/service-core";
-import Pet from "./Pet";
+import Pet from "./Pet.js";
 const { Column, Entity } = PersistenceDecorators;
 const { DataStore, Protect, Reference } = ModelDecorators;
 const { Description } = DocDecorators;

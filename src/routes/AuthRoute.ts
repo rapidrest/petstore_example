@@ -13,8 +13,8 @@ import {
     ObjectFactory,
     BasicStrategyOptions
 } from "@rapidrest/service-core";
-import User, { UserStatus } from "../models/User";
-import AuthToken from "../models/AuthToken";
+import User, { UserStatus } from "../models/User.js";
+import AuthToken from "../models/AuthToken.js";
 
 const { Config, Init, Inject } = ObjectDecorators;
 const { Summary, Description, Returns } = DocDecorators;
@@ -63,7 +63,7 @@ class AuthRoute {
                 throw new Error("User repository not set.");
             }
 
-            let user: User = await this.userUtils.findOne(name);
+            let user: User | undefined = await this.userUtils.findOne(name);
             if (!user) {
                 throw new Error("Invalid name or password");
             }
@@ -120,7 +120,7 @@ class AuthRoute {
             throw new Error("User repository not set.");
         }
         
-        let foundUser: User = await this.userUtils.findOne(user.uid);
+        let foundUser: User | undefined = await this.userUtils.findOne(user.uid);
         if (!foundUser) {
             throw new ApiError(ApiErrorMessages.NOT_FOUND, 404, "User not found.");
         }

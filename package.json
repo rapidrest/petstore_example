@@ -16,8 +16,7 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "yarn lint && yarn cibuild",
-		"cibuild": "echo building && tsc",
+		"build": "yarn lint && rimraf dist && tsc",
 		"debug": "nodemon --legacy-watch --watch 'src/**/*' --ext 'ts' --exec 'tsx --inspect=0.0.0.0:9229 src/server.ts'",
 		"docs": "typedoc --plugin typedoc-plugin-markdown --out docs/reference --target esnext --mode file src",
 		"lint": "eslint ./src ./test",
@@ -68,6 +67,7 @@
 		"ioredis": "^5.11.1",
 		"mongodb-memory-server": "^11.2.0",
 		"nodemon": "^3.1.14",
+		"rimraf": "^6.1.3",
 		"tsx": "^4.22.4",
 		"typedoc": "^0.28.19",
 		"typedoc-plugin-markdown": "^4.12.0",

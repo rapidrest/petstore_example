@@ -2,8 +2,8 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import { BaseMongoEntity, DocDecorators, ModelDecorators, PersistenceDecorators } from "@rapidrest/service-core";
-import Category from "./Category";
-import Tag from "./Tag";
+import Category from "./Category.js";
+import Tag from "./Tag.js";
 const { Column, Entity, Index } = PersistenceDecorators;
 const { Cache, DataStore, Identifier, Protect } = ModelDecorators;
 const { Description } = DocDecorators;
