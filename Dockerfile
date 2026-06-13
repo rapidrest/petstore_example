@@ -17,13 +17,6 @@ RUN apt update && apt upgrade -y
 RUN npm install --global nodemon
 RUN corepack enable
 
-# If production build project
-RUN --mount=type=secret,id=YARN_TOKEN if [ "$NODE_ENV" = "production" ]; then NPM_TOKEN=$(cat /run/secrets/YARN_TOKEN) yarn install; fi
-RUN --mount=type=secret,id=YARN_TOKEN if [ "$NODE_ENV" = "production" ]; then NPM_TOKEN=$(cat /run/secrets/YARN_TOKEN) yarn cibuild; fi
-
-# Uncomment to Update package.json to include live scripting libraries
-RUN --mount=type=secret,id=YARN_TOKEN if [ "$NODE_ENV" = "production" ]; then NPM_TOKEN=$(cat /run/secrets/YARN_TOKEN) yarn remove ts-node typescript; NPM_TOKEN=$(cat /run/secrets/YARN_TOKEN) yarn add ts-node typescript; fi
-
 FROM node:lts-trixie-slim AS runner
 WORKDIR /app
 COPY --from=builder /app/package.json /app/yarn.lock /app/.yarnrc.yml /app/tsconfig.json /app/RELEASE_NOTES.md ./
@@ -38,8 +31,6 @@ RUN corepack enable
 ARG NODE_ENV=production
 ENV NODE_ENV ${NODE_ENV}
 RUN echo Running as $NODE_ENV
-
-RUN --mount=type=secret,id=YARN_TOKEN if [ "$NODE_ENV" = "production" ]; then NPM_TOKEN=$(cat /run/secrets/YARN_TOKEN) yarn workspaces focus --all --production; fi
 
 # Make port 3000 available to the world outside this container
 EXPOSE 3000
