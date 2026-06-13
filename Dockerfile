@@ -16,12 +16,14 @@ RUN echo Building as $NODE_ENV
 RUN apt update && apt upgrade -y
 RUN npm install --global nodemon
 RUN corepack enable
+RUN yarn install --immutable
+RUN yarn dbuild
 
 FROM node:lts-trixie-slim AS runner
 WORKDIR /app
 COPY --from=builder /app/package.json /app/yarn.lock /app/.yarnrc.yml /app/tsconfig.json /app/RELEASE_NOTES.md ./
 COPY --from=builder /app/.yarn/releases ./.yarn/releases
-COPY --from=builder /app/dis[t] ./dist
+COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src ./src
 # Add curl for health check
 RUN apt update && apt upgrade -f && apt install curl -y
