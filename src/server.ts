@@ -13,8 +13,8 @@ import { readFile } from "fs/promises";
 import * as process from "process";
 import * as os from "os";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
 
 const logLevel: string = config.get("logger:level") || (process.env.environment === "production" ? "info" : "debug");
 const logger = Logger(logLevel, config.get("logger:file"));
@@ -27,8 +27,8 @@ const start = async function (config: any, logger: any) {
     // Load the release notes file
     let releaseNotes: string | undefined = undefined;
     try {
-        if (fs.existsSync(`${__dirname}/../RELEASE_NOTES.rst`)) {
-            releaseNotes = await readFile(`${__dirname}/../RELEASE_NOTES.rst`, { encoding: "utf-8" });
+        if (fs.existsSync(`${_dirname}/../RELEASE_NOTES.rst`)) {
+            releaseNotes = await readFile(`${_dirname}/../RELEASE_NOTES.rst`, { encoding: "utf-8" });
         }
     } catch (err) {
         logger.debug(err);
@@ -46,7 +46,7 @@ const start = async function (config: any, logger: any) {
     EventUtils.init(config, logger, token);
 
     // Create and start the server
-    server = new Server(config, __dirname, logger, objectFactory);
+    server = new Server(config, _dirname, logger, objectFactory);
     await server.start();
 };
 
