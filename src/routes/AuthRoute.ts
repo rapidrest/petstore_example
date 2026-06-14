@@ -46,7 +46,7 @@ export function createAuthRouter(passportInstance: any, config: any, dataSource:
     router.get("/user/logout", jwtAuth, async (req, res) => {
         try {
             const payload = req.user as any;
-            const user = await userRepo.findOne({ where: { uid: payload.uid } as any });
+            const user = await userRepo.findOne({ where: { uid: payload.uid } });
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
             }

@@ -15,7 +15,7 @@ export function setupPassport(passportInstance: any, config: any, dataSource: Da
     passportInstance.use(
         new BasicStrategy(async (username: string, password: string, done: any) => {
             try {
-                const user = await userRepo.findOne({ where: { name: username } as any });
+                const user = await userRepo.findOne({ where: { name: username } });
                 if (!user) {
                     return done(null, false);
                 }

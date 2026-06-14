@@ -68,7 +68,7 @@ describe("Auth Tests", () => {
         expect(result.status).toBeLessThan(300);
         expect(result.body).toHaveProperty("token");
 
-        const existing = await repo.findOne({ where: { uid: user.uid } as any });
+        const existing = await repo.findOne({ where: { uid: user.uid } });
         if (existing) {
             expect(existing.userStatus).toEqual(UserStatus.ONLINE);
         }
@@ -94,7 +94,7 @@ describe("Auth Tests", () => {
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
 
-        const existing = await repo.findOne({ where: { uid: user.uid } as any });
+        const existing = await repo.findOne({ where: { uid: user.uid } });
         if (existing) {
             expect(existing.userStatus).toEqual(UserStatus.OFFLINE);
         }

@@ -52,7 +52,7 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
     /** GET /:id — find order by uid */
     router.get("/:id", jwtAuth, async (req, res) => {
         try {
-            const order = await repo.findOne({ where: { uid: req.params.id } as any });
+            const order = await repo.findOne({ where: { uid: req.params.id } });
             if (!order) return res.status(404).json({ message: "Order not found" });
             return res.json(order);
         } catch {
@@ -63,7 +63,7 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
     /** PUT /:id — full update */
     router.put("/:id", jwtAuth, async (req, res) => {
         try {
-            const existing = await repo.findOne({ where: { uid: req.params.id } as any });
+            const existing = await repo.findOne({ where: { uid: req.params.id } });
             if (!existing) return res.status(404).json({ message: "Order not found" });
             const { _id, ...updates } = req.body;
             Object.assign(existing, updates);
@@ -79,7 +79,7 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
     router.put("/:id/:property", jwtAuth, async (req, res) => {
         try {
             const { id, property } = req.params;
-            const existing = await repo.findOne({ where: { uid: id } as any });
+            const existing = await repo.findOne({ where: { uid: id } });
             if (!existing) return res.status(404).json({ message: "Order not found" });
             (existing as any)[property] = req.body;
             existing.dateModified = new Date();
@@ -93,7 +93,7 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
     /** DELETE /:id — delete by uid */
     router.delete("/:id", jwtAuth, async (req, res) => {
         try {
-            const existing = await repo.findOne({ where: { uid: req.params.id } as any });
+            const existing = await repo.findOne({ where: { uid: req.params.id } });
             if (!existing) return res.status(404).json({ message: "Order not found" });
             await repo.deleteOne({ uid: req.params.id });
             return res.status(204).end();

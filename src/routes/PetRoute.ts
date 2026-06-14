@@ -52,7 +52,7 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     /** GET /:id — find pet by uid (no auth required) */
     router.get("/:id", async (req, res) => {
         try {
-            const pet = await repo.findOne({ where: { uid: req.params.id } as any });
+            const pet = await repo.findOne({ where: { uid: req.params.id } });
             if (!pet) return res.status(404).json({ message: "Pet not found" });
             return res.json(pet);
         } catch {
@@ -63,7 +63,7 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     /** PUT /:id — full update */
     router.put("/:id", jwtAuth, async (req, res) => {
         try {
-            const existing = await repo.findOne({ where: { uid: req.params.id } as any });
+            const existing = await repo.findOne({ where: { uid: req.params.id } });
             if (!existing) return res.status(404).json({ message: "Pet not found" });
             const { _id, ...updates } = req.body;
             Object.assign(existing, updates);
@@ -79,7 +79,7 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     router.put("/:id/:property", jwtAuth, async (req, res) => {
         try {
             const { id, property } = req.params;
-            const existing = await repo.findOne({ where: { uid: id } as any });
+            const existing = await repo.findOne({ where: { uid: id } });
             if (!existing) return res.status(404).json({ message: "Pet not found" });
             (existing as any)[property] = req.body;
             existing.dateModified = new Date();
@@ -93,7 +93,7 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     /** DELETE /:id — delete by uid */
     router.delete("/:id", jwtAuth, async (req, res) => {
         try {
-            const existing = await repo.findOne({ where: { uid: req.params.id } as any });
+            const existing = await repo.findOne({ where: { uid: req.params.id } });
             if (!existing) return res.status(404).json({ message: "Pet not found" });
             await repo.deleteOne({ uid: req.params.id });
             return res.status(204).end();

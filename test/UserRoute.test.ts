@@ -112,7 +112,7 @@ describe("User Tests", () => {
         expect(result.body.phone).toEqual(obj.phone);
         expect(result.body.userStatus).toEqual(obj.userStatus);
 
-        const existing = await repo.findOne({ where: { name: obj.name } as any });
+        const existing = await repo.findOne({ where: { name: obj.name } });
         expect(existing).toBeDefined();
         if (existing) {
             expect(existing.name).toEqual(obj.name);
@@ -130,7 +130,7 @@ describe("User Tests", () => {
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
 
-        const existing = await repo.findOne({ where: { uid: obj.uid } as any });
+        const existing = await repo.findOne({ where: { uid: obj.uid } });
         expect(existing).toBeNull();
     });
 
@@ -191,7 +191,7 @@ describe("User Tests", () => {
         expect(result.body.phone).toEqual(obj.phone);
         expect(result.body.userStatus).toEqual(obj.userStatus);
 
-        const existing = await repo.findOne({ where: { uid: obj.uid } as any });
+        const existing = await repo.findOne({ where: { uid: obj.uid } });
         expect(existing).toBeDefined();
         if (existing) {
             expect(existing.phone).toEqual(obj.phone);

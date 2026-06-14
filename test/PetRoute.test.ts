@@ -107,7 +107,7 @@ describe("Pet Tests", () => {
         expect(result.body.status).toEqual(obj.status);
         expect(result.body.photoUrls).toEqual(obj.photoUrls);
 
-        const existing = await repo.findOne({ where: { name: obj.name } as any });
+        const existing = await repo.findOne({ where: { name: obj.name } });
         expect(existing).toBeDefined();
         if (existing) {
             expect(existing.name).toEqual(obj.name);
@@ -125,7 +125,7 @@ describe("Pet Tests", () => {
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
 
-        const existing = await repo.findOne({ where: { uid: obj.uid } as any });
+        const existing = await repo.findOne({ where: { uid: obj.uid } });
         expect(existing).toBeNull();
     });
 
@@ -178,7 +178,7 @@ describe("Pet Tests", () => {
         expect(result.body.name).toEqual(obj.name);
         expect(result.body.status).toEqual(obj.status);
 
-        const existing = await repo.findOne({ where: { uid: obj.uid } as any });
+        const existing = await repo.findOne({ where: { uid: obj.uid } });
         expect(existing).toBeDefined();
         if (existing) {
             expect(existing.status).toEqual(PetStatus.ADOPTED);

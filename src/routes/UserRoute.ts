@@ -64,7 +64,7 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     /** GET /:id — find user by uid */
     router.get("/:id", jwtAuth, async (req, res) => {
         try {
-            const user = await repo.findOne({ where: { uid: req.params.id } as any });
+            const user = await repo.findOne({ where: { uid: req.params.id } });
             if (!user) return res.status(404).json({ message: "User not found" });
             return res.json(user);
         } catch {
@@ -82,7 +82,7 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
                 return res.status(403).json({ message: "Permission denied" });
             }
 
-            const existing = await repo.findOne({ where: { uid: id } as any });
+            const existing = await repo.findOne({ where: { uid: id } });
             if (!existing) return res.status(404).json({ message: "User not found" });
 
             const { _id, ...updates } = req.body;
@@ -107,7 +107,7 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
                 return res.status(403).json({ message: "Permission denied" });
             }
 
-            const existing = await repo.findOne({ where: { uid: id } as any });
+            const existing = await repo.findOne({ where: { uid: id } });
             if (!existing) return res.status(404).json({ message: "User not found" });
 
             const value = req.body;
@@ -123,7 +123,7 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     /** DELETE /:id — delete by uid */
     router.delete("/:id", jwtAuth, async (req, res) => {
         try {
-            const existing = await repo.findOne({ where: { uid: req.params.id } as any });
+            const existing = await repo.findOne({ where: { uid: req.params.id } });
             if (!existing) return res.status(404).json({ message: "User not found" });
             await repo.deleteOne({ uid: req.params.id });
             return res.status(204).end();
