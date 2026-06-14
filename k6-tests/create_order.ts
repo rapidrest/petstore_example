@@ -5,13 +5,13 @@ import { login } from './login.ts';
 import { uuidv4 } from './uuid.ts';
 
 export const options = {
-  vus: 100,
-  duration: '30s',
+  vus: 200,
+  duration: '300s',
 };
 
 export const config = {
   url: __ENV.url || 'http://localhost:3000',
-  username: __ENV.username || "test_user",
+  name: __ENV.name || "test_user",
   password: __ENV.password || "password",
   petId: __ENV.petid || "snowball"
 };
@@ -38,7 +38,16 @@ export function createOrder(url: string, token: string, petId: string, quantity:
   }
 }
 
+let authToken: string | undefined = undefined;
+
 export default function() {
-  const token = login(config.url, config.username, config.password);
-  createOrder(config.url, token, config.petId, 1);
+  // Retrieve the admin token only once and cache it
+  if (!authToken) {
+    authToken = login(config.url, config.name, config.password);
+    if (!authToken) {
+      throw new Error("Failed to login to admin account.");
+    }
+  }
+  
+  createOrder(config.url, authToken, config.petId, 1);
 }

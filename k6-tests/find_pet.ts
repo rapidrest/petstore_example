@@ -8,20 +8,20 @@ export const options = {
 
 export const config = {
   url: __ENV.url || 'http://localhost:3000',
-  id: __ENV.id || "snowball"
+  id: __ENV.category || "bunny"
 };
 
-export function getPet(url: string, id: string) {
-  const res = http.get(url + "/pet/" + id);
+export function findPets(url: string, category: string) {
+  const res = http.get(url + "/pet?category.name=" + category);
   check(res, { "status is 200": (res) => res.status === 200 });
   check(res, { "res.body is defined": (res) => res.body !== undefined });
   if (res && res.body) {
     return JSON.parse(res.body.toString());
   } else {
-    throw new Error("Failed to retrieve pet with id: " + id);
+    throw new Error("Failed to retrieve pets with category: " + category);
   }
 }
 
 export default function() {
-  getPet(config.url, config.id);
+  findPets(config.url, config.id);
 }
