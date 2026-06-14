@@ -5,7 +5,7 @@ import { login } from './login.ts';
 import { uuidv4 } from './uuid.ts';
 
 export const options = {
-  vus: 100,
+  vus: 250,
   duration: '60s',
 };
 
