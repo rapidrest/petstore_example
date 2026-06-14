@@ -1,155 +1,81 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import {
-    RouteDecorators,
-    DocDecorators,
-    ModelRoute,
-    RepoUtils,
-    UpdateObject,
-    HttpResponse,
-    HttpRequest
-} from "@rapidrest/service-core";
+import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { DataSource } from "typeorm";
 import Pet from "../models/Pet.js";
-import { JWTUser, ObjectDecorators} from "@rapidrest/core";
 
-const { Description, Returns, Summary, TypeInfo } = DocDecorators;
-const { Init } = ObjectDecorators;
-const {
-    Auth,
-    Delete,
-    Get,
-    Head,
-    Model,
-    Query,
-    Param,
-    Post,
-    Put,
-    Request,
-    Response,
-    Route,
-    Validate
-} = RouteDecorators;
-const AuthUser = RouteDecorators.User;
-
-/**
- * Handles all REST API requests for the endpoint `/pet`.
- * 
- * @author <AUTHOR>
- */
-@Model(Pet)
-@Route("/pet")
-class PetRoute extends ModelRoute<Pet> {
-    protected repoUtilsClass: any = RepoUtils;
-
-    @Summary("Count Pets")
-    @Description("Returns the total count of Pets in the datastore based on the given criteria "
-        + "in the header as `Content-Length`.")
-    @Returns([Object])
-    @Head()
-    private async count(
-        @Param() params: any,
-        @Query() query: any,
-        @Response res: HttpResponse,
-        @AuthUser user: JWTUser
-    ): Promise<any> {
-        return super.doCount({ params, query, res, user });
-    }
-
-    public async validateCreate(obj: Partial<Pet> | Partial<Pet>[], @AuthUser user: JWTUser) {
-        return super.doValidate(obj, { user });
-    }
-
-    /**
-     * Create a new Pet.
-     */
-    @Summary("Create Pet")
-    @Description("Create a new Pet.")
-    @Returns([Pet])
-    @Auth(["jwt"])
-    @Post()
-    @Validate("validateCreate")
-    private async create(obj: Pet | Pet[], @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<Pet | Array<Pet>> {
-        return super.doCreate(obj, { user, req });
-    }
-
-    /**
-     * Deletes the Pet
-     */
-    @Summary("Delete pet by ID")
-    @Description("Deletes the pet from the service.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Delete("/:id")
-    private async delete(@Param("id") id: string, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<void> {
-        return super.doDelete(id, { user, req });
-    }
-
-    /**
-     * Returns all Pets from the system that the user has access to
-     */
-    @Summary("Find All Pets")
-    @Description("Returns all Pets from the system that the user has access to.")
-    @Returns([[Array, Pet]])
-    @Get()
-    private async findAll(@Param() params: any, @Query() query: any, @AuthUser user: JWTUser): Promise<Array<Pet>> {
-        return super.doFindAll({ params, query, user });
-    }
-
-    /**
-     * Returns a single Pet from the system that the user has access to
-     */
-    @Summary("Find pet by ID")
-    @Description("Returns a single Pet from the system that the user has access to.")
-    @Returns([Pet])
-    @Get("/:id")
-    private async findById(@Param("id") id: string, @Query() query: any, @AuthUser user: JWTUser): Promise<Pet | null> {
-        return super.doFindById(id, { query, user });
-    }
-
-    @Summary("Truncate Pets")
-    @Description("Deletes all Pets from the datastore that the user has access to.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Delete()
-    public async truncate(
-        @Param() params: any,
-        @Query() query: any,
-        @AuthUser user: JWTUser
-    ): Promise<void> {
-        return super.doTruncate({ params, query, user });
-    }
-
-    public async validateUpdate(@Param("id") id: string, obj: UpdateObject<Pet>, @AuthUser user: JWTUser) {
-        return super.doValidate(obj, { user });
-    }
-
-    /**
-     * Updates a single Pet
-     */
-    @Summary("Update pet by ID")
-    @Description("Updates a single Pet.")
-    @Returns([Pet])
-    @Auth(["jwt"])
-    @Put("/:id")
-    @Validate("validateUpdate")
-    private async update(@Param("id") id: string, obj: UpdateObject<Pet>, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<Pet> {
-        return super.doUpdate(id, obj, { user });
-    }
-
-    @Summary("Update pet by ID and property")
-    @Put(":id/:property")
-    @Description("Updates a single property of an existing pet.")
-    @TypeInfo([Object])
-    @Returns([Pet])
-    protected updateProperty(
-        @Param("id") id: string,
-        @Param("property") propertyName: string,
-        obj: any,
-        @AuthUser user: JWTUser
-    ): Promise<Pet> {
-        return super.doUpdateProperty(id, propertyName, obj, { user });
-    }
+interface RouteOptions {
+    dataSource: DataSource;
+    config: any;
 }
 
-export default PetRoute;
+export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): Promise<void> {
+    const repo = opts.dataSource.getMongoRepository(Pet);
+    const authenticate = (fastify as any).authenticate;
+
+    // GET + HEAD / — HEAD returns count in Content-Length, GET returns all pets.
+    // Combined to prevent Fastify auto-HEAD from overriding the explicit HEAD handler.
+    // No auth required for GET or HEAD on pets.
+    fastify.route({
+        method: ["GET", "HEAD"],
+        url: "/",
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            if (request.method === "HEAD") {
+                const count = await repo.count();
+                reply.header("content-length", count.toString());
+                return reply.code(200).send("");
+            }
+            const pets = await repo.find();
+            return reply.send(pets);
+        },
+    });
+
+    // POST / — create one or many pets (auth required)
+    fastify.post("/", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        const body = request.body as any;
+        if (Array.isArray(body)) {
+            const pets = body.map((p: any) => new Pet(p));
+            const saved = await repo.save(pets);
+            return reply.status(201).send(saved);
+        } else {
+            const pet = new Pet(body);
+            const saved = await repo.save(pet);
+            return reply.status(201).send(saved);
+        }
+    });
+
+    // GET /:id — find pet by uid (no auth required)
+    fastify.get("/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as any;
+        const pet = await repo.findOne({ where: { uid: id } as any });
+        if (!pet) return reply.status(404).send({ message: "Pet not found" });
+        return reply.send(pet);
+    });
+
+    // PUT /:id — update pet by uid (auth required)
+    fastify.put("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as any;
+        const existing = await repo.findOne({ where: { uid: id } as any });
+        if (!existing) return reply.status(404).send({ message: "Pet not found" });
+
+        const { _id, ...updates } = request.body as any;
+        Object.assign(existing, updates);
+        existing.dateModified = new Date();
+        const saved = await repo.save(existing);
+        return reply.send(saved);
+    });
+
+    // DELETE /:id — delete pet by uid (auth required)
+    fastify.delete("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as any;
+        await repo.deleteOne({ uid: id });
+        return reply.status(200).send({});
+    });
+
+    // DELETE / — truncate all pets (auth required)
+    fastify.delete("/", { preHandler: [authenticate] }, async (_request: FastifyRequest, reply: FastifyReply) => {
+        await repo.deleteMany({});
+        return reply.status(200).send({});
+    });
+}

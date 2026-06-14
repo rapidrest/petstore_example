@@ -1,159 +1,74 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import {
-    RouteDecorators,
-    DocDecorators,
-    ModelRoute,
-    RepoUtils,
-    UpdateObject,
-    HttpRequest,
-    HttpResponse,
-} from "@rapidrest/service-core";
+import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { DataSource } from "typeorm";
 import Order from "../models/Order.js";
-import { JWTUser, ObjectDecorators} from "@rapidrest/core";
 
-const { Description, Returns, Summary, TypeInfo } = DocDecorators;
-const { Init } = ObjectDecorators;
-const {
-    Auth,
-    Delete,
-    Get,
-    Head,
-    Model,
-    Query,
-    Param,
-    Post,
-    Put,
-    Request,
-    Response,
-    Route,
-    Validate
-} = RouteDecorators;
-const AuthUser = RouteDecorators.User;
-
-/**
- * Handles all REST API requests for the endpoint `/store/order`.
- * 
- * @author <AUTHOR>
- */
-@Description("Handles all REST API requests for the endpoint `/store/order`.")
-@Model(Order)
-@Route("/store/order")
-class OrderRoute extends ModelRoute<Order> {
-    protected repoUtilsClass: any = RepoUtils;
-
-    @Summary("Count Orders")
-    @Description("Returns the total count of Orders in the datastore based on the given criteria "
-        + "in the header as `Content-Length`.")
-    @Returns([Object])
-    @Auth(["jwt"])
-    @Head()
-    private async count(
-        @Param() params: any,
-        @Query() query: any,
-        @Response res: HttpResponse,
-        @AuthUser user: JWTUser
-    ): Promise<any> {
-        return super.doCount({ params, query, res, user });
-    }
-
-    public async validateCreate(obj: Partial<Order> | Partial<Order>[], @AuthUser user: JWTUser) {
-        return super.doValidate(obj, { user });
-    }
-
-    /**
-     * Create a new Order.
-     */
-    @Summary("Create Order")
-    @Description("Create a new Order.")
-    @Returns([Order])
-    @Auth(["jwt"])
-    @Post()
-    @Validate("validateCreate")
-    private async create(obj: Order | Order[], @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<Order | Array<Order>> {
-        return super.doCreate(obj, { user, req });
-    }
-
-    /**
-     * Deletes the Order
-     */
-    @Summary("Delete order by ID")
-    @Description("Deletes the order from the service.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Delete("/:id")
-    private async delete(@Param("id") id: string, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<void> {
-        return super.doDelete(id, { user, req });
-    }
-
-    /**
-     * Returns all Orders from the system that the user has access to
-     */
-    @Summary("Find All Orders")
-    @Description("Returns all Orders from the system that the user has access to.")
-    @Returns([[Array, Order]])
-    @Auth(["jwt"])
-    @Get()
-    private async findAll(@Param() params: any, @Query() query: any, @AuthUser user: JWTUser): Promise<Array<Order>> {
-        return super.doFindAll({ params, query, user });
-    }
-
-    /**
-     * Returns a single Order from the system that the user has access to
-     */
-    @Summary("Find order by ID")
-    @Description("Returns a single Order from the system that the user has access to.")
-    @Returns([Order])
-    @Auth(["jwt"])
-    @Get("/:id")
-    private async findById(@Param("id") id: string, @Query() query: any, @AuthUser user: JWTUser): Promise<Order | null> {
-        return super.doFindById(id, { query, user });
-    }
-
-    @Summary("Truncate Orders")
-    @Description("Deletes all Orders from the datastore that the user has access to.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Delete()
-    public async truncate(
-        @Param() params: any,
-        @Query() query: any,
-        @AuthUser user: JWTUser
-    ): Promise<void> {
-        return super.doTruncate({ params, query, user });
-    }
-
-    public async validateUpdate(@Param("id") id: string, obj: UpdateObject<Order>, @AuthUser user: JWTUser) {
-        return super.doValidate(obj, { user });
-    }
-
-    /**
-     * Updates a single Order
-     */
-    @Summary("Update order by ID")
-    @Description("Updates a single Order.")
-    @Returns([Order])
-    @Auth(["jwt"])
-    @Put("/:id")
-    @Validate("validateUpdate")
-    private async update(@Param("id") id: string, obj: UpdateObject<Order>, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<Order> {
-        return super.doUpdate(id, obj, { user });
-    }
-
-    @Summary("Update order by ID and property")
-    @Put(":id/:property")
-    @Description("Updates a single property of an existing order.")
-    @TypeInfo([Object])
-    @Returns([Order])
-    protected updateProperty(
-        @Param("id") id: string,
-        @Param("property") propertyName: string,
-        obj: any,
-        @AuthUser user: JWTUser
-    ): Promise<Order> {
-        return super.doUpdateProperty(id, propertyName, obj, { user });
-    }
+interface RouteOptions {
+    dataSource: DataSource;
+    config: any;
 }
 
-export default OrderRoute;
+export async function orderRoutes(fastify: FastifyInstance, opts: RouteOptions): Promise<void> {
+    const repo = opts.dataSource.getMongoRepository(Order);
+    const authenticate = (fastify as any).authenticate;
+
+    // GET + HEAD / — HEAD returns count in Content-Length, GET returns all orders.
+    // Combined to prevent Fastify auto-HEAD from overriding the explicit HEAD handler.
+    fastify.route({
+        method: ["GET", "HEAD"],
+        url: "/",
+        preHandler: [authenticate],
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            if (request.method === "HEAD") {
+                const count = await repo.count();
+                reply.header("content-length", count.toString());
+                return reply.code(200).send("");
+            }
+            const orders = await repo.find();
+            return reply.send(orders);
+        },
+    });
+
+    // POST / — create order
+    fastify.post("/", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        const order = new Order(request.body as any);
+        const saved = await repo.save(order);
+        return reply.status(201).send(saved);
+    });
+
+    // GET /:id — find order by uid
+    fastify.get("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as any;
+        const order = await repo.findOne({ where: { uid: id } as any });
+        if (!order) return reply.status(404).send({ message: "Order not found" });
+        return reply.send(order);
+    });
+
+    // PUT /:id — update order by uid
+    fastify.put("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as any;
+        const existing = await repo.findOne({ where: { uid: id } as any });
+        if (!existing) return reply.status(404).send({ message: "Order not found" });
+
+        const { _id, ...updates } = request.body as any;
+        Object.assign(existing, updates);
+        existing.dateModified = new Date();
+        const saved = await repo.save(existing);
+        return reply.send(saved);
+    });
+
+    // DELETE /:id — delete order by uid
+    fastify.delete("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as any;
+        await repo.deleteOne({ uid: id });
+        return reply.status(200).send({});
+    });
+
+    // DELETE / — truncate all orders
+    fastify.delete("/", { preHandler: [authenticate] }, async (_request: FastifyRequest, reply: FastifyReply) => {
+        await repo.deleteMany({});
+        return reply.status(200).send({});
+    });
+}

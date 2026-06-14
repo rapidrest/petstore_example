@@ -1,31 +1,28 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import config from "./config";
-import { hash } from "argon2";
-import { request } from "@rapidrest/service-core/dist/lib/test/request.js";
-import { Server, ConnectionManager, ObjectFactory, ACLRecord, MongoConnection, MongoRepository } from "@rapidrest/service-core";
-import { JWTUtils, Logger } from "@rapidrest/core";
+import "reflect-metadata";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
+import { FastifyInstance } from "fastify";
+import { hash } from "argon2";
+import config from "./config.js";
+import { createDataSource } from "../src/data-source.js";
+import { createApp } from "../src/app.js";
 import User, { UserStatus } from "../src/models/User.js";
+import { DataSource, MongoRepository } from "typeorm";
 
-const mongod: MongoMemoryServer = new MongoMemoryServer({
-    instance: {
-        port: 9999,
-        dbName: "rrst-test",
-    },
+const mongod = new MongoMemoryServer({
+    instance: { port: 9999, dbName: "petstore_test" },
 });
 
 describe("Auth Tests", () => {
-    const logger = Logger();
-    const objectFactory: ObjectFactory = new ObjectFactory(config, logger);
-    const server: Server = new Server(config, "./src", logger, objectFactory);
-    const baseUrl = "/user/login";
-    let aclRepo: MongoRepository<any>;
+    let app: FastifyInstance;
+    let dataSource: DataSource;
     let userRepo: MongoRepository<User>;
 
-    const createUser = async function(data?: any): Promise<User> {
-        const obj: User = new User({
+    const createUser = async (data?: any): Promise<User> => {
+        const obj = new User({
             name: "tutone",
             firstName: "Tommy",
             lastName: "Tutone",
@@ -33,114 +30,69 @@ describe("Auth Tests", () => {
             password: await hash("password"),
             phone: "555-867-5309",
             userStatus: UserStatus.OFFLINE,
-            ...data
+            ...data,
         });
-
-        const result: User = await userRepo.save(obj);
-
-        const records: ACLRecord[] = [];
-
-        // Owner has CRUD access
-        records.push({
-            userOrRoleId: obj.uid,
-            create: true,
-            read: true,
-            update: true,
-            delete: true,
-            special: false,
-            full: false,
-        });
-
-        // Everyone has no access
-        records.push({
-            userOrRoleId: ".*",
-            create: false,
-            read: false,
-            update: false,
-            delete: false,
-            special: false,
-            full: false,
-        });
-
-        const acl: any = {
-            uid: result.uid,
-            dateCreated: new Date(),
-            dateModified: new Date(),
-            version: 0,
-            records,
-            parentUid: "User"
-        };
-        await aclRepo.save(acl);
-
-        return result;
-    }
+        return userRepo.save(obj);
+    };
 
     beforeAll(async () => {
         await mongod.start();
-        await server.start();
-
-        const connMgr: ConnectionManager | undefined = objectFactory.getInstance(ConnectionManager);
-        let conn: any = connMgr?.connections.get("acl");
-        if (conn instanceof MongoConnection) {
-            aclRepo = conn.getMongoRepository("AccessControlListMongo");
-        }
-        conn = connMgr?.connections.get("mongo");
-        if (conn instanceof MongoConnection) {
-            userRepo = conn.getMongoRepository("User");
-        } else {
-            throw new Error("Could not find user connection");
-        }
+        dataSource = createDataSource(config);
+        await dataSource.initialize();
+        app = await createApp(config, dataSource);
+        await app.ready();
+        userRepo = dataSource.getMongoRepository(User);
     });
 
     afterAll(async () => {
-        await server.stop();
+        await app.close();
+        await dataSource.destroy();
         await mongod.stop();
-        await objectFactory.destroy();
     });
 
     beforeEach(async () => {
         try {
             await userRepo.clear();
-        } catch (err) {
-            // The error "ns not found" occurs when the collection doesn't exist yet. We can ignore this error.
-            if (err.message !== "ns not found") {
-                throw err;
-            }
+        } catch (err: any) {
+            if (err.message !== "ns not found") throw err;
         }
     });
 
-    it.skip("Can make login request.", async () => {
-        const user: User = await createUser();
-        const result = await request(server.getApplication())
-            .get(baseUrl)
-            .set("Authorization", "basic " + Buffer.from(`${user.name}:password`).toString("base64"));
+    it("Can make login request.", async () => {
+        const user = await createUser();
+        const credentials = Buffer.from(`${user.name}:password`).toString("base64");
 
-        expect(result).toBeDefined();
-        expect(result.status).toBeGreaterThanOrEqual(200);
-        expect(result.status).toBeLessThan(300);
-        expect(result.body).toBeDefined();
-        expect(result.body).toHaveProperty("token");
+        const response = await app.inject({
+            method: "GET",
+            url: "/user/login",
+            headers: { authorization: `basic ${credentials}` },
+        });
 
-        const existing: User | null = await userRepo.findOne({ uid: user.uid } as any);
+        expect(response.statusCode).toBeGreaterThanOrEqual(200);
+        expect(response.statusCode).toBeLessThan(300);
+        const body = response.json();
+        expect(body).toHaveProperty("token");
+
+        const existing = await userRepo.findOne({ where: { uid: user.uid } as any });
         if (existing) {
             expect(existing.userStatus).toEqual(UserStatus.ONLINE);
         }
     });
 
     it("Can make logout request.", async () => {
-        const user: User = await createUser();
-        const authToken = await JWTUtils.createToken(config.get("auth"), user);
-        const url = "/user/logout";
+        const user = await createUser();
+        const authToken = (app as any).jwt.sign({ uid: user.uid });
 
-        const result = await request(server.getApplication())
-            .get(url)
-            .set("Authorization", "jwt " + authToken);
+        const response = await app.inject({
+            method: "GET",
+            url: "/user/logout",
+            headers: { authorization: `jwt ${authToken}` },
+        });
 
-        expect(result).toBeDefined();
-        expect(result.status).toBeGreaterThanOrEqual(200);
-        expect(result.status).toBeLessThan(300);
+        expect(response.statusCode).toBeGreaterThanOrEqual(200);
+        expect(response.statusCode).toBeLessThan(300);
 
-        const existing: User | null = await userRepo.findOne({ uid: user.uid } as any);
+        const existing = await userRepo.findOne({ where: { uid: user.uid } as any });
         if (existing) {
             expect(existing.userStatus).toEqual(UserStatus.OFFLINE);
         }

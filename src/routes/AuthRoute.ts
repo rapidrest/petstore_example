@@ -1,136 +1,76 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import * as argon from "argon2";
-import { ApiError, JWTUser, JWTUtils, ObjectDecorators } from "@rapidrest/core";
-import {
-    RouteDecorators,
-    DocDecorators,
-    ApiErrorMessages,
-    RepoUtils,
-    BasicStrategy,
-    AuthMiddleware,
-    ObjectFactory,
-    BasicStrategyOptions
-} from "@rapidrest/service-core";
+import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { verify } from "argon2";
+import { DataSource } from "typeorm";
 import User, { UserStatus } from "../models/User.js";
-import AuthToken from "../models/AuthToken.js";
 
-const { Config, Init, Inject } = ObjectDecorators;
-const { Summary, Description, Returns } = DocDecorators;
-const {
-    Auth,
-    Get,
-    Route,
-} = RouteDecorators;
-const AuthUser = RouteDecorators.User;
-
-/**
- * Handles all REST API requests for the endpoint `/user/login`.
- * 
- * @author <AUTHOR>
- */
-@Description("Handles all REST API requests for the endpoint `/user/login`.")
-@Route("/")
-class AuthRoute {
-    @Inject(AuthMiddleware)
-    private authMiddleware?: AuthMiddleware;
-
-    @Config("auth")
-    private jwtConfig?: any;
-
-    @Inject(ObjectFactory)
-    private objectFactory?: ObjectFactory;
-    
-    @Inject(RepoUtils, { name: User.name, args: [User] })
-    protected userUtils?: RepoUtils<User>;
-
-    /**
-     * Called on server startup to initialize the route with any defaults.
-     */
-    @Init
-    private async initialize() {
-        if (!this.authMiddleware) {
-            throw new Error("authMiddleware is not set.");
-        }
-        if (!this.objectFactory) {
-            throw new Error("objectFactory is not set.");
-        }
-
-        const options: BasicStrategyOptions = new BasicStrategyOptions();
-        options.verify = async (name: string, password: string): Promise<JWTUser | undefined> => {
-            if (!this.userUtils) {
-                throw new Error("User repository not set.");
-            }
-
-            let user: User | undefined = await this.userUtils.findOne(name);
-            if (!user) {
-                throw new Error("Invalid name or password");
-            }
-
-            const success: boolean = await argon.verify(user.password, password);
-            if (!success) {
-                throw new Error("Invalid name or password");
-            }
-
-            user = await this.userUtils.update({
-                uid: user.uid,
-                version: user.version,
-                userStatus: UserStatus.ONLINE
-            }, user, { ignoreACL: true });
-
-            return user;
-        };
-        const strategy: BasicStrategy = await this.objectFactory.newInstance(BasicStrategy, {
-            name: "default",
-            args: [options],
-        });
-        this.authMiddleware.register(strategy.name, strategy);
-    }
-
-    /**
-     * Authenticates the user using HTTP Basic and returns a JSON Web Token access token to be used with future API requests.
-     */
-    @Summary("login")
-    @Description("Authenticates the user using HTTP Basic and returns a JSON Web Token access token to be used with future API requests.")
-    @Returns([AuthToken, undefined])
-    @Auth(["basic"])
-    @Get("/user/login")
-    private async login(@AuthUser user: JWTUser): Promise<AuthToken | undefined> {
-        if (!user) {
-            throw new ApiError(ApiErrorMessages.AUTH_FAILED, 401, "Invalid user or password.");
-        }
-
-        const token: string = await JWTUtils.createToken(this.jwtConfig, user);
-        return new AuthToken({
-            token
-        });
-    }
-
-    /**
-     * Logs out the current user
-     */
-    @Summary("logout")
-    @Description("Logs out the current user.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Get("/user/logout")
-    private async logout(@AuthUser user: JWTUser): Promise<void> {
-        if (!this.userUtils) {
-            throw new Error("User repository not set.");
-        }
-        
-        let foundUser: User | undefined = await this.userUtils.findOne(user.uid);
-        if (!foundUser) {
-            throw new ApiError(ApiErrorMessages.NOT_FOUND, 404, "User not found.");
-        }
-
-        await this.userUtils.update({
-            uid: foundUser.uid,
-            version: foundUser.version,
-            userStatus: UserStatus.OFFLINE
-        }, foundUser, { ignoreACL: true });
-    }
+interface RouteOptions {
+    dataSource: DataSource;
+    config: any;
 }
 
-export default AuthRoute;
+async function extractBasicUser(request: FastifyRequest, reply: FastifyReply, userRepo: any): Promise<User | null> {
+    const authHeader = request.headers.authorization ?? "";
+    if (!authHeader.toLowerCase().startsWith("basic ")) {
+        reply.status(401).send({ message: "Unauthorized" });
+        return null;
+    }
+    const base64 = authHeader.slice(6).trim();
+    const decoded = Buffer.from(base64, "base64").toString("utf-8");
+    const colonIdx = decoded.indexOf(":");
+    if (colonIdx < 0) {
+        reply.status(401).send({ message: "Invalid credentials" });
+        return null;
+    }
+    const username = decoded.slice(0, colonIdx);
+    const password = decoded.slice(colonIdx + 1);
+
+    const user = await userRepo.findOne({ where: { name: username } as any });
+    if (!user) {
+        reply.status(401).send({ message: "Invalid credentials" });
+        return null;
+    }
+    const valid = await verify(user.password, password);
+    if (!valid) {
+        reply.status(401).send({ message: "Invalid credentials" });
+        return null;
+    }
+    return user;
+}
+
+export async function authRoutes(fastify: FastifyInstance, opts: RouteOptions): Promise<void> {
+    const userRepo = opts.dataSource.getMongoRepository(User);
+    const authenticate = (fastify as any).authenticate;
+
+    // GET /user/login — Basic auth → issue JWT
+    fastify.get("/login", async (request: FastifyRequest, reply: FastifyReply) => {
+        const user = await extractBasicUser(request, reply, userRepo);
+        if (!user) return;
+
+        user.userStatus = UserStatus.ONLINE;
+        user.dateModified = new Date();
+        await userRepo.save(user);
+
+        const token = (fastify as any).jwt.sign({
+            uid: user.uid,
+            name: user.name,
+            email: user.email,
+            roles: user.roles,
+        });
+        return reply.send({ token });
+    });
+
+    // GET /user/logout — JWT → set OFFLINE
+    fastify.get("/logout", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        const payload = (request as any).user;
+        const user = await userRepo.findOne({ where: { uid: payload.uid } as any });
+        if (!user) return reply.status(404).send({ message: "User not found" });
+
+        user.userStatus = UserStatus.OFFLINE;
+        user.dateModified = new Date();
+        await userRepo.save(user);
+        return reply.send({});
+    });
+}

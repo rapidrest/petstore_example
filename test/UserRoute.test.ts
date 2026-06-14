@@ -2,40 +2,29 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import "reflect-metadata";
-import config from "./config";
-import { hash } from "argon2";
-import { request } from "@rapidrest/service-core/dist/lib/test/request.js";
-import { Server, ConnectionManager, ACLRecord, ObjectFactory, MongoConnection, MongoRepository } from "@rapidrest/service-core";
-import { EventUtils, JWTUtils, Logger } from "@rapidrest/core";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import User, { UserStatus } from "../src/models/User.js";
+import { FastifyInstance } from "fastify";
+import { hash } from "argon2";
 import { v4 as uuidv4 } from "uuid";
+import config from "./config.js";
+import { createDataSource } from "../src/data-source.js";
+import { createApp } from "../src/app.js";
+import User, { UserStatus } from "../src/models/User.js";
+import { DataSource, MongoRepository } from "typeorm";
 
-const mongod: MongoMemoryServer = new MongoMemoryServer({
-    instance: {
-        port: 9999,
-        dbName: "rrst-test",
-    },
+const mongod = new MongoMemoryServer({
+    instance: { port: 9999, dbName: "petstore_test" },
 });
 
 describe("User Tests", () => {
-    const logger = Logger();
-    const objectFactory: ObjectFactory = new ObjectFactory(config, logger);
-    const server: Server = new Server(config, "./src", logger, objectFactory);
-    const baseUrl = "/user";
-
-    const admin: any = {
-        uid: uuidv4(),
-        roles: config.get("trusted_roles"),
-    };
-    const adminToken = JWTUtils.createTokenSync(config.get("auth"), admin);
-    let user: any = undefined;
-    let authToken: any = undefined;
+    let app: FastifyInstance;
+    let dataSource: DataSource;
     let repo: MongoRepository<User>;
-    let aclRepo: MongoRepository<any>;
+    let adminToken: string;
 
-    const createUser = async function(data?: any): Promise<User> {
-        const obj: User = new User({
+    const createUser = async (data?: any): Promise<User> => {
+        const obj = new User({
             name: "tutone",
             firstName: "Tommy",
             lastName: "Tutone",
@@ -43,117 +32,63 @@ describe("User Tests", () => {
             password: await hash("password"),
             phone: "555-867-5309",
             userStatus: UserStatus.OFFLINE,
-            ...data
+            ...data,
         });
+        return repo.save(obj);
+    };
 
-        const result: User = await repo.save(obj);
-
-        const records: ACLRecord[] = [];
-
-        // Owner has CRUD access
-        records.push({
-            userOrRoleId: user.uid,
-            create: true,
-            read: true,
-            update: true,
-            delete: true,
-            special: false,
-            full: false,
-        });
-
-        // Everyone has no access
-        records.push({
-            userOrRoleId: ".*",
-            create: false,
-            read: false,
-            update: false,
-            delete: false,
-            special: false,
-            full: false,
-        });
-
-        const acl: any = {
-            uid: result.uid,
-            dateCreated: new Date(),
-            dateModified: new Date(),
-            version: 0,
-            records,
-            parentUid: "User"
-        };
-        await aclRepo.save(acl);
-
-        return result;
-    }
-
-    const createUsers = async function(num: number, data?: any): Promise<User[]> {
+    const createUsers = async (num: number, data?: any): Promise<User[]> => {
         const results: User[] = [];
-
         for (let i = 0; i < num; i++) {
-            results.push(await createUser({
-                name: `${data?.name || "tutone"}#${i}`,
-                ...data
-            }));
+            results.push(await createUser({ name: `tutone#${i}`, ...data }));
         }
-
         return results;
-    }
+    };
 
     beforeAll(async () => {
         await mongod.start();
-        await server.start();
-
-        const connMgr: ConnectionManager | undefined = objectFactory.getInstance(ConnectionManager);
-        let conn: any = connMgr?.connections.get("acl");
-        if (conn instanceof MongoConnection) {
-            aclRepo = conn.getMongoRepository("AccessControlListMongo");
-        }
-        conn = connMgr?.connections.get("mongo");
-        if (conn instanceof MongoConnection) {
-            repo = conn.getMongoRepository("User");
-        } else {
-            throw new Error("Could not find user connection");
-        }
+        dataSource = createDataSource(config);
+        await dataSource.initialize();
+        app = await createApp(config, dataSource);
+        await app.ready();
+        repo = dataSource.getMongoRepository(User);
+        adminToken = (app as any).jwt.sign({
+            uid: uuidv4(),
+            roles: config.get("trusted_roles"),
+        });
     });
 
     afterAll(async () => {
-        await server.stop();
+        await app.close();
+        await dataSource.destroy();
         await mongod.stop();
-        await objectFactory.destroy();
     });
 
     beforeEach(async () => {
-        user = {
-            uid: uuidv4(),
-        };
-        authToken = await JWTUtils.createToken(config.get("auth"), user);
-        await EventUtils.init(config, logger, authToken);
-
         try {
             await repo.clear();
-        } catch (err) {
-            // The error "ns not found" occurs when the collection doesn't exist yet. We can ignore this error.
-            if (err.message !== "ns not found") {
-                throw err;
-            }
+        } catch (err: any) {
+            if (err.message !== "ns not found") throw err;
         }
     });
 
     it("Can make count request.", async () => {
-        const objs: User[] = await createUsers(5);
+        const objs = await createUsers(5);
 
-        const result = await request(server.getApplication())
-            .head(baseUrl)
-            .set("Authorization", "jwt " + adminToken);
+        const response = await app.inject({
+            method: "HEAD",
+            url: "/user",
+            headers: { authorization: `jwt ${adminToken}` },
+        });
 
-        expect(result).toBeDefined();
-        expect(result.status).toBeGreaterThanOrEqual(200);
-        expect(result.status).toBeLessThan(300);
-        expect(result.headers).toHaveProperty("content-length");
-        expect(result.headers["content-length"]).toBe((objs.length).toString());
+        expect(response.statusCode).toBeGreaterThanOrEqual(200);
+        expect(response.statusCode).toBeLessThan(300);
+        expect(response.headers).toHaveProperty("content-length");
+        expect(response.headers["content-length"]).toBe(objs.length.toString());
     });
 
     it("Can make create request.", async () => {
-        const obj: User = new User({
+        const obj = new User({
             name: "tutone",
             firstName: "Tommy",
             lastName: "Tutone",
@@ -163,23 +98,24 @@ describe("User Tests", () => {
             userStatus: UserStatus.OFFLINE,
         });
 
-        const result = await request(server.getApplication())
-            .post(baseUrl)
-            .send(obj);
+        const response = await app.inject({
+            method: "POST",
+            url: "/user",
+            payload: obj,
+        });
 
-        expect(result).toBeDefined();
-        expect(result.status).toBeGreaterThanOrEqual(200);
-        expect(result.status).toBeLessThan(300);
-        expect(result.body).toBeDefined();
-        expect(result.body.name).toEqual(obj.name);
-        expect(result.body.firstName).toEqual(obj.firstName);
-        expect(result.body.lastName).toEqual(obj.lastName);
-        expect(result.body.email).toEqual(obj.email);
-        expect(result.body.phone).toEqual(obj.phone);
-        expect(result.body.userStatus).toEqual(obj.userStatus);
+        expect(response.statusCode).toBeGreaterThanOrEqual(200);
+        expect(response.statusCode).toBeLessThan(300);
+        const body = response.json();
+        expect(body).toBeDefined();
+        expect(body.name).toEqual(obj.name);
+        expect(body.firstName).toEqual(obj.firstName);
+        expect(body.lastName).toEqual(obj.lastName);
+        expect(body.email).toEqual(obj.email);
+        expect(body.phone).toEqual(obj.phone);
+        expect(body.userStatus).toEqual(obj.userStatus);
 
-        // Validate the contents were stored correctly
-        const existing: User | null = await repo.findOne({uid: obj.uid} as any);
+        const existing = await repo.findOne({ where: { uid: obj.uid } as any });
         expect(existing).toBeDefined();
         if (existing) {
             expect(existing.name).toEqual(obj.name);
@@ -192,131 +128,98 @@ describe("User Tests", () => {
     });
 
     it("Can make delete request.", async () => {
-        const obj: User = await createUser();
-        const url = baseUrl + "/" + obj.uid;
+        const obj = await createUser();
 
-        const result = await request(server.getApplication())
-            .delete(url)
-            .set("Authorization", "jwt " + adminToken);
+        const response = await app.inject({
+            method: "DELETE",
+            url: `/user/${obj.uid}`,
+            headers: { authorization: `jwt ${adminToken}` },
+        });
 
-        expect(result).toBeDefined();
-        expect(result.status).toBeGreaterThanOrEqual(200);
-        expect(result.status).toBeLessThan(300);
+        expect(response.statusCode).toBeGreaterThanOrEqual(200);
+        expect(response.statusCode).toBeLessThan(300);
 
-        // Validate the contents were removed
-        const count: number = await repo.count({uid: obj.uid});
+        const count = await repo.count({ where: { uid: obj.uid } as any });
         expect(count).toBe(0);
     });
 
     it("Can make findAll request.", async () => {
-        const objs: User[] = await createUsers(5);
+        const objs = await createUsers(5);
 
-        const result = await request(server.getApplication())
-            .get(baseUrl)
-            .set("Authorization", "jwt " + adminToken);
+        const response = await app.inject({
+            method: "GET",
+            url: "/user",
+            headers: { authorization: `jwt ${adminToken}` },
+        });
 
-        expect(result).toBeDefined();
-        expect(result.status).toBeGreaterThanOrEqual(200);
-        expect(result.status).toBeLessThan(300);
-        expect(result.body).toBeDefined();
-        expect(result.body).toHaveLength(objs.length);
+        expect(response.statusCode).toBeGreaterThanOrEqual(200);
+        expect(response.statusCode).toBeLessThan(300);
+        const body = response.json();
+        expect(body).toHaveLength(objs.length);
     });
 
     it("Can make findById request.", async () => {
-        const obj: User = await createUser();
-        const url = baseUrl + "/" + obj.uid;
+        const obj = await createUser();
 
-        const result = await request(server.getApplication())
-            .get(url)
-            .set("Authorization", "jwt " + adminToken);
+        const response = await app.inject({
+            method: "GET",
+            url: `/user/${obj.uid}`,
+            headers: { authorization: `jwt ${adminToken}` },
+        });
 
-        expect(result).toBeDefined();
-        expect(result.status).toBeGreaterThanOrEqual(200);
-        expect(result.status).toBeLessThan(300);
-        expect(result.body).toBeDefined();
-        expect(result.body.name).toEqual(obj.name);
-        expect(result.body.firstName).toEqual(obj.firstName);
-        expect(result.body.lastName).toEqual(obj.lastName);
-        expect(result.body.email).toEqual(obj.email);
-        expect(result.body.phone).toEqual(obj.phone);
-        expect(result.body.userStatus).toEqual(obj.userStatus);
-
+        expect(response.statusCode).toBeGreaterThanOrEqual(200);
+        expect(response.statusCode).toBeLessThan(300);
+        const body = response.json();
+        expect(body).toBeDefined();
+        expect(body.name).toEqual(obj.name);
+        expect(body.firstName).toEqual(obj.firstName);
+        expect(body.lastName).toEqual(obj.lastName);
+        expect(body.email).toEqual(obj.email);
+        expect(body.phone).toEqual(obj.phone);
+        expect(body.userStatus).toEqual(obj.userStatus);
     });
 
     it("Can make truncate request.", async () => {
-        const objs: User[] = await createUsers(5);
-        let count: number = await repo.count();
+        const objs = await createUsers(5);
+        let count = await repo.count();
         expect(count).toBe(objs.length);
 
-        const result = await request(server.getApplication())
-            .delete(baseUrl)
-            .set("Authorization", "jwt " + adminToken);
+        const response = await app.inject({
+            method: "DELETE",
+            url: "/user",
+            headers: { authorization: `jwt ${adminToken}` },
+        });
 
-        expect(result).toBeDefined();
-        expect(result.status).toBeGreaterThanOrEqual(200);
-        expect(result.status).toBeLessThan(300);
+        expect(response.statusCode).toBeGreaterThanOrEqual(200);
+        expect(response.statusCode).toBeLessThan(300);
 
         count = await repo.count();
         expect(count).toBe(0);
     });
 
     it("Can make update request.", async () => {
-        const obj: User = await createUser();
-        const url = baseUrl + "/" + obj.uid;
+        const obj = await createUser();
         obj.phone = "818-867-5309";
 
-        const result = await request(server.getApplication())
-            .put(url)
-            .set("Authorization", "jwt " + adminToken)
-            .send(obj);
+        const response = await app.inject({
+            method: "PUT",
+            url: `/user/${obj.uid}`,
+            headers: { authorization: `jwt ${adminToken}` },
+            payload: obj,
+        });
 
-        expect(result).toBeDefined();
-        expect(result.status).toBeGreaterThanOrEqual(200);
-        expect(result.status).toBeLessThan(300);
-        expect(result.body).toBeDefined();
-        expect(result.body.name).toEqual(obj.name);
-        expect(result.body.firstName).toEqual(obj.firstName);
-        expect(result.body.lastName).toEqual(obj.lastName);
-        expect(result.body.email).toEqual(obj.email);
-        expect(result.body.phone).toEqual(obj.phone);
-        expect(result.body.userStatus).toEqual(obj.userStatus);
+        expect(response.statusCode).toBeGreaterThanOrEqual(200);
+        expect(response.statusCode).toBeLessThan(300);
+        const body = response.json();
+        expect(body).toBeDefined();
+        expect(body.name).toEqual(obj.name);
+        expect(body.firstName).toEqual(obj.firstName);
+        expect(body.lastName).toEqual(obj.lastName);
+        expect(body.email).toEqual(obj.email);
+        expect(body.phone).toEqual(obj.phone);
+        expect(body.userStatus).toEqual(obj.userStatus);
 
-        // Validate the contents were stored correctly
-        const existing: User | null = await repo.findOne({uid: obj.uid} as any);
-        expect(existing).toBeDefined();
-        if (existing) {
-            expect(existing.name).toEqual(obj.name);
-            expect(existing.firstName).toEqual(obj.firstName);
-            expect(existing.lastName).toEqual(obj.lastName);
-            expect(existing.email).toEqual(obj.email);
-            expect(existing.phone).toEqual(obj.phone);
-            expect(existing.userStatus).toEqual(obj.userStatus);
-        }
-    });
-
-    it.skip("Can make update property request.", async () => {
-        const obj: User = await createUser();
-        const url = baseUrl + "/" + obj.uid + "/phone";
-        obj.phone = "818-867-5309";
-
-        const result = await request(server.getApplication())
-            .put(url)
-            .set("Authorization", "jwt " + adminToken)
-            .send(`"${obj.phone}"`);
-
-        expect(result).toBeDefined();
-        expect(result.status).toBeGreaterThanOrEqual(200);
-        expect(result.status).toBeLessThan(300);
-        expect(result.body).toBeDefined();
-        expect(result.body.name).toEqual(obj.name);
-        expect(result.body.firstName).toEqual(obj.firstName);
-        expect(result.body.lastName).toEqual(obj.lastName);
-        expect(result.body.email).toEqual(obj.email);
-        expect(result.body.phone).toEqual(obj.phone);
-        expect(result.body.userStatus).toEqual(obj.userStatus);
-
-        // Validate the contents were stored correctly
-        const existing: User | null = await repo.findOne({uid: obj.uid} as any);
+        const existing = await repo.findOne({ where: { uid: obj.uid } as any });
         expect(existing).toBeDefined();
         if (existing) {
             expect(existing.name).toEqual(obj.name);

@@ -1,183 +1,89 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import * as argon from "argon2";
-import {
-    RouteDecorators,
-    DocDecorators,
-    ModelRoute,
-    RepoUtils,
-    UpdateObject,
-    ApiErrorMessages,
-    HttpResponse,
-    HttpRequest
-} from "@rapidrest/service-core";
+import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { hash as argonHash } from "argon2";
+import { DataSource } from "typeorm";
 import User from "../models/User.js";
-import { ApiError, JWTUser, ObjectDecorators, UserUtils} from "@rapidrest/core";
 
-const { Description, Returns, Summary, TypeInfo } = DocDecorators;
-const { Config } = ObjectDecorators;
-const {
-    Auth,
-    Delete,
-    Get,
-    Head,
-    Model,
-    Query,
-    Param,
-    Post,
-    Put,
-    Request,
-    Response,
-    Route,
-    Validate
-} = RouteDecorators;
-const AuthUser = RouteDecorators.User;
-
-/**
- * Handles all REST API requests for the endpoint `/user`.
- * 
- * @author <AUTHOR>
- */
-@Model(User)
-@Route("/user")
-class UserRoute extends ModelRoute<User> {
-    protected repoUtilsClass: any = RepoUtils;
-
-    @Config("trusted_roles", ["admin"])
-    protected trustedRoles: string[] = [];
-
-    @Summary("Count Users")
-    @Description("Returns the total count of Users in the datastore based on the given criteria "
-        + "in the header as `Content-Length`.")
-    @Returns([Object])
-    @Auth(["jwt"])
-    @Head()
-    private async count(
-        @Param() params: any,
-        @Query() query: any,
-        @Response res: HttpResponse,
-        @AuthUser user: JWTUser
-    ): Promise<any> {
-        return super.doCount({ params, query, res, user });
-    }
-
-    public async validateCreate(obj: Partial<User> | Partial<User>[], @AuthUser user: JWTUser) {
-        await super.doValidate(obj, { user });
-
-        obj = Array.isArray(obj) ? obj : [obj];
-        for (const user of obj) {
-            if (user.password) {
-                user.password = await argon.hash(user.password);
-            }
-        }
-    }
-
-    /**
-     * Create a new User.
-     */
-    @Summary("Create User")
-    @Description("Create a new User.")
-    @Returns([User])
-    @Post()
-    @Validate("validateCreate")
-    private async create(obj: User | User[], @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<User | Array<User>> {
-        return super.doCreate(obj, { user, req });
-    }
-
-    /**
-     * Deletes the User
-     */
-    @Summary("Delete user by ID")
-    @Description("Deletes the user from the service.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Delete("/:id")
-    private async delete(@Param("id") id: string, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<void> {
-        return super.doDelete(id, { user, req });
-    }
-
-    /**
-     * Returns all Users from the system that the user has access to
-     */
-    @Summary("Find All Users")
-    @Description("Returns all Users from the system that the user has access to.")
-    @Returns([[Array, User]])
-    @Auth(["jwt"])
-    @Get()
-    private async findAll(@Param() params: any, @Query() query: any, @AuthUser user: JWTUser): Promise<Array<User>> {
-        return super.doFindAll({ params, query, user });
-    }
-
-    /**
-     * Returns a single User from the system that the user has access to
-     */
-    @Summary("Find user by ID")
-    @Description("Returns a single User from the system that the user has access to.")
-    @Returns([User])
-    @Auth(["jwt"])
-    @Get("/:id")
-    private async findById(@Param("id") id: string, @Query() query: any, @AuthUser user: JWTUser): Promise<User | null> {
-        return super.doFindById(id, { query, user });
-    }
-
-    @Summary("Truncate Users")
-    @Description("Deletes all Users from the datastore that the user has access to.")
-    @Returns([null])
-    @Auth(["jwt"])
-    @Delete()
-    public async truncate(
-        @Param() params: any,
-        @Query() query: any,
-        @AuthUser user: JWTUser
-    ): Promise<void> {
-        return super.doTruncate({ params, query, user });
-    }
-
-    public async validateUpdate(@Param("id") id: string, obj: UpdateObject<User>, @AuthUser user: JWTUser) {
-        await super.doValidate(obj, { user });
-
-        // Only admins and the user itself can make changes
-        if (!UserUtils.hasRoles(user, this.trustedRoles) && (id !== user.uid || obj.uid !== user.uid)) {
-            throw new ApiError(ApiErrorMessages.AUTH_PERMISSION_FAILURE, 403, ApiErrorMessages.AUTH_PERMISSION_FAILURE);
-        }
-
-        if (obj.password) {
-            obj.password = await argon.hash(obj.password);
-        }
-    }
-
-    /**
-     * Updates a single User
-     */
-    @Summary("Update user by ID")
-    @Description("Updates a single User.")
-    @Returns([User])
-    @Auth(["jwt"])
-    @Put("/:id")
-    @Validate("validateUpdate")
-    private async update(@Param("id") id: string, obj: UpdateObject<User>, @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<User> {
-        return super.doUpdate(id, obj, { user });
-    }
-
-    @Summary("Update user by ID and property")
-    @Put(":id/:property")
-    @Description("Updates a single property of an existing user.")
-    @TypeInfo([Object])
-    @Returns([User])
-    protected updateProperty(
-        @Param("id") id: string,
-        @Param("property") propertyName: string,
-        obj: any,
-        @AuthUser user: JWTUser
-    ): Promise<User> {
-        // Only admins and the user itself can make changes
-        if (!UserUtils.hasRoles(user, this.trustedRoles) && (id !== user.uid || obj.uid !== user.uid)) {
-            throw new ApiError(ApiErrorMessages.AUTH_PERMISSION_FAILURE, 403, ApiErrorMessages.AUTH_PERMISSION_FAILURE);
-        }
-
-        return super.doUpdateProperty(id, propertyName, obj, { user });
-    }
+interface RouteOptions {
+    dataSource: DataSource;
+    config: any;
 }
 
-export default UserRoute;
+export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): Promise<void> {
+    const repo = opts.dataSource.getMongoRepository(User);
+    const authenticate = (fastify as any).authenticate;
+
+    // GET + HEAD / — HEAD returns count in Content-Length, GET returns all users.
+    // Combined to prevent Fastify auto-HEAD from overriding the explicit HEAD handler.
+    fastify.route({
+        method: ["GET", "HEAD"],
+        url: "/",
+        preHandler: [authenticate],
+        handler: async (request: FastifyRequest, reply: FastifyReply) => {
+            if (request.method === "HEAD") {
+                const count = await repo.count();
+                reply.header("content-length", count.toString());
+                return reply.code(200).send("");
+            }
+            const users = await repo.find();
+            return reply.send(users);
+        },
+    });
+
+    // POST / — create one or many users
+    fastify.post("/", async (request: FastifyRequest, reply: FastifyReply) => {
+        const body = request.body as any;
+        if (Array.isArray(body)) {
+            const users = await Promise.all(
+                body.map(async (u: any) => {
+                    const user = new User(u);
+                    if (user.password) user.password = await argonHash(user.password);
+                    return user;
+                })
+            );
+            const saved = await repo.save(users);
+            return reply.status(201).send(saved);
+        } else {
+            const user = new User(body);
+            if (user.password) user.password = await argonHash(user.password);
+            const saved = await repo.save(user);
+            return reply.status(201).send(saved);
+        }
+    });
+
+    // GET /:id — find user by uid
+    fastify.get("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as any;
+        const user = await repo.findOne({ where: { uid: id } as any });
+        if (!user) return reply.status(404).send({ message: "User not found" });
+        return reply.send(user);
+    });
+
+    // PUT /:id — update user by uid
+    fastify.put("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as any;
+        const existing = await repo.findOne({ where: { uid: id } as any });
+        if (!existing) return reply.status(404).send({ message: "User not found" });
+
+        const { _id, ...updates } = request.body as any;
+        Object.assign(existing, updates);
+        existing.dateModified = new Date();
+        const saved = await repo.save(existing);
+        return reply.send(saved);
+    });
+
+    // DELETE /:id — delete user by uid
+    fastify.delete("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as any;
+        await repo.deleteOne({ uid: id });
+        return reply.status(200).send({});
+    });
+
+    // DELETE / — truncate all users
+    fastify.delete("/", { preHandler: [authenticate] }, async (_request: FastifyRequest, reply: FastifyReply) => {
+        await repo.deleteMany({});
+        return reply.status(200).send({});
+    });
+}

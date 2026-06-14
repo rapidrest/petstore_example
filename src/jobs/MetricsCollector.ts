@@ -1,29 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import { BackgroundService } from "@rapidrest/service-core";
 import * as prom from "prom-client";
 
-/**
- * The `MetricsCollector` provides a background service for collecting Prometheseus metrics for consumption by external
- * clients and compatible servers using the built-in `MetricsRoute` route handler.
- *
- * @author Jean-Philippe Steinmetz <info@acceleratxr.com>
- */
-export default class MetricsCollector extends BackgroundService {
+export default class MetricsCollector {
     private registry: prom.Registry;
-
-    constructor(config: any, logger: any) {
-        super(config, logger);
+    constructor(_config: any, _logger: any) {
         this.registry = prom.register;
-    }
-
-    public get schedule(): string | undefined {
-        return "* * * * *";
-    }
-
-    public run(): void {
-        // TODO
     }
 
     public async start(): Promise<void> {
