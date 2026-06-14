@@ -1,0 +1,8 @@
+services:
+    server:
+        command:
+            - /bin/sh
+            - -c
+            - node --prof dist/server.js; cp isolate-*.log /profiles/ 2>/dev/null; echo "Profile saved to /profiles/"
+        volumes:
+            - ./profiles:/profiles
