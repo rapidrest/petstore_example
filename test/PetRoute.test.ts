@@ -2,7 +2,7 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import "reflect-metadata";
-import { sign } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import supertest from "supertest";
 import { DataSource } from "typeorm";
@@ -27,7 +27,7 @@ describe("Pet Tests", () => {
     const trustedRoles: string[] = config.get("trusted_roles");
 
     const makeToken = (payload: any) =>
-        sign(payload, jwtConfig.secret, {
+        jwt.sign(payload, jwtConfig.secret, {
             expiresIn: jwtConfig.options.expiresIn,
             audience: jwtConfig.options.audience,
             issuer: jwtConfig.options.issuer,

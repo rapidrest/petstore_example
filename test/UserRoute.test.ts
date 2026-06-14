@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 import "reflect-metadata";
 import { hash } from "argon2";
-import { sign } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import supertest from "supertest";
 import { DataSource } from "typeorm";
@@ -26,7 +26,7 @@ describe("User Tests", () => {
     const trustedRoles: string[] = config.get("trusted_roles");
 
     const makeToken = (payload: any) =>
-        sign(payload, jwtConfig.secret, {
+        jwt.sign(payload, jwtConfig.secret, {
             expiresIn: jwtConfig.options.expiresIn,
             audience: jwtConfig.options.audience,
             issuer: jwtConfig.options.issuer,

@@ -2,7 +2,7 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import { Router } from "express";
-import { sign } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { DataSource } from "typeorm";
 import User, { UserStatus } from "../models/User.js";
 
@@ -27,7 +27,7 @@ export function createAuthRouter(passportInstance: any, config: any, dataSource:
             await userRepo.save(user);
 
             const payload = { uid: user.uid, name: user.name, email: user.email, roles: user.roles };
-            const token = sign(payload, jwtConfig.secret, {
+            const token = jwt.sign(payload, jwtConfig.secret, {
                 expiresIn: jwtConfig.options?.expiresIn ?? "1h",
                 audience: jwtConfig.options?.audience,
                 issuer: jwtConfig.options?.issuer,

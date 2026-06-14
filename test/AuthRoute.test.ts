@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 import "reflect-metadata";
 import { hash } from "argon2";
-import { sign } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import supertest from "supertest";
 import { DataSource } from "typeorm";
@@ -77,7 +77,7 @@ describe("Auth Tests", () => {
     it("Can make logout request.", async () => {
         const user = await createUser();
         const jwtConfig = config.get("auth");
-        const authToken = sign(
+        const authToken = jwt.sign(
             { uid: user.uid, name: user.name, email: user.email, roles: user.roles },
             jwtConfig.secret,
             {
