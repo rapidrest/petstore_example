@@ -12,7 +12,7 @@ export const config = {
 };
 
 export function findPets(url: string, category: string) {
-  const res = http.get(url + "/pet?category=" + category);
+  const res = http.get(url + "/pet?category.name=" + category);
   check(res, { "status is 200": (res) => res.status === 200 });
   check(res, { "res.body is defined": (res) => res.body !== undefined });
   if (res && res.body) {
