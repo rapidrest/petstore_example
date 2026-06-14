@@ -16,7 +16,8 @@ export const config = {
 
 export function createPet(url: string, authToken: string, data?: any) {
   const headers = {
-    'Content-Type': "application/json"
+    'Content-Type': "application/json",
+    'Authorization': `jwt ${authToken}`
   };
   const uid = uuidv4();
   let pet = {

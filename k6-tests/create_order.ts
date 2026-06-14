@@ -6,7 +6,7 @@ import { uuidv4 } from './uuid.ts';
 
 export const options = {
   vus: 250,
-  duration: '60s',
+  duration: '300s',
 };
 
 export const config = {
