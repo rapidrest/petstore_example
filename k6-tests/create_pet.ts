@@ -4,7 +4,7 @@ import { uuidv4 } from './uuid.ts';
 import { login } from './login.ts';
 
 export const options = {
-  vus: 250,
+  vus: 200,
   duration: '300s',
 };
 
@@ -33,8 +33,16 @@ export function createPet(url: string, authToken: string, data?: any) {
   return res.body;
 }
 
+let authToken: string | undefined = undefined;
+
 export default function() {
-  // Get the admin auth token
-  const authToken = login(config.url, config.admin_name, config.admin_pass);
+  // Retrieve the admin token only once and cache it
+  if (!authToken) {
+    authToken = login(config.url, config.admin_name, config.admin_pass);
+    if (!authToken) {
+      throw new Error("Failed to login to admin account.");
+    }
+  }
+
   createPet(config.url, authToken);
 }

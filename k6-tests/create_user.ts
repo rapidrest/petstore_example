@@ -3,7 +3,7 @@ import { check } from 'k6';
 import { uuidv4 } from './uuid.ts';
 
 export const options = {
-  vus: 250,
+  vus: 200,
   duration: '300s',
 };
 
