@@ -117,7 +117,7 @@ describe("Order Tests", () => {
         expect(body.status).toEqual(obj.status);
         expect(body.complete).toEqual(obj.complete);
 
-        const existing = await repo.findOne({ where: { uid: obj.uid } as any });
+        const existing = await repo.findOne({ where: { uid: obj.uid } });
         expect(existing).toBeDefined();
         if (existing) {
             expect(existing.petId).toEqual(obj.petId);
@@ -218,7 +218,7 @@ describe("Order Tests", () => {
         expect(body.status).toEqual(obj.status);
         expect(body.complete).toEqual(obj.complete);
 
-        const existing = await repo.findOne({ where: { uid: obj.uid } as any });
+        const existing = await repo.findOne({ where: { uid: obj.uid } });
         expect(existing).toBeDefined();
         if (existing) {
             expect(existing.petId).toEqual(obj.petId);

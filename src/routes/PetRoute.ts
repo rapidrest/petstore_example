@@ -48,7 +48,7 @@ export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): P
     // GET /:id — find pet by uid (no auth required)
     fastify.get("/:id", async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as any;
-        const pet = await repo.findOne({ where: { uid: id } as any });
+        const pet = await repo.findOne({ where: { uid: id } });
         if (!pet) return reply.status(404).send({ message: "Pet not found" });
         return reply.send(pet);
     });
@@ -56,7 +56,7 @@ export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): P
     // PUT /:id — update pet by uid (auth required)
     fastify.put("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as any;
-        const existing = await repo.findOne({ where: { uid: id } as any });
+        const existing = await repo.findOne({ where: { uid: id } });
         if (!existing) return reply.status(404).send({ message: "Pet not found" });
 
         const { _id, ...updates } = request.body as any;

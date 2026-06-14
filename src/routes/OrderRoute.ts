@@ -41,7 +41,7 @@ export async function orderRoutes(fastify: FastifyInstance, opts: RouteOptions):
     // GET /:id — find order by uid
     fastify.get("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as any;
-        const order = await repo.findOne({ where: { uid: id } as any });
+        const order = await repo.findOne({ where: { uid: id } });
         if (!order) return reply.status(404).send({ message: "Order not found" });
         return reply.send(order);
     });
@@ -49,7 +49,7 @@ export async function orderRoutes(fastify: FastifyInstance, opts: RouteOptions):
     // PUT /:id — update order by uid
     fastify.put("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as any;
-        const existing = await repo.findOne({ where: { uid: id } as any });
+        const existing = await repo.findOne({ where: { uid: id } });
         if (!existing) return reply.status(404).send({ message: "Order not found" });
 
         const { _id, ...updates } = request.body as any;

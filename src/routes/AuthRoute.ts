@@ -65,7 +65,7 @@ export async function authRoutes(fastify: FastifyInstance, opts: RouteOptions): 
     // GET /user/logout — JWT → set OFFLINE
     fastify.get("/logout", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         const payload = (request as any).user;
-        const user = await userRepo.findOne({ where: { uid: payload.uid } as any });
+        const user = await userRepo.findOne({ where: { uid: payload.uid } });
         if (!user) return reply.status(404).send({ message: "User not found" });
 
         user.userStatus = UserStatus.OFFLINE;

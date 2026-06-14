@@ -56,7 +56,7 @@ export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): 
     // GET /:id — find user by uid
     fastify.get("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as any;
-        const user = await repo.findOne({ where: { uid: id } as any });
+        const user = await repo.findOne({ where: { uid: id } });
         if (!user) return reply.status(404).send({ message: "User not found" });
         return reply.send(user);
     });
@@ -64,7 +64,7 @@ export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): 
     // PUT /:id — update user by uid
     fastify.put("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as any;
-        const existing = await repo.findOne({ where: { uid: id } as any });
+        const existing = await repo.findOne({ where: { uid: id } });
         if (!existing) return reply.status(404).send({ message: "User not found" });
 
         const { _id, ...updates } = request.body as any;
