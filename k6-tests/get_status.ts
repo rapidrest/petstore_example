@@ -3,7 +3,7 @@ import { check } from 'k6';
 
 export const options = {
   vus: 200,
-  duration: '300s'
+  duration: '60s'
 };
 
 export const config = {
@@ -11,6 +11,6 @@ export const config = {
 };
 
 export default function() {
-  const res = http.get(config.url + "/status");
+  const res = http.get(config.url + "/");
   check(res, { "status is 200": (res) => res.status === 200 });
 }

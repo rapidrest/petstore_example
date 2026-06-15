@@ -1,36 +1,32 @@
 import http from 'k6/http';
 import { check } from 'k6';
-import { uuidv4 } from './uuid.ts';
 import { login } from './login.ts';
 
 export const options = {
   vus: 200,
-  duration: '60s',
+  duration: '60s'
 };
 
 export const config = {
   url: __ENV.url || 'http://localhost:3000',
   admin_name: __ENV.admin_name || 'admin',
-  admin_pass: __ENV.admin_pass || 'admin'
+  admin_pass: __ENV.admin_pass || 'admin',
+  id: __ENV.name || "test_user"
 };
 
-export function createPet(url: string, authToken: string, data?: any) {
+export function getUser(url: string, id: string, authToken: string) {
   const headers = {
     'Content-Type': "application/json",
     'Authorization': `jwt ${authToken}`
   };
-  const uid = uuidv4();
-  let pet = {
-    category: { name: "pet" },
-    name: uid,
-    photoUrls: [],
-    tags: [],
-    status: "available",
-    ...data
-  };
-  const res = http.post(url + "/pet", JSON.stringify(pet), { headers });
-  check(res, { "status is 2XX": (res) => res.status >= 200 && res.status < 300 });
-  return res.body;
+  const res = http.get(url + "/user/" + id, { headers });
+  check(res, { "status is 200": (res) => res.status === 200 });
+  check(res, { "res.body is defined": (res) => res.body !== undefined });
+  if (res && res.body) {
+    return JSON.parse(res.body.toString());
+  } else {
+    throw new Error("Failed to retrieve user with id: " + id);
+  }
 }
 
 let authToken: string | undefined = undefined;
@@ -44,5 +40,5 @@ export default function() {
     }
   }
 
-  createPet(config.url, authToken);
+  getUser(config.url, config.id + Math.ceil(Math.random() * 10), authToken);
 }
