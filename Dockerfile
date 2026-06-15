@@ -26,6 +26,8 @@ COPY --from=builder /app/.yarn/releases ./.yarn/releases
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/node_modules ./node_modules
+COPY ./scripts /app/scripts
+RUN chmod +x /app/scripts/*.sh
 # Add curl for health check
 RUN apt update && apt upgrade -f && apt install curl -y
 RUN npm install --global nodemon

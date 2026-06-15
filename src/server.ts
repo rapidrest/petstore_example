@@ -29,12 +29,15 @@ const start = async (): Promise<void> => {
         logger.info(`Server listening on port ${port}`);
     });
 
-    process.on("SIGINT", async () => {
+    const shutdown = async () => {
         logger.info("Shutting down...");
         server?.close();
         await dataSource.destroy();
         process.exit(0);
-    });
+    };
+
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
 };
 
 void start();
