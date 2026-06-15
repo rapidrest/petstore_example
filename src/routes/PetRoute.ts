@@ -50,8 +50,11 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     /** GET / — find all pets (no auth required) */
     router.get("/", async (req, res) => {
         try {
+            const limit: number = req.query.limit ? Math.min(Number(req.query.limit), 1000) : 100;
+            const page: number = req.query.page ? Number(req.query.page) : 0;
+            const skip: number = page * limit;
             const query = ModelUtils.buildSearchQuery(Pet, repo, req.params, req.query);
-            const pets = await repo.find(query);
+            const pets = await repo.aggregate(query).skip(skip).limit(limit).toArray();
             return res.json(pets);
         } catch(err) {
             return res.status(500).json(err);

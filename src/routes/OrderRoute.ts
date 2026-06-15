@@ -56,8 +56,11 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
             if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
                 return res.status(401).json({ message: "Unauthorized "});
             }
+            const limit: number = req.query.limit ? Math.min(Number(req.query.limit), 1000) : 100;
+            const page: number = req.query.page ? Number(req.query.page) : 0;
+            const skip: number = page * limit;
             const query = ModelUtils.buildSearchQuery(Order, repo, req.params, req.query);
-            const orders = await repo.find(query);
+            const orders = await repo.aggregate(query).skip(skip).limit(limit).toArray();
             return res.json(orders);
         } catch(err) {
             return res.status(500).json(err);
