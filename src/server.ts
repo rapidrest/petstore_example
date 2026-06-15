@@ -51,7 +51,7 @@ const start = async function (config: any, logger: any) {
 
 void start(config, logger);
 
-process.on("SIGINT", async () => {
+const shutdown = async () => {
     logger.info("Shutting down...");
     if (server) {
         await server.stop();
@@ -60,4 +60,7 @@ process.on("SIGINT", async () => {
         await objectFactory.destroy();
     }
     process.exit(0);
-});
+};
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
