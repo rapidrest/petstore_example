@@ -40,6 +40,8 @@
 		"trailingComma": "es5"
 	},
 	"dependencies": {
+		"@composer-js/core": "^6.0.0",
+		"@composer-js/service-core": "^8.0.4",
 		"@fastify/cors": "^9.0.0",
 		"@fastify/jwt": "^8.0.0",
 		"@types/node": "^25.9.3",

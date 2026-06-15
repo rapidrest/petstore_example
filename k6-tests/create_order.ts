@@ -5,7 +5,7 @@ import { login } from './login.ts';
 import { uuidv4 } from './uuid.ts';
 
 export const options = {
-  vus: 100,
+  vus: 200,
   duration: '60s',
 };
 
@@ -38,7 +38,16 @@ export function createOrder(url: string, token: string, petId: string, quantity:
   }
 }
 
+let authToken: string | undefined = undefined;
+
 export default function() {
-  const token = login(config.url, config.name, config.password);
-  createOrder(config.url, token, config.petId, 1);
+  // Retrieve the admin token only once and cache it
+  if (!authToken) {
+    authToken = login(config.url, config.name, config.password);
+    if (!authToken) {
+      throw new Error("Failed to login to admin account.");
+    }
+  }
+  
+  createOrder(config.url, authToken, config.petId, 1);
 }
