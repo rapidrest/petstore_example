@@ -30,7 +30,8 @@ export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): P
             const skip: number = page * limit;
             const query = ModelUtils.buildSearchQuery(Pet, repo, request.params, queryParams);
             if (request.method === "HEAD") {
-                const count = await repo.count(query);
+                const countResult = await repo.aggregate([...query, { $count: "total" }]).toArray();
+                const count = countResult.length > 0 ? (countResult[0] as any).total : 0;
                 reply.header("content-length", count.toString());
                 return reply.code(200).send("");
             } else {
@@ -129,7 +130,8 @@ export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): P
             return reply.status(401).send({ message: "Unauthorized "});
         }
         const query = ModelUtils.buildSearchQuery(Pet, repo, request.params, request.query);
-        await repo.deleteMany(query);
+        const matchStage = (query as any[]).find((s: any) => s.$match);
+        await repo.deleteMany(matchStage ? matchStage.$match : {});
         return reply.status(200).send({});
     });
 }

@@ -103,7 +103,7 @@ describe("Order Tests", () => {
         const response = await app.inject({
             method: "POST",
             url: "/store/order",
-            headers: { authorization: `jwt ${userToken}` },
+            headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
         });
 
