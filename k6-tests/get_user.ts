@@ -10,14 +10,14 @@ export const options = {
 export const config = {
   url: __ENV.url || 'http://localhost:3000',
   admin_name: __ENV.admin_name || 'admin',
-  admin_pass: __ENV.admin_pass || 'admin'
+  admin_pass: __ENV.admin_pass || 'admin',
   id: __ENV.name || "test_user"
 };
 
 export function getUser(url: string, id: string, authToken: string) {
   const headers = {
     'Content-Type': "application/json",
-    'Authorization': `jwt ${authToken}`}
+    'Authorization': `jwt ${authToken}`
   };
   const res = http.get(url + "/user/" + id, { headers });
   check(res, { "status is 200": (res) => res.status === 200 });
