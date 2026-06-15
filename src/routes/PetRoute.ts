@@ -64,7 +64,17 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     /** GET /:id — find pet by uid (no auth required) */
     router.get("/:id", async (req, res) => {
         try {
-            const pet = await repo.findOne({ where: { uid: req.params.id } });
+            const query = [
+                {
+                    $match: {
+                        $or: [{ uid: req.params.id }, { name: req.params.id }]
+                    }
+                },
+                {
+                    $sort: { version: -1 },
+                },
+            ];
+            const pet = await repo.aggregate(query).limit(1).next();
             if (!pet) return res.status(404).json({ message: "Pet not found" });
             return res.json(pet);
         } catch(err) {
@@ -78,7 +88,17 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
             if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
                 return res.status(401).json({ message: "Unauthorized "});
             }
-            const existing = await repo.findOne({ where: { uid: req.params.id } });
+            const query = [
+                {
+                    $match: {
+                        $or: [{ uid: req.params.id }, { name: req.params.id }]
+                    }
+                },
+                {
+                    $sort: { version: -1 },
+                },
+            ];
+            const existing = await repo.aggregate(query).limit(1).next();
             if (!existing) return res.status(404).json({ message: "Pet not found" });
             const { _id, ...updates } = req.body;
             Object.assign(existing, updates);
@@ -97,9 +117,19 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
                 return res.status(401).json({ message: "Unauthorized "});
             }
             const { id, property } = req.params;
-            const existing = await repo.findOne({ where: { uid: id } });
+            const query = [
+                {
+                    $match: {
+                        $or: [{ uid: req.params.id }, { name: req.params.id }]
+                    }
+                },
+                {
+                    $sort: { version: -1 },
+                },
+            ];
+            const existing = await repo.aggregate(query).limit(1).next();
             if (!existing) return res.status(404).json({ message: "Pet not found" });
-            (existing as any)[property] = req.body;
+            existing[property] = req.body;
             existing.dateModified = new Date();
             const saved = await repo.save(existing);
             return res.json(saved);
@@ -114,9 +144,19 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
             if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
                 return res.status(401).json({ message: "Unauthorized "});
             }
-            const existing = await repo.findOne({ where: { uid: req.params.id } });
+            const query = [
+                {
+                    $match: {
+                        $or: [{ uid: req.params.id }, { name: req.params.id }]
+                    }
+                },
+                {
+                    $sort: { version: -1 },
+                },
+            ];
+            const existing = await repo.aggregate(query).limit(1).next();
             if (!existing) return res.status(404).json({ message: "Pet not found" });
-            await repo.deleteOne({ uid: req.params.id });
+            await repo.deleteOne({ uid: existing.uid });
             return res.status(204).end();
         } catch(err) {
             return res.status(500).json(err);

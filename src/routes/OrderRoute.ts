@@ -73,7 +73,17 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
             if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
                 return res.status(401).json({ message: "Unauthorized "});
             }
-            const order = await repo.findOne({ where: { uid: req.params.id } });
+            const query = [
+                {
+                    $match: {
+                        $or: [{ uid: req.params.id }, { name: req.params.id }]
+                    }
+                },
+                {
+                    $sort: { version: -1 },
+                },
+            ];
+            const order = await repo.aggregate(query).limit(1).next();
             if (!order) return res.status(404).json({ message: "Order not found" });
             return res.json(order);
         } catch(err) {
@@ -87,7 +97,17 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
             if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
                 return res.status(401).json({ message: "Unauthorized "});
             }
-            const existing = await repo.findOne({ where: { uid: req.params.id } });
+            const query = [
+                {
+                    $match: {
+                        $or: [{ uid: req.params.id }, { name: req.params.id }]
+                    }
+                },
+                {
+                    $sort: { version: -1 },
+                },
+            ];
+            const existing = await repo.aggregate(query).limit(1).next();
             if (!existing) return res.status(404).json({ message: "Order not found" });
             const { _id, ...updates } = req.body;
             Object.assign(existing, updates);
@@ -106,9 +126,19 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
                 return res.status(401).json({ message: "Unauthorized "});
             }
             const { id, property } = req.params;
-            const existing = await repo.findOne({ where: { uid: id } });
+            const query = [
+                {
+                    $match: {
+                        $or: [{ uid: req.params.id }, { name: req.params.id }]
+                    }
+                },
+                {
+                    $sort: { version: -1 },
+                },
+            ];
+            const existing = await repo.aggregate(query).limit(1).next();
             if (!existing) return res.status(404).json({ message: "Order not found" });
-            (existing as any)[property] = req.body;
+            existing[property] = req.body;
             existing.dateModified = new Date();
             const saved = await repo.save(existing);
             return res.json(saved);
@@ -123,9 +153,19 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
             if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
                 return res.status(401).json({ message: "Unauthorized "});
             }
-            const existing = await repo.findOne({ where: { uid: req.params.id } });
+            const query = [
+                {
+                    $match: {
+                        $or: [{ uid: req.params.id }, { name: req.params.id }]
+                    }
+                },
+                {
+                    $sort: { version: -1 },
+                },
+            ];
+            const existing = await repo.aggregate(query).limit(1).next();
             if (!existing) return res.status(404).json({ message: "Order not found" });
-            await repo.deleteOne({ uid: req.params.id });
+            await repo.deleteOne({ uid: existing.uid });
             return res.status(204).end();
         } catch(err) {
             return res.status(500).json(err);
