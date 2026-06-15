@@ -1,20 +1,23 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
+import config from "../config.js";
 import { Router } from "express";
 import { DataSource } from "typeorm";
 import { ModelUtils } from "@composer-js/service-core/dist/lib/models/ModelUtils.js";
+import { UserUtils } from "@composer-js/core/dist/lib/UserUtils.js";
 import Pet from "../models/Pet.js";
 
 export function createPetRouter(passportInstance: any, _config: any, dataSource: DataSource): Router {
     const router = Router();
     const repo = dataSource.getMongoRepository(Pet);
     const jwtAuth = passportInstance.authenticate("jwt", { session: false });
+    const trustedRoles: string[] = config.get("trusted_roles") || ["admin"];
 
     /** HEAD / — return count in Content-Length (no auth required) */
-    router.head("/", async (_req, res) => {
+    router.head("/", async (req, res) => {
         try {
-            const query = ModelUtils.buildSearchQuery(Pet, repo, _req.params, _req.query);
+            const query = ModelUtils.buildSearchQuery(Pet, repo, req.params, req.query);
             const count = await repo.count(query);
             res.setHeader("Content-Length", count.toString());
             res.status(200).end();
@@ -26,6 +29,9 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     /** POST / — create one or many pets */
     router.post("/", jwtAuth, async (req, res) => {
         try {
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
+            }
             const body = req.body;
             if (Array.isArray(body)) {
                 const pets = body.map((p) => new Pet(p));
@@ -42,9 +48,9 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     });
 
     /** GET / — find all pets (no auth required) */
-    router.get("/", async (_req, res) => {
+    router.get("/", async (req, res) => {
         try {
-            const query = ModelUtils.buildSearchQuery(Pet, repo, _req.params, _req.query);
+            const query = ModelUtils.buildSearchQuery(Pet, repo, req.params, req.query);
             const pets = await repo.find(query);
             return res.json(pets);
         } catch {
@@ -66,6 +72,9 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     /** PUT /:id — full update */
     router.put("/:id", jwtAuth, async (req, res) => {
         try {
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
+            }
             const existing = await repo.findOne({ where: { uid: req.params.id } });
             if (!existing) return res.status(404).json({ message: "Pet not found" });
             const { _id, ...updates } = req.body;
@@ -81,6 +90,9 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     /** PUT /:id/:property — patch a single property */
     router.put("/:id/:property", jwtAuth, async (req, res) => {
         try {
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
+            }
             const { id, property } = req.params;
             const existing = await repo.findOne({ where: { uid: id } });
             if (!existing) return res.status(404).json({ message: "Pet not found" });
@@ -96,6 +108,9 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     /** DELETE /:id — delete by uid */
     router.delete("/:id", jwtAuth, async (req, res) => {
         try {
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
+            }
             const existing = await repo.findOne({ where: { uid: req.params.id } });
             if (!existing) return res.status(404).json({ message: "Pet not found" });
             await repo.deleteOne({ uid: req.params.id });
@@ -106,9 +121,12 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
     });
 
     /** DELETE / — truncate all pets */
-    router.delete("/", jwtAuth, async (_req, res) => {
+    router.delete("/", jwtAuth, async (req, res) => {
         try {
-            const query = ModelUtils.buildSearchQuery(Pet, repo, _req.params, _req.query);
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
+            }
+            const query = ModelUtils.buildSearchQuery(Pet, repo, req.params, req.query);
             await repo.deleteMany(query);
             return res.status(204).end();
         } catch {

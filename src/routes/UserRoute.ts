@@ -1,10 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
+import config from "../config.js";
 import { Router } from "express";
 import { hash as argonHash } from "argon2";
 import { DataSource } from "typeorm";
 import { ModelUtils } from "@composer-js/service-core/dist/lib/models/ModelUtils.js";
+import { UserUtils } from "@composer-js/core/dist/lib/UserUtils.js";
 import User from "../models/User.js";
 
 export function createUserRouter(passportInstance: any, config: any, dataSource: DataSource): Router {
@@ -13,13 +15,13 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     const jwtAuth = passportInstance.authenticate("jwt", { session: false });
     const trustedRoles: string[] = config.get("trusted_roles") || ["admin"];
 
-    const isAdmin = (jwtUser: any): boolean =>
-        Array.isArray(jwtUser?.roles) && jwtUser.roles.some((r: string) => trustedRoles.includes(r));
-
     /** HEAD / — return count in Content-Length */
-    router.head("/", jwtAuth, async (_req, res) => {
+    router.head("/", jwtAuth, async (req, res) => {
         try {
-            const query = ModelUtils.buildSearchQuery(User, repo, _req.params, _req.query);
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
+            }
+            const query = ModelUtils.buildSearchQuery(User, repo, req.params, req.query);
             const count = await repo.count(query);
             res.setHeader("Content-Length", count.toString());
             res.status(200).end();
@@ -54,9 +56,12 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     });
 
     /** GET / — find all users */
-    router.get("/", jwtAuth, async (_req, res) => {
+    router.get("/", jwtAuth, async (req, res) => {
         try {
-            const query = ModelUtils.buildSearchQuery(User, repo, _req.params, _req.query);
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
+            }
+            const query = ModelUtils.buildSearchQuery(User, repo, req.params, req.query);
             const users = await repo.find(query);
             return res.json(users);
         } catch {
@@ -67,6 +72,9 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     /** GET /:id — find user by uid */
     router.get("/:id", jwtAuth, async (req, res) => {
         try {
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
+            }
             const user = await repo.findOne({ where: { uid: req.params.id } });
             if (!user) return res.status(404).json({ message: "User not found" });
             return res.json(user);
@@ -78,13 +86,11 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     /** PUT /:id — full update */
     router.put("/:id", jwtAuth, async (req, res) => {
         try {
-            const id = req.params.id;
-            const jwtUser = req.user as any;
-
-            if (!isAdmin(jwtUser) && id !== jwtUser.uid) {
-                return res.status(403).json({ message: "Permission denied" });
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
             }
 
+            const id = req.params.id;
             const existing = await repo.findOne({ where: { uid: id } });
             if (!existing) return res.status(404).json({ message: "User not found" });
 
@@ -103,13 +109,11 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     /** PUT /:id/:property — patch a single property */
     router.put("/:id/:property", jwtAuth, async (req, res) => {
         try {
-            const { id, property } = req.params;
-            const jwtUser = req.user as any;
-
-            if (!isAdmin(jwtUser) && id !== jwtUser.uid) {
-                return res.status(403).json({ message: "Permission denied" });
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
             }
 
+            const { id, property } = req.params;
             const existing = await repo.findOne({ where: { uid: id } });
             if (!existing) return res.status(404).json({ message: "User not found" });
 
@@ -126,6 +130,10 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     /** DELETE /:id — delete by uid */
     router.delete("/:id", jwtAuth, async (req, res) => {
         try {
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
+            }
+
             const existing = await repo.findOne({ where: { uid: req.params.id } });
             if (!existing) return res.status(404).json({ message: "User not found" });
             await repo.deleteOne({ uid: req.params.id });
@@ -136,9 +144,13 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     });
 
     /** DELETE / — truncate all users */
-    router.delete("/", jwtAuth, async (_req, res) => {
+    router.delete("/", jwtAuth, async (req, res) => {
         try {
-            const query = ModelUtils.buildSearchQuery(User, repo, _req.params, _req.query);
+            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
+                return res.status(401).json({ message: "Unauthorized "});
+            }
+            
+            const query = ModelUtils.buildSearchQuery(User, repo, req.params, req.query);
             await repo.deleteMany(query);
             return res.status(204).end();
         } catch {
