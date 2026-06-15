@@ -26,7 +26,8 @@ export function createApp(config: any, dataSource: DataSource): express.Applicat
     app.use("/pet", createPetRouter(passport, config, dataSource));
     app.use("/store/order", createOrderRouter(passport, config, dataSource));
 
-    app.get("/", (_req, res) => res.json({ status: "ok", service: config.get("service_name") }));
+    app.get("/", (_req, res) => res.json({ name: config.get("service_name"), time: new Date().toISOString(), version: config.get("version"), }));
+    app.get("/status", (_req, res) => res.json({ name: config.get("service_name"), time: new Date().toISOString(), version: config.get("version"), }));
 
     return app;
 }
