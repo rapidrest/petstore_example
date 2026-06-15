@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 import { Router } from "express";
 import { DataSource } from "typeorm";
+import { ModelUtils } from "@composer-js/service-core/dist/lib/models/ModelUtils.js";
 import Order from "../models/Order.js";
 
 export function createOrderRouter(passportInstance: any, _config: any, dataSource: DataSource): Router {
@@ -13,7 +14,8 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
     /** HEAD / — return count in Content-Length */
     router.head("/", jwtAuth, async (_req, res) => {
         try {
-            const count = await repo.count();
+            const query = ModelUtils.buildSearchQuery(Order, repo, _req.params, _req.query);
+            const count = await repo.count(query);
             res.setHeader("Content-Length", count.toString());
             res.status(200).end();
         } catch {
@@ -42,7 +44,8 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
     /** GET / — find all orders */
     router.get("/", jwtAuth, async (_req, res) => {
         try {
-            const orders = await repo.find();
+            const query = ModelUtils.buildSearchQuery(Order, repo, _req.params, _req.query);
+            const orders = await repo.find(query);
             return res.json(orders);
         } catch {
             return res.status(500).json({ message: "Internal server error" });
@@ -105,7 +108,8 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
     /** DELETE / — truncate all orders */
     router.delete("/", jwtAuth, async (_req, res) => {
         try {
-            await repo.deleteMany({});
+            const query = ModelUtils.buildSearchQuery(Order, repo, _req.params, _req.query);
+            await repo.deleteMany(query);
             return res.status(204).end();
         } catch {
             return res.status(500).json({ message: "Internal server error" });

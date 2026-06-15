@@ -4,6 +4,7 @@
 import { Router } from "express";
 import { hash as argonHash } from "argon2";
 import { DataSource } from "typeorm";
+import { ModelUtils } from "@composer-js/service-core/dist/lib/models/ModelUtils.js";
 import User from "../models/User.js";
 
 export function createUserRouter(passportInstance: any, config: any, dataSource: DataSource): Router {
@@ -18,7 +19,8 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     /** HEAD / — return count in Content-Length */
     router.head("/", jwtAuth, async (_req, res) => {
         try {
-            const count = await repo.count();
+            const query = ModelUtils.buildSearchQuery(User, repo, _req.params, _req.query);
+            const count = await repo.count(query);
             res.setHeader("Content-Length", count.toString());
             res.status(200).end();
         } catch {
@@ -54,7 +56,8 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     /** GET / — find all users */
     router.get("/", jwtAuth, async (_req, res) => {
         try {
-            const users = await repo.find();
+            const query = ModelUtils.buildSearchQuery(User, repo, _req.params, _req.query);
+            const users = await repo.find(query);
             return res.json(users);
         } catch {
             return res.status(500).json({ message: "Internal server error" });
@@ -135,7 +138,8 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     /** DELETE / — truncate all users */
     router.delete("/", jwtAuth, async (_req, res) => {
         try {
-            await repo.deleteMany({});
+            const query = ModelUtils.buildSearchQuery(User, repo, _req.params, _req.query);
+            await repo.deleteMany(query);
             return res.status(204).end();
         } catch {
             return res.status(500).json({ message: "Internal server error" });
