@@ -1,7 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import config from "../config.js";
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { hash as argonHash } from "argon2";
 import { DataSource } from "typeorm";
@@ -17,7 +16,7 @@ interface RouteOptions {
 export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): Promise<void> {
     const repo = opts.dataSource.getMongoRepository(User);
     const authenticate = (fastify as any).authenticate;
-    const trustedRoles: string[] = config.get("trusted_roles") || ["admin"];
+    const trustedRoles: string[] = opts.config.get("trusted_roles") || ["admin"];
 
     // GET + HEAD / — HEAD returns count in Content-Length, GET returns all users.
     // Combined to prevent Fastify auto-HEAD from overriding the explicit HEAD handler.

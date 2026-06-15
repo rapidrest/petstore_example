@@ -59,9 +59,14 @@ export async function createApp(config: any, dataSource: DataSource, opts: AppOp
     await app.register(orderRoutes, { prefix: "/store/order", ...routeOpts });
 
     app.get("/", async () => ({
-        status: "ok",
-        service: config.get("service_name"),
-        version: config.get("version"),
+        name: config.get("service_name"),
+        time: new Date().toISOString(),
+        version: config.get("version")
+    }));
+    app.get("/status", async () => ({
+        name: config.get("service_name"),
+        time: new Date().toISOString(),
+        version: config.get("version")
     }));
 
     return app;

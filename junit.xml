@@ -1,128 +1,85 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="27" failures="4" errors="0" time="40.0412773">
-    <testsuite name="test/AuthRoute.test.ts" timestamp="2026-06-15T23:32:54.052Z" hostname="Jane" tests="3" failures="1" errors="0" skipped="2" time="10.0049552">
-        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make login request." time="0">
-            <skipped/>
+<testsuites name="vitest tests" tests="23" failures="7" errors="0" time="2.907025">
+    <testsuite name="test/AuthRoute.test.ts" timestamp="2026-06-15T23:47:47.565Z" hostname="Jane" tests="2" failures="0" errors="0" skipped="0" time="0.6482122">
+        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make login request." time="0.1129096">
         </testcase>
-        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make logout request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests" time="10.0042566">
-            <failure message="Hook timed out in 10000ms.
-If this is a long-running hook, pass a timeout value as the last argument or configure it globally with &quot;hookTimeout&quot;." type="Error">
-Error: Hook timed out in 10000ms.
-If this is a long-running hook, pass a timeout value as the last argument or configure it globally with &quot;hookTimeout&quot;.
- ❯ test/AuthRoute.test.ts:38:5
-            </failure>
-            <failure message="Cannot read properties of undefined (reading &apos;close&apos;)" type="TypeError">
-TypeError: Cannot read properties of undefined (reading &apos;close&apos;)
- ❯ test/AuthRoute.test.ts:48:19
-            </failure>
+        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make logout request." time="0.036057">
         </testcase>
     </testsuite>
-    <testsuite name="test/OrderRoute.test.ts" timestamp="2026-06-15T23:32:54.056Z" hostname="Jane" tests="8" failures="1" errors="0" skipped="7" time="10.0047877">
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make count request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make create request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make delete request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findAll request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findById request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make truncate request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make update request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests" time="10.0040159">
-            <failure message="Hook timed out in 10000ms.
-If this is a long-running hook, pass a timeout value as the last argument or configure it globally with &quot;hookTimeout&quot;." type="Error">
-Error: Hook timed out in 10000ms.
-If this is a long-running hook, pass a timeout value as the last argument or configure it globally with &quot;hookTimeout&quot;.
- ❯ test/OrderRoute.test.ts:54:5
+    <testsuite name="test/OrderRoute.test.ts" timestamp="2026-06-15T23:47:47.568Z" hostname="Jane" tests="7" failures="3" errors="0" skipped="0" time="0.6061409">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make count request." time="0.0378903">
+            <failure message="expected 500 to be less than 300" type="AssertionError">
+AssertionError: expected 500 to be less than 300
+ ❯ test/OrderRoute.test.ts:94:37
             </failure>
-            <failure message="Cannot read properties of undefined (reading &apos;close&apos;)" type="TypeError">
-TypeError: Cannot read properties of undefined (reading &apos;close&apos;)
- ❯ test/OrderRoute.test.ts:70:19
+        </testcase>
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make create request." time="0.0081197">
+            <failure message="expected 401 to be less than 300" type="AssertionError">
+AssertionError: expected 401 to be less than 300
+ ❯ test/OrderRoute.test.ts:111:37
             </failure>
+        </testcase>
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make delete request." time="0.0137552">
+        </testcase>
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findAll request." time="0.0149734">
+        </testcase>
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findById request." time="0.0115176">
+        </testcase>
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make truncate request." time="0.0141283">
+            <failure message="expected 500 to be less than 300" type="AssertionError">
+AssertionError: expected 500 to be less than 300
+ ❯ test/OrderRoute.test.ts:194:37
+            </failure>
+        </testcase>
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make update request." time="0.0149146">
         </testcase>
     </testsuite>
-    <testsuite name="test/PetRoute.test.ts" timestamp="2026-06-15T23:32:54.058Z" hostname="Jane" tests="8" failures="1" errors="0" skipped="7" time="10.0156558">
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make count request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make create request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make delete request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findAll request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findById request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make truncate request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make update request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests" time="10.0123675">
-            <failure message="Hook timed out in 10000ms.
-If this is a long-running hook, pass a timeout value as the last argument or configure it globally with &quot;hookTimeout&quot;." type="Error">
-Error: Hook timed out in 10000ms.
-If this is a long-running hook, pass a timeout value as the last argument or configure it globally with &quot;hookTimeout&quot;.
- ❯ test/PetRoute.test.ts:47:5
+    <testsuite name="test/PetRoute.test.ts" timestamp="2026-06-15T23:47:47.571Z" hostname="Jane" tests="7" failures="2" errors="0" skipped="0" time="0.5473906">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make count request." time="0.0307573">
+            <failure message="expected 500 to be less than 300" type="AssertionError">
+AssertionError: expected 500 to be less than 300
+ ❯ test/PetRoute.test.ts:83:37
             </failure>
-            <failure message="Cannot read properties of undefined (reading &apos;close&apos;)" type="TypeError">
-TypeError: Cannot read properties of undefined (reading &apos;close&apos;)
- ❯ test/PetRoute.test.ts:61:19
+        </testcase>
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make create request." time="0.0113752">
+        </testcase>
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make delete request." time="0.0083667">
+        </testcase>
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findAll request." time="0.0086553">
+        </testcase>
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findById request." time="0.0058187">
+        </testcase>
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make truncate request." time="0.0080195">
+            <failure message="expected 500 to be less than 300" type="AssertionError">
+AssertionError: expected 500 to be less than 300
+ ❯ test/PetRoute.test.ts:186:37
             </failure>
+        </testcase>
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make update request." time="0.0099812">
         </testcase>
     </testsuite>
-    <testsuite name="test/UserRoute.test.ts" timestamp="2026-06-15T23:32:54.060Z" hostname="Jane" tests="8" failures="1" errors="0" skipped="7" time="10.0158786">
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make count request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make create request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make delete request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findAll request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findById request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make truncate request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make update request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests" time="10.0150545">
-            <failure message="Hook timed out in 10000ms.
-If this is a long-running hook, pass a timeout value as the last argument or configure it globally with &quot;hookTimeout&quot;." type="Error">
-Error: Hook timed out in 10000ms.
-If this is a long-running hook, pass a timeout value as the last argument or configure it globally with &quot;hookTimeout&quot;.
- ❯ test/UserRoute.test.ts:48:5
+    <testsuite name="test/UserRoute.test.ts" timestamp="2026-06-15T23:47:47.572Z" hostname="Jane" tests="7" failures="2" errors="0" skipped="0" time="1.1052813">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make count request." time="0.1685077">
+            <failure message="expected 500 to be less than 300" type="AssertionError">
+AssertionError: expected 500 to be less than 300
+ ❯ test/UserRoute.test.ts:85:37
             </failure>
-            <failure message="Cannot read properties of undefined (reading &apos;close&apos;)" type="TypeError">
-TypeError: Cannot read properties of undefined (reading &apos;close&apos;)
- ❯ test/UserRoute.test.ts:62:19
+        </testcase>
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make create request." time="0.064903">
+        </testcase>
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make delete request." time="0.0508932">
+        </testcase>
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findAll request." time="0.144598">
+        </testcase>
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findById request." time="0.031798">
+        </testcase>
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make truncate request." time="0.1466629">
+            <failure message="expected 500 to be less than 300" type="AssertionError">
+AssertionError: expected 500 to be less than 300
+ ❯ test/UserRoute.test.ts:194:37
             </failure>
+        </testcase>
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make update request." time="0.0361056">
         </testcase>
     </testsuite>
 </testsuites>

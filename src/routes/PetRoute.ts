@@ -1,7 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import config from "../config.js";
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { DataSource } from "typeorm";
 import { ModelUtils } from "@composer-js/service-core/dist/lib/models/ModelUtils.js";
@@ -16,7 +15,7 @@ interface RouteOptions {
 export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): Promise<void> {
     const repo = opts.dataSource.getMongoRepository(Pet);
     const authenticate = (fastify as any).authenticate;
-    const trustedRoles: string[] = config.get("trusted_roles") || ["admin"];
+    const trustedRoles: string[] = opts.config.get("trusted_roles") || ["admin"];
 
     // GET + HEAD / — HEAD returns count in Content-Length, GET returns all pets.
     // Combined to prevent Fastify auto-HEAD from overriding the explicit HEAD handler.
