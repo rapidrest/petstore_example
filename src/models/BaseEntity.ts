@@ -9,16 +9,16 @@ export abstract class BaseEntity {
     @ObjectIdColumn()
     _id: ObjectId = undefined as unknown as ObjectId;
 
-    @Column()
+    @Column('string')
     uid: string = uuidv4();
 
-    @Column()
+    @Column('date')
     dateCreated: Date = new Date();
 
-    @Column()
+    @Column('date')
     dateModified: Date = new Date();
 
-    @Column()
+    @Column('int')
     version: number = 0;
 
     constructor(other?: any) {

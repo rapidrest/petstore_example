@@ -12,19 +12,19 @@ export enum OrderStatus {
 
 @Entity("orders")
 export default class Order extends BaseEntity {
-    @Column()
+    @Column('string')
     public petId: string = "";
 
-    @Column()
+    @Column('int')
     public quantity: number = 0;
 
-    @Column()
+    @Column('date')
     public shipDate: Date = new Date();
 
-    @Column()
+    @Column('string')
     public status: OrderStatus = OrderStatus.PLACED;
 
-    @Column()
+    @Column('boolean')
     public complete: boolean = false;
 
     constructor(other?: any) {

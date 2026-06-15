@@ -25,8 +25,8 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
             const count = await repo.count(query);
             res.setHeader("Content-Length", count.toString());
             res.status(200).end();
-        } catch {
-            res.status(500).end();
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -50,8 +50,8 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
                 const saved = await repo.save(user);
                 return res.status(201).json(saved);
             }
-        } catch (err) {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -64,8 +64,8 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
             const query = ModelUtils.buildSearchQuery(User, repo, req.params, req.query);
             const users = await repo.find(query);
             return res.json(users);
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -78,8 +78,8 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
             const user = await repo.findOne({ where: { uid: req.params.id } });
             if (!user) return res.status(404).json({ message: "User not found" });
             return res.json(user);
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -101,8 +101,8 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
             existing.dateModified = new Date();
             const saved = await repo.save(existing);
             return res.json(saved);
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -122,8 +122,8 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
             existing.dateModified = new Date();
             const saved = await repo.save(existing);
             return res.json(saved);
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -138,8 +138,8 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
             if (!existing) return res.status(404).json({ message: "User not found" });
             await repo.deleteOne({ uid: req.params.id });
             return res.status(204).end();
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -153,8 +153,8 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
             const query = ModelUtils.buildSearchQuery(User, repo, req.params, req.query);
             await repo.deleteMany(query);
             return res.status(204).end();
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 

@@ -34,8 +34,8 @@ export function createAuthRouter(passportInstance: any, config: any, dataSource:
             });
 
             return res.json({ token });
-        } catch (err) {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -56,8 +56,8 @@ export function createAuthRouter(passportInstance: any, config: any, dataSource:
             await userRepo.save(user);
 
             return res.status(200).json({});
-        } catch (err) {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 

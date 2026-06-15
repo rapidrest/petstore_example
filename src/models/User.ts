@@ -12,28 +12,28 @@ export enum UserStatus {
 @Entity("users")
 export default class User extends BaseEntity {
     @Index()
-    @Column()
+    @Column('string')
     public name: string = "";
 
-    @Column()
+    @Column('string')
     public firstName: string | undefined = undefined;
 
-    @Column()
+    @Column('string')
     public lastName: string | undefined = undefined;
 
-    @Column()
+    @Column('string')
     public email: string = "";
 
-    @Column()
+    @Column('string')
     public password: string = "";
 
-    @Column()
+    @Column('string')
     public phone: string | undefined = undefined;
 
-    @Column()
+    @Column('string')
     public userStatus: UserStatus = UserStatus.OFFLINE;
 
-    @Column()
+    @Column('array')
     public roles: string[] = [];
 
     constructor(other?: any) {

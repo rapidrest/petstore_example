@@ -24,8 +24,8 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
             const count = await repo.count(query);
             res.setHeader("Content-Length", count.toString());
             res.status(200).end();
-        } catch {
-            res.status(500).end();
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -45,8 +45,8 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
                 const saved = await repo.save(order);
                 return res.status(201).json(saved);
             }
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -59,8 +59,8 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
             const query = ModelUtils.buildSearchQuery(Order, repo, req.params, req.query);
             const orders = await repo.find(query);
             return res.json(orders);
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -73,8 +73,8 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
             const order = await repo.findOne({ where: { uid: req.params.id } });
             if (!order) return res.status(404).json({ message: "Order not found" });
             return res.json(order);
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -91,8 +91,8 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
             existing.dateModified = new Date();
             const saved = await repo.save(existing);
             return res.json(saved);
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -109,8 +109,8 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
             existing.dateModified = new Date();
             const saved = await repo.save(existing);
             return res.json(saved);
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -124,8 +124,8 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
             if (!existing) return res.status(404).json({ message: "Order not found" });
             await repo.deleteOne({ uid: req.params.id });
             return res.status(204).end();
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 
@@ -138,8 +138,8 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
             const query = ModelUtils.buildSearchQuery(Order, repo, req.params, req.query);
             await repo.deleteMany(query);
             return res.status(204).end();
-        } catch {
-            return res.status(500).json({ message: "Internal server error" });
+        } catch(err) {
+            return res.status(500).json(err);
         }
     });
 

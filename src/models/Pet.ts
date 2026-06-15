@@ -13,20 +13,20 @@ export enum PetStatus {
 
 @Entity("pets")
 export default class Pet extends BaseEntity {
-    @Column()
+    @Column('object')
     public category: Category | undefined = undefined;
 
     @Index()
-    @Column()
+    @Column('string')
     public name: string = "";
 
-    @Column()
+    @Column('array')
     public photoUrls: string[] = [];
 
-    @Column()
+    @Column('array')
     public tags: Tag[] = [];
 
-    @Column()
+    @Column('string')
     public status: PetStatus = PetStatus.AVAILABLE;
 
     constructor(other?: any) {
