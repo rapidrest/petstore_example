@@ -72,7 +72,7 @@ conf.defaults({
         authRequired: true,
     },
     rbac: {
-        enabled: false,
+        enabled: true,
     },
     session: {
         secret: "SESSION_SECRET",
