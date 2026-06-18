@@ -8,6 +8,7 @@ WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml tsconfig.json RELEASE_NOTES.md ./
 COPY .yarn/releases ./.yarn/releases
 COPY ./src /app/src
+COPY ./scripts /app/scripts
 
 ARG NODE_ENV=production
 ENV NODE_ENV ${NODE_ENV}
@@ -26,6 +27,7 @@ COPY --from=builder /app/.yarn/releases ./.yarn/releases
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/scripts ./scripts
 COPY ./scripts /app/scripts
 RUN chmod +x /app/scripts/*.sh
 # Add curl for health check

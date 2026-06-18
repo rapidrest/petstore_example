@@ -1,5 +1,7 @@
 services:
     server:
+        build:
+            context: .
         command: ["/app/scripts/profile-entrypoint.sh", "dist/server.js"]
         stop_grace_period: 30s
         volumes:
