@@ -566,9 +566,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rapidrest/service-core@npm:^1.0.0-beta.6":
-  version: 1.0.0-beta.6
-  resolution: "@rapidrest/service-core@npm:1.0.0-beta.6"
+"@rapidrest/service-core@npm:^1.0.0-rc.0":
+  version: 1.0.0-rc.0
+  resolution: "@rapidrest/service-core@npm:1.0.0-rc.0"
   dependencies:
     axios: "npm:^1.17.0"
     bson: "npm:^7.2.0"
@@ -596,7 +596,7 @@ __metadata:
       optional: true
     typeorm:
       optional: true
-  checksum: 10c0/4ad471358174c508d317f8540d2c0e8dc124eb208706fa950b09423ed2fcf877cb13f9e0123e6dc07ae7a23cd6e6da6ec4f9e770262d9404139bccc085251677
+  checksum: 10c0/e953573790e9b399d0c9049504352679c29191734d41424b8aa7d5e7c69e093a68768935d3c59de1f1637bb19189a892fa354a489c31efc67a38dc8de11a8b81
   languageName: node
   linkType: hard
 
@@ -4875,7 +4875,7 @@ __metadata:
   resolution: "petstore@workspace:."
   dependencies:
     "@rapidrest/core": "npm:^1.3.0"
-    "@rapidrest/service-core": "npm:^1.0.0-beta.6"
+    "@rapidrest/service-core": "npm:^1.0.0-rc.0"
     "@swc/core": "npm:^1.15.41"
     "@types/nconf": "npm:^0.10.7"
     "@types/node": "npm:^25.9.3"

@@ -22,7 +22,7 @@ export enum OrderStatus {
  * @author <AUTHOR>
  */
 @Description("")
-@Entity()
+@Entity({ collation: { locale: "en", strength: 2 }})
 @DataStore("mongo")
 @Description("")
 @Protect(

@@ -8,10 +8,14 @@ import {
     RepoUtils,
     UpdateObject,
     HttpResponse,
-    HttpRequest
+    HttpRequest,
+    ApiErrors,
+    ApiErrorMessages,
+    ModelUtils,
+    BaseEntity
 } from "@rapidrest/service-core";
 import Pet from "../models/Pet.js";
-import { JWTUser, ObjectDecorators} from "@rapidrest/core";
+import { ApiError, JWTUser, ObjectDecorators} from "@rapidrest/core";
 
 const { Description, Returns, Summary, TypeInfo } = DocDecorators;
 const { Init } = ObjectDecorators;
@@ -70,7 +74,49 @@ class PetRoute extends ModelRoute<Pet> {
     @Post()
     @Validate("validateCreate")
     private async create(obj: Pet | Pet[], @Request req: HttpRequest, @AuthUser user: JWTUser): Promise<Pet | Array<Pet>> {
-        return super.doCreate(obj, { user, req });
+        if (!this.repoUtils || !this.repoUtils.repo) {
+            throw new ApiError(ApiErrors.INTERNAL_ERROR, 500, ApiErrorMessages.INTERNAL_ERROR);
+        }
+
+        // Instantiate the object if not already done
+        const clazz: any = this.repoUtils.getClassType(obj);
+        const newObj: Pet = new clazz(obj); // obj instanceof clazz ? (obj as Pet) : this.repoUtils.instantiateObject(obj, clazz);
+
+        // Make sure an existing object doesn't already exist with the same identifiers
+        // const ids: any[] = [];
+        // const idProps: string[] = ModelUtils.getIdPropertyNames(clazz);
+        // for (const prop of idProps) {
+        //     // Skip `productUid` as it is considered a compound key
+        //     if (prop === "productUid") continue;
+        //     const val: string = (newObj as any)[prop];
+        //     if (val) {
+        //         ids.push(val);
+        //     }
+        // }
+        // const query: any = ModelUtils.buildIdSearchQuery(this.repoUtils.repo, clazz, ids, undefined, (newObj as any).productUid);
+        // const count: number = await this.repoUtils.repo.count(query);
+        // if (!this.modelClass.trackChanges && count > 0) {
+        //     throw new ApiError(ApiErrors.IDENTIFIER_EXISTS, 400, ApiErrorMessages.IDENTIFIER_EXISTS);
+        // }
+
+        // Override the date and version fields with their defaults
+        if (newObj instanceof BaseEntity) {
+            newObj.dateCreated = new Date();
+            newObj.dateModified = new Date();
+            // newObj.version = count;
+        }
+
+        // Are we tracking multiple versions for this object?
+        if (newObj instanceof BaseEntity && (this.repoUtils as any).modelClass.trackChanges === 0) {
+            (newObj as any).version = 0;
+        }
+
+        // HAX We shouldn't be casting obj to any here but this is the only way to get it to compile since T
+        // extends BaseEntity.
+        // const result: Pet = this.repoUtils.instantiateObject(await this.repoUtils.repo.save(newObj));
+        const result: Pet = new clazz(await this.repoUtils.repo.save(newObj));
+
+        return result;
     }
 
     /**
