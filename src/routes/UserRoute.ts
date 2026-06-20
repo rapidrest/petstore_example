@@ -34,22 +34,26 @@ export function createUserRouter(passportInstance: any, config: any, dataSource:
     router.post("/", async (req, res) => {
         try {
             const body = req.body;
-            if (Array.isArray(body)) {
-                const users = await Promise.all(
-                    body.map(async (u) => {
-                        const user = new User(u);
-                        if (user.password) user.password = await argonHash(user.password);
-                        return user;
-                    })
-                );
-                const saved = await repo.save(users);
-                return res.status(201).json(saved);
-            } else {
-                const user = new User(body);
-                if (user.password) user.password = await argonHash(user.password);
-                const saved = await repo.save(user);
-                return res.status(201).json(saved);
+                        
+            // Make sure an existing object doesn't already exist with the same identifiers
+            const ids: any[] = [];
+            const idProps: string[] = ModelUtils.getIdPropertyNames(User);
+            for (const prop of idProps) {
+                const val: string = body[prop];
+                if (val) {
+                    ids.push(val);
+                }
             }
+            const query: any = ModelUtils.buildIdSearchQuery(repo, User, ids, undefined);
+            const count: number = await repo.count(query);
+            if (count > 0) {
+                return res.status(400);
+            }
+
+            const user = new User(body);
+            if (user.password) user.password = await argonHash(user.password);
+            const saved = await repo.save(user);
+            return res.status(201).json(saved);
         } catch(err) {
             return res.status(500).json(err);
         }

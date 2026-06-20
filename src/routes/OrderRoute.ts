@@ -36,15 +36,25 @@ export function createOrderRouter(passportInstance: any, _config: any, dataSourc
                 return res.status(401).json({ message: "Unauthorized "});
             }
             const body = req.body;
-            if (Array.isArray(body)) {
-                const orders = body.map((o) => new Order(o));
-                const saved = await repo.save(orders);
-                return res.status(201).json(saved);
-            } else {
-                const order = new Order(body);
-                const saved = await repo.save(order);
-                return res.status(201).json(saved);
+            
+            // Make sure an existing object doesn't already exist with the same identifiers
+            const ids: any[] = [];
+            const idProps: string[] = ModelUtils.getIdPropertyNames(Order);
+            for (const prop of idProps) {
+                const val: string = body[prop];
+                if (val) {
+                    ids.push(val);
+                }
             }
+            const query: any = ModelUtils.buildIdSearchQuery(repo, Order, ids, undefined);
+            const count: number = await repo.count(query);
+            if (count > 0) {
+                return res.status(400);
+            }
+
+            const order = new Order(body);
+            const saved = await repo.save(order);
+            return res.status(201).json(saved);
         } catch(err) {
             return res.status(500).json(err);
         }

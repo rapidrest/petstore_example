@@ -33,15 +33,25 @@ export function createPetRouter(passportInstance: any, _config: any, dataSource:
                 return res.status(401).json({ message: "Unauthorized "});
             }
             const body = req.body;
-            if (Array.isArray(body)) {
-                const pets = body.map((p) => new Pet(p));
-                const saved = await repo.save(pets);
-                return res.status(201).json(saved);
-            } else {
-                const pet = new Pet(body);
-                const saved = await repo.save(pet);
-                return res.status(201).json(saved);
+
+            // Make sure an existing object doesn't already exist with the same identifiers
+            const ids: any[] = [];
+            const idProps: string[] = ModelUtils.getIdPropertyNames(Pet);
+            for (const prop of idProps) {
+                const val: string = body[prop];
+                if (val) {
+                    ids.push(val);
+                }
             }
+            const query: any = ModelUtils.buildIdSearchQuery(repo, Pet, ids, undefined);
+            const count: number = await repo.count(query);
+            if (count > 0) {
+                return res.status(400);
+            }
+
+            const pet = new Pet(body);
+            const saved = await repo.save(pet);
+            return res.status(201).json(saved);
         } catch(err) {
             return res.status(500).json(err);
         }
