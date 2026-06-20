@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import { Entity, Column, Index } from "typeorm";
+import { Identifier } from "@composer-js/service-core/dist/types/decorators/ModelDecorators.js";
 import { BaseEntity } from "./BaseEntity.js";
 
 export enum UserStatus {
@@ -13,6 +14,7 @@ export enum UserStatus {
 export default class User extends BaseEntity {
     @Index()
     @Column('string')
+    @Identifier
     public name: string = "";
 
     @Column('string')

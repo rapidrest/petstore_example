@@ -4,12 +4,14 @@
 import { ObjectIdColumn, Column } from "typeorm";
 import { ObjectId } from "mongodb";
 import { v4 as uuidv4 } from "uuid";
+import { Identifier } from "@composer-js/service-core/dist/types/decorators/ModelDecorators.js";
 
 export abstract class BaseEntity {
     @ObjectIdColumn()
     _id: ObjectId = undefined as unknown as ObjectId;
 
     @Column('string')
+    @Identifier
     uid: string = uuidv4();
 
     @Column('date')
