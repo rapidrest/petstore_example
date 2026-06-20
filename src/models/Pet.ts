@@ -2,7 +2,7 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import { Entity, Column, Index } from "typeorm";
-import { Identifier } from "@composer-js/service-core/dist/types/decorators/ModelDecorators.js";
+import { Identifier } from "@composer-js/service-core/dist/lib/decorators/ModelDecorators.js";
 import { BaseEntity } from "./BaseEntity.js";
 import Category from "./Category.js";
 import Tag from "./Tag.js";

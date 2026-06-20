@@ -4,7 +4,7 @@
 import { ObjectIdColumn, Column } from "typeorm";
 import { ObjectId } from "mongodb";
 import { v4 as uuidv4 } from "uuid";
-import { Identifier } from "@composer-js/service-core/dist/types/decorators/ModelDecorators.js";
+import { Identifier } from "@composer-js/service-core/dist/lib/decorators/ModelDecorators.js";
 
 export abstract class BaseEntity {
     @ObjectIdColumn()
