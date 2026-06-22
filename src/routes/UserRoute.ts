@@ -2,21 +2,24 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { hash as argonHash } from "argon2";
-import { DataSource } from "typeorm";
-import { ModelUtils } from "@composer-js/service-core/dist/lib/models/ModelUtils.js";
-import { UserUtils } from "@composer-js/core/dist/lib/UserUtils.js";
 import User from "../models/User.js";
+import { ModelRoute, ObjectFactory, RepoUtils } from "@rapidrest/service-core";
 
 interface RouteOptions {
-    dataSource: DataSource;
     config: any;
+    objectFactory: ObjectFactory;
+    logger: any;
 }
 
 export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): Promise<void> {
-    const repo = opts.dataSource.getMongoRepository(User);
     const authenticate = (fastify as any).authenticate;
-    const trustedRoles: string[] = opts.config.get("trusted_roles") || ["admin"];
+    class UserRoute extends ModelRoute<User> {
+        get modelClass(): any {
+            return User;
+        }
+        protected repoUtilsClass: any = RepoUtils<User>;
+    }
+    const modelRoute: UserRoute = await opts.objectFactory.newInstance(UserRoute, { name: "default" });
 
     // GET + HEAD / — HEAD returns count in Content-Length, GET returns all users.
     // Combined to prevent Fastify auto-HEAD from overriding the explicit HEAD handler.
@@ -25,124 +28,81 @@ export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): 
         url: "/",
         preHandler: [authenticate],
         handler: async (request: FastifyRequest, reply: FastifyReply) => {
-            if (!request.user || !UserUtils.hasRoles(request.user, trustedRoles)) {
-                return reply.status(401).send({ message: "Unauthorized "});
-            }
-            const queryParams: any = request.query;
-            const limit: number = queryParams.limit ? Math.min(Number(queryParams.limit), 1000) : 100;
-            const page: number = queryParams.page ? Number(queryParams.page) : 0;
-            const skip: number = page * limit;
-            const query = ModelUtils.buildSearchQuery(User, repo, request.params, queryParams);
-            if (request.method === "HEAD") {
-                const countResult = await repo.aggregate([...query, { $count: "total" }]).toArray();
-                const count = countResult.length > 0 ? (countResult[0] as any).total : 0;
-                reply.header("content-length", count.toString());
-                return reply.code(200).send("");
-            } else {
-                const results = await repo.aggregate(query).skip(skip).limit(limit).toArray();
-                return reply.send(results);
+            try {
+                if (request.method === "HEAD") {
+                    let countValue = 0;
+                    const fakeRes: any = {
+                        setHeader(name: string, value: any) {
+                            if (name === "content-length") countValue = Number(value);
+                        },
+                        status(_code: number) { return this; },
+                    };
+                    await modelRoute.doCount({ query: request.query, req: request as any, res: fakeRes, user: request.user as any });
+                    reply.hijack();
+                    reply.raw.setHeader("content-length", String(countValue));
+                    reply.raw.statusCode = 200;
+                    reply.raw.end();
+                    return;
+                } else {
+                    const result = await modelRoute.doFindAll({ query: request.query, req: request as any, res: reply as any, user: request.user as any });
+                    reply.status(200).send(result);
+                }
+            } catch (err: any) {
+                reply.status(500).send(err);
             }
         },
     });
 
-    // POST / — create one or many users
-    fastify.post("/", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as any;
-        if (Array.isArray(body)) {
-            const users = await Promise.all(
-                body.map(async (u: any) => {
-                    const user = new User(u);
-                    if (user.password) user.password = await argonHash(user.password);
-                    return user;
-                })
-            );
-            const saved = await repo.save(users);
-            return reply.status(201).send(saved);
-        } else {
-            const user = new User(body);
-            if (user.password) user.password = await argonHash(user.password);
-            const saved = await repo.save(user);
-            return reply.status(201).send(saved);
+    // POST / — create user
+    fastify.post("/", { preHandler: [] }, async (request: FastifyRequest, reply: FastifyReply) => {
+        try {
+            const result = await modelRoute.doCreate(request.body as any, { req: request as any, res: reply as any, user: request.user as any });
+            reply.status(201).send(result);
+        } catch (err: any) {
+            reply.status(400).send(err);
         }
     });
 
     // GET /:id — find user by uid
     fastify.get("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
-        if (!request.user || !UserUtils.hasRoles(request.user, trustedRoles)) {
-            return reply.status(401).send({ message: "Unauthorized "});
+        try {
+            const { id } = request.params as any;
+            const result = await modelRoute.doFindById(id, { query: request.query, req: request as any, res: reply as any, user: request.user as any });
+            reply.status(200).send(result);
+        } catch (err: any) {
+            reply.status(400).send(err);
         }
-        const { id } = request.params as any;
-        const query = [
-            {
-                $match: {
-                    $or: [{ uid: id }, { name: id }]
-                }
-            },
-            {
-                $sort: { version: -1 },
-            },
-        ];
-        const user = await repo.aggregate(query).limit(1).next();
-        if (!user) return reply.status(404).send({ message: "User not found" });
-        return reply.send(user);
     });
 
     // PUT /:id — update user by uid
     fastify.put("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
-        if (!request.user || !UserUtils.hasRoles(request.user, trustedRoles)) {
-            return reply.status(401).send({ message: "Unauthorized "});
+        try {
+            const { id } = request.params as any;
+            const result = await modelRoute.doUpdate(id, request.body as any, { req: request as any, res: reply as any, user: request.user as any });
+            reply.status(200).send(result);
+        } catch (err: any) {
+            reply.status(400).send(err);
         }
-        const { id } = request.params as any;
-        const query = [
-            {
-                $match: {
-                    $or: [{ uid: id }, { name: id }]
-                }
-            },
-            {
-                $sort: { version: -1 },
-            },
-        ];
-        const existing = await repo.aggregate(query).limit(1).next();
-        if (!existing) return reply.status(404).send({ message: "User not found" });
-
-        const { _id, ...updates } = request.body as any;
-        Object.assign(existing, updates);
-        existing.dateModified = new Date();
-        const saved = await repo.save(existing);
-        return reply.send(saved);
     });
 
     // DELETE /:id — delete user by uid
     fastify.delete("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
-        if (!request.user || !UserUtils.hasRoles(request.user, trustedRoles)) {
-            return reply.status(401).send({ message: "Unauthorized "});
+        try {
+            const { id } = request.params as any;
+            await modelRoute.doDelete(id, { req: request as any, res: reply as any, user: request.user as any });
+            reply.status(200).send();
+        } catch (err: any) {
+            reply.status(500).send(err);
         }
-        const { id } = request.params as any;
-        const query = [
-            {
-                $match: {
-                    $or: [{ uid: id }, { name: id }]
-                }
-            },
-            {
-                $sort: { version: -1 },
-            },
-        ];
-        const existing = await repo.aggregate(query).limit(1).next();
-        if (!existing) return reply.status(404).send({ message: "User not found" });
-        await repo.deleteOne({ uid: existing.uid });
-        return reply.status(200).send({});
     });
 
     // DELETE / — truncate all users
     fastify.delete("/", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
-        if (!request.user || !UserUtils.hasRoles(request.user, trustedRoles)) {
-            return reply.status(401).send({ message: "Unauthorized "});
+        try {
+            await modelRoute.doTruncate({ params: request.params, query: request.query, req: request as any, res: reply as any, user: request.user as any });
+            reply.status(200).send();
+        } catch (err: any) {
+            reply.status(400).send(err);
         }
-        const query = ModelUtils.buildSearchQuery(User, repo, request.params, request.query);
-        const matchStage = (query as any[]).find((s: any) => s.$match);
-        await repo.deleteMany(matchStage ? matchStage.$match : {});
-        return reply.status(200).send({});
     });
 }

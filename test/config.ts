@@ -19,7 +19,13 @@ conf.defaults({
         origin: ["http://localhost:3000"],
     },
     datastores: {
+        acl: {
+            type: "mongodb",
+            url: "mongodb://localhost:9999/acls",
+            synchronize: true,
+        },
         mongo: {
+            type: "mongodb",
             host: "localhost",
             port: 9999,
             database: "petstore_test",
@@ -33,6 +39,15 @@ conf.defaults({
             audience: "company.local",
             issuer: "api.company.local",
         },
+    },
+    rbac: {
+        enabled: true,
+    },
+    metrics: {
+        authRequired: false,
+    },
+    session: {
+        secret: "SESSION_SECRET",
     },
 });
 

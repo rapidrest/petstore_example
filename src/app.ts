@@ -5,17 +5,21 @@ import "reflect-metadata";
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import fastifyCors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
-import { DataSource } from "typeorm";
+import { ACLUtils, ObjectFactory, RepoUtils } from "@rapidrest/service-core";
 import { authRoutes } from "./routes/AuthRoute.js";
 import { userRoutes } from "./routes/UserRoute.js";
 import { petRoutes } from "./routes/PetRoute.js";
 import { orderRoutes } from "./routes/OrderRoute.js";
+import { initDatabase } from "./database.js";
+import jwt from "jsonwebtoken";
 
 export interface AppOptions {
     logger?: boolean;
 }
 
-export async function createApp(config: any, dataSource: DataSource, opts: AppOptions = {}): Promise<FastifyInstance> {
+export async function createApp(config: any, objectFactory: ObjectFactory, logger: any, opts: AppOptions = {}): Promise<FastifyInstance> {
+    await initDatabase(config, objectFactory, logger);
+    await objectFactory.newInstance(ACLUtils, { name: "default" });
     const app = Fastify({ logger: opts.logger ?? false });
 
     const corsConfig = config.get("cors") || {};
@@ -45,14 +49,20 @@ export async function createApp(config: any, dataSource: DataSource, opts: AppOp
         }
         try {
             const token = authHeader.slice(4).trim();
-            const decoded = (app.jwt as any).verify(token);
-            (request as any).user = decoded;
+            const payload: any = jwt.verify(token, jwtSecret);
+            if (payload?.profile) {
+                (request as any).user = typeof payload.profile === "string"
+                    ? JSON.parse(payload.profile)
+                    : payload.profile;
+            } else {
+                (request as any).user = payload;
+            }
         } catch {
             return reply.status(401).send({ message: "Unauthorized" });
         }
     });
 
-    const routeOpts = { dataSource, config };
+    const routeOpts = { config, objectFactory, logger };
     await app.register(authRoutes, { prefix: "/user", ...routeOpts });
     await app.register(userRoutes, { prefix: "/user", ...routeOpts });
     await app.register(petRoutes, { prefix: "/pet", ...routeOpts });

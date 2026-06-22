@@ -3,15 +3,17 @@
 ///////////////////////////////////////////////////////////////////////////////
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { verify } from "argon2";
-import { DataSource } from "typeorm";
 import User, { UserStatus } from "../models/User.js";
+import { ObjectFactory, RepoUtils } from "@rapidrest/service-core";
+import { JWTUtils } from "@rapidrest/core";
 
 interface RouteOptions {
-    dataSource: DataSource;
     config: any;
+    objectFactory: ObjectFactory;
+    logger: any;
 }
 
-async function extractBasicUser(request: FastifyRequest, reply: FastifyReply, userRepo: any): Promise<User | null> {
+async function extractBasicUser(request: FastifyRequest, reply: FastifyReply, userRepo: RepoUtils<User>): Promise<User | null> {
     const authHeader = request.headers.authorization ?? "";
     if (!authHeader.toLowerCase().startsWith("basic ")) {
         reply.status(401).send({ message: "Unauthorized" });
@@ -27,7 +29,7 @@ async function extractBasicUser(request: FastifyRequest, reply: FastifyReply, us
     const username = decoded.slice(0, colonIdx);
     const password = decoded.slice(colonIdx + 1);
 
-    const user = await userRepo.findOne({ where: { name: username } as any });
+    const user = await userRepo.findOne(username);
     if (!user) {
         reply.status(401).send({ message: "Invalid credentials" });
         return null;
@@ -41,36 +43,43 @@ async function extractBasicUser(request: FastifyRequest, reply: FastifyReply, us
 }
 
 export async function authRoutes(fastify: FastifyInstance, opts: RouteOptions): Promise<void> {
-    const userRepo = opts.dataSource.getMongoRepository(User);
+    const userRepo: RepoUtils<User> = await opts.objectFactory.newInstance(RepoUtils, { name: User.name, initialize: true, args: [User] });
     const authenticate = (fastify as any).authenticate;
 
     // GET /user/login — Basic auth → issue JWT
     fastify.get("/login", async (request: FastifyRequest, reply: FastifyReply) => {
-        const user = await extractBasicUser(request, reply, userRepo);
+        let user = await extractBasicUser(request, reply, userRepo);
         if (!user) return;
 
-        user.userStatus = UserStatus.ONLINE;
-        user.dateModified = new Date();
-        await userRepo.save(user);
-
-        const token = (fastify as any).jwt.sign({
+        user = await userRepo.update({
             uid: user.uid,
-            name: user.name,
-            email: user.email,
-            roles: user.roles,
+            version: user.version,
+            userStatus: UserStatus.ONLINE,
+            dateModified: new Date(),
+        }, user, {
+            ignoreACL: true,
+            user
         });
+
+        const token = await JWTUtils.createToken(opts.config.get("auth"), user);
         return reply.send({ token });
     });
 
     // GET /user/logout — JWT → set OFFLINE
     fastify.get("/logout", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         const payload = (request as any).user;
-        const user = await userRepo.findOne({ where: { uid: payload.uid } });
+        const user = await userRepo.findOne(payload.uid);
         if (!user) return reply.status(404).send({ message: "User not found" });
 
-        user.userStatus = UserStatus.OFFLINE;
-        user.dateModified = new Date();
-        await userRepo.save(user);
-        return reply.send({});
+        await userRepo.update({
+            uid: user.uid,
+            version: user.version,
+            userStatus: UserStatus.OFFLINE,
+            dateModified: new Date(),
+        }, user, {
+            ignoreACL: true,
+            user
+        });
+        return reply.status(204).send();
     });
 }

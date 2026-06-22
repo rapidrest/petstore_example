@@ -7,10 +7,11 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import { FastifyInstance } from "fastify";
 import { hash } from "argon2";
 import config from "./config.js";
-import { createDataSource } from "../src/data-source.js";
 import { createApp } from "../src/app.js";
 import User, { UserStatus } from "../src/models/User.js";
-import { DataSource, MongoRepository } from "typeorm";
+import { Logger } from "@rapidrest/core";
+import { ACLRecord, ACLUtils, ConnectionManager, MongoConnection, MongoRepository, ObjectFactory } from "@rapidrest/service-core";
+import { initDatabase } from "../src/database.js";
 
 const mongod = new MongoMemoryServer({
     instance: { port: 9999, dbName: "petstore_test" },
@@ -18,11 +19,13 @@ const mongod = new MongoMemoryServer({
 
 describe("Auth Tests", () => {
     let app: FastifyInstance;
-    let dataSource: DataSource;
+    const logger = Logger();
+    const objectFactory = new ObjectFactory(config, logger);
+    let aclRepo: MongoRepository<any>;
     let userRepo: MongoRepository<User>;
 
-    const createUser = async (data?: any): Promise<User> => {
-        const obj = new User({
+    const createUser = async function(data?: any): Promise<User> {
+        const obj: User = new User({
             name: "tutone",
             firstName: "Tommy",
             lastName: "Tutone",
@@ -30,23 +33,71 @@ describe("Auth Tests", () => {
             password: await hash("password"),
             phone: "555-867-5309",
             userStatus: UserStatus.OFFLINE,
-            ...data,
+            ...data
         });
-        return userRepo.save(obj);
-    };
+
+        const result: User = await userRepo.save(obj);
+
+        const records: ACLRecord[] = [];
+
+        // Owner has CRUD access
+        records.push({
+            userOrRoleId: obj.uid,
+            create: true,
+            read: true,
+            update: true,
+            delete: true,
+            special: false,
+            full: false,
+        });
+
+        // Everyone has no access
+        records.push({
+            userOrRoleId: ".*",
+            create: false,
+            read: false,
+            update: false,
+            delete: false,
+            special: false,
+            full: false,
+        });
+
+        const acl: any = {
+            uid: result.uid,
+            dateCreated: new Date(),
+            dateModified: new Date(),
+            version: 0,
+            records,
+            parentUid: "User"
+        };
+        await aclRepo.save(acl);
+
+        return result;
+    }
 
     beforeAll(async () => {
         await mongod.start();
-        dataSource = createDataSource(config);
-        await dataSource.initialize();
-        app = await createApp(config, dataSource);
+        await initDatabase(config, objectFactory, logger);
+        await objectFactory.newInstance(ACLUtils, { name: "default" });
+        app = await createApp(config, objectFactory, logger);
         await app.ready();
-        userRepo = dataSource.getMongoRepository(User);
+        
+        const connMgr: ConnectionManager | undefined = objectFactory.getInstance(ConnectionManager);
+        let conn: any = connMgr?.connections.get("acl");
+        if (conn instanceof MongoConnection) {
+            aclRepo = conn.getMongoRepository("AccessControlListMongo");
+        }
+        conn = connMgr?.connections.get("mongo");
+        if (conn instanceof MongoConnection) {
+            userRepo = conn.getMongoRepository("User");
+        } else {
+            throw new Error("Could not find user connection");
+        }
     });
 
     afterAll(async () => {
         await app.close();
-        await dataSource.destroy();
+        await objectFactory.destroy();
         await mongod.stop();
     });
 

@@ -4,14 +4,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 import "reflect-metadata";
 import config from "./config.js";
-import { createDataSource } from "./data-source.js";
 import { createApp } from "./app.js";
+import { Logger } from "@rapidrest/core";
+import { ObjectFactory } from "@rapidrest/service-core";
 
 const start = async () => {
-    const dataSource = createDataSource(config);
-    await dataSource.initialize();
-
-    const app = await createApp(config, dataSource, { logger: true });
+    const logLevel: string = config.get("logger:level") || (process.env.environment === "production" ? "info" : "debug");
+    const logger = Logger(logLevel, config.get("logger:file"));
+    console.log("Log Level=" + logLevel);
+    const objectFactory = new ObjectFactory(config, logger);
+    const app = await createApp(config, objectFactory, logger, { logger: true });
     const host = config.get("host") || "0.0.0.0";
     const port = config.get("port") || 3000;
     await app.listen({ host, port });
