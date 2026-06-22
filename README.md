@@ -2,7 +2,7 @@
 
 An example server based upon OpenAPI's petstore example specification.
 
-NOTE: This is a fork of the main project that uses Express.js+Passport.js+TypeORM instead of RapidREST. It is intended
+NOTE: This is a fork of the main project that reaplces the RapidREST HTTP engine with Express.js. It is intended
 for benchmarking purposes only.
 
 The project implements the following features:
