@@ -4,27 +4,22 @@
 ///////////////////////////////////////////////////////////////////////////////
 import "reflect-metadata";
 import http from "http";
-import winston from "winston";
 import config from "./config.js";
-import { createDataSource } from "./data-source.js";
+import { Logger } from "@rapidrest/core";
+import { ObjectFactory } from "@rapidrest/service-core";
 import { createApp } from "./app.js";
 
 const logLevel: string = config.get("logger:level") || (process.env.environment === "production" ? "info" : "debug");
-const logger = winston.createLogger({
-    level: logLevel,
-    format: winston.format.combine(winston.format.timestamp(), winston.format.simple()),
-    transports: [new winston.transports.Console()],
-});
+const logger = Logger(logLevel, config.get("logger:file"));
+console.log("Log Level=" + logLevel);
+
+const objectFactory = new ObjectFactory(config, logger);
 
 const port = config.get("port") || 3000;
 let server: http.Server | undefined;
 
 const start = async (): Promise<void> => {
-    const dataSource = createDataSource(config);
-    await dataSource.initialize();
-    logger.info("Database connected");
-
-    const app = createApp(config, dataSource);
+    const app = await createApp(config, objectFactory, logger);
     server = app.listen(port, () => {
         logger.info(`Server listening on port ${port}`);
     });
@@ -32,7 +27,7 @@ const start = async (): Promise<void> => {
     const shutdown = async () => {
         logger.info("Shutting down...");
         server?.close();
-        await dataSource.destroy();
+        await objectFactory.destroy();
         process.exit(0);
     };
 

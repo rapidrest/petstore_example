@@ -1,38 +1,94 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import { Entity, Column, Index } from "typeorm";
-import { Identifier } from "@composer-js/service-core/dist/lib/decorators/ModelDecorators.js";
-import { BaseEntity } from "./BaseEntity.js";
+import { BaseMongoEntity, DocDecorators, ModelDecorators, PersistenceDecorators } from "@rapidrest/service-core";
 import Category from "./Category.js";
 import Tag from "./Tag.js";
+const { Column, Entity, Index } = PersistenceDecorators;
+const { Cache, DataStore, Identifier, Protect } = ModelDecorators;
+const { Description } = DocDecorators;
 
 export enum PetStatus {
     AVAILABLE = "available",
-    ADOPTED = "adopted",
+    ADOPTED = "adopted"
 }
 
-@Entity("pets")
-export default class Pet extends BaseEntity {
-    @Column('object')
+/**
+ * 
+ *
+ * @author <AUTHOR>
+ */
+@Description("")
+@Entity({ collation: { locale: "en", strength: 2 }})
+@DataStore("mongo")
+@Protect(
+    {
+        uid: "Pet",
+        records: [
+            {
+                userOrRoleId: "anonymous",
+                create: false,
+                read: true,
+                update: false,
+                delete: false,
+                special: false,
+                full: false,
+            },
+            {
+                userOrRoleId: ".*",
+                create: false,
+                read: true,
+                update: false,
+                delete: false,
+                special: false,
+                full: false,
+            }
+        ]
+    },
+    true
+)
+@Cache()
+export default class Pet extends BaseMongoEntity {
+    /**
+     * 
+     */
+    @Description("")
+    @Column()
     public category: Category | undefined = undefined;
 
-    @Index()
-    @Column('string')
+    /**
+     * 
+     */
+    @Description("")
     @Identifier
+    @Index()
+    @Column()
     public name: string = "";
 
-    @Column('array')
-    public photoUrls: string[] = [];
+    /**
+     * 
+     */
+    @Description("")
+    @Column()
+    public photoUrls: Array<string> = [];
 
-    @Column('array')
-    public tags: Tag[] = [];
+    /**
+     * 
+     */
+    @Description("")
+    @Column()
+    public tags: Array<Tag> = [];
 
-    @Column('string')
+    /**
+     * pet status in the store
+     */
+    @Description("")
+    @Column()
     public status: PetStatus = PetStatus.AVAILABLE;
 
     constructor(other?: any) {
         super(other);
+        
         if (other) {
             this.category = "category" in other ? other.category : this.category;
             this.name = "name" in other ? other.name.trim() : this.name;

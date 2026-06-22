@@ -1,208 +1,108 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
-import config from "../config.js";
+import * as argon from "argon2";
 import { Router } from "express";
-import { hash as argonHash } from "argon2";
-import { DataSource } from "typeorm";
-import { ModelUtils } from "@composer-js/service-core/dist/lib/models/ModelUtils.js";
-import { UserUtils } from "@composer-js/core/dist/lib/UserUtils.js";
 import User from "../models/User.js";
+import { ApiErrorMessages, ModelRoute, ObjectFactory, RepoUtils } from "@rapidrest/service-core";
+import { ApiError, UserUtils } from "@rapidrest/core";
 
-export function createUserRouter(passportInstance: any, config: any, dataSource: DataSource): Router {
+export async function createUserRouter(passportInstance: any, config: any, objectFactory: ObjectFactory): Promise<Router> {
     const router = Router();
-    const repo = dataSource.getMongoRepository(User);
     const jwtAuth = passportInstance.authenticate("jwt", { session: false });
-    const trustedRoles: string[] = config.get("trusted_roles") || ["admin"];
+    class UserRoute extends ModelRoute<User> {
+        get modelClass(): any {
+            return User;
+        }
+        protected repoUtilsClass: any = RepoUtils<User>;
+    }
+    const modelRoute: UserRoute = await objectFactory.newInstance(UserRoute, { name: "default" });
+    const trustedRoles: [] = config.get("trusted_roles");
 
     /** HEAD / — return count in Content-Length */
-    router.head("/", jwtAuth, async (req, res) => {
+    router.head("/", jwtAuth, async (req, res, next) => {
         try {
-            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
-                return res.status(401).json({ message: "Unauthorized "});
-            }
-            const query = ModelUtils.buildSearchQuery(User, repo, req.params, req.query);
-            const count = await repo.count(query);
-            res.setHeader("Content-Length", count.toString());
-            res.status(200).end();
-        } catch(err) {
-            return res.status(500).json(err);
-        }
+            await modelRoute.doCount({ query: req.query, req: req as any, res: res as any, user: req.user as any });
+            res.end();
+        } catch (err) { next(err); }
     });
 
-    /** POST / — create one or many users (no auth required) */
-    router.post("/", async (req, res) => {
+    /** POST / — create one or many users */
+    router.post("/", async (req, res, next) => {
         try {
-            const body = req.body;
-                        
-            // Make sure an existing object doesn't already exist with the same identifiers
-            const ids: any[] = [];
-            const idProps: string[] = ModelUtils.getIdPropertyNames(User);
-            for (const prop of idProps) {
-                const val: string = body[prop];
-                if (val) {
-                    ids.push(val);
+            await modelRoute.doValidate(req.body, { user: req.user as any });
+            const obj = Array.isArray(req.body) ? req.body : [req.body];
+            for (const user of obj) {
+                if (user.password) {
+                    user.password = await argon.hash(user.password);
                 }
             }
-            const query: any = ModelUtils.buildIdSearchQuery(repo, User, ids, undefined);
-            const count: number = await repo.count(query);
-            if (count > 0) {
-                return res.status(400);
-            }
-
-            const user = new User(body);
-            if (user.password) user.password = await argonHash(user.password);
-            const saved = await repo.save(user);
-            return res.status(201).json(saved);
-        } catch(err) {
-            return res.status(500).json(err);
-        }
+            const result = await modelRoute.doCreate(req.body, { req: req as any, res: res as any, user: req.user as any });
+            res.status(201).json(result);
+        } catch (err) { next(err); }
     });
 
     /** GET / — find all users */
-    router.get("/", jwtAuth, async (req, res) => {
+    router.get("/", jwtAuth, async (req, res, next) => {
         try {
-            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
-                return res.status(401).json({ message: "Unauthorized "});
-            }
-            const limit: number = req.query.limit ? Math.min(Number(req.query.limit), 1000) : 100;
-            const page: number = req.query.page ? Number(req.query.page) : 0;
-            const skip: number = page * limit;
-            const query = ModelUtils.buildSearchQuery(User, repo, req.params, req.query);
-            const users = await repo.aggregate(query).skip(skip).limit(limit).toArray();
-            return res.json(users);
-        } catch(err) {
-            return res.status(500).json(err);
-        }
+            const result = await modelRoute.doFindAll({ query: req.query, req: req as any, res: res as any, user: req.user as any });
+            res.json(result);
+        } catch (err) { next(err); }
     });
 
     /** GET /:id — find user by uid */
-    router.get("/:id", jwtAuth, async (req, res) => {
+    router.get("/:id", jwtAuth, async (req, res, next) => {
         try {
-            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
-                return res.status(401).json({ message: "Unauthorized "});
-            }
-            const query = [
-                {
-                    $match: {
-                        $or: [{ uid: req.params.id }, { name: req.params.id }]
-                    }
-                },
-                {
-                    $sort: { version: -1 },
-                },
-            ];
-            const user = await repo.aggregate(query).limit(1).next();
-            if (!user) return res.status(404).json({ message: "User not found" });
-            return res.json(user);
-        } catch(err) {
-            return res.status(500).json(err);
-        }
+            const result = await modelRoute.doFindById(req.params.id, { query: req.query, req: req as any, res: res as any, user: req.user as any });
+            res.json(result);
+        } catch (err) { next(err); }
     });
 
     /** PUT /:id — full update */
-    router.put("/:id", jwtAuth, async (req, res) => {
+    router.put("/:id", jwtAuth, async (req, res, next) => {
         try {
-            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
-                return res.status(401).json({ message: "Unauthorized "});
+            const obj: any = req.body;
+            await modelRoute.doValidate(obj, { user: req.user as any });
+
+            // Only admins and the user itself can make changes
+            const user = req.user as any;
+            if (!UserUtils.hasRoles(req.user, trustedRoles) && (req.params.id !== user.uid || obj.uid !== user.uid)) {
+                throw new ApiError(ApiErrorMessages.AUTH_PERMISSION_FAILURE, 403, ApiErrorMessages.AUTH_PERMISSION_FAILURE);
             }
 
-            const id = req.params.id;
-            const query = [
-                {
-                    $match: {
-                        $or: [{ uid: req.params.id }, { name: req.params.id }]
-                    }
-                },
-                {
-                    $sort: { version: -1 },
-                },
-            ];
-            const existing = await repo.aggregate(query).limit(1).next();
-            if (!existing) return res.status(404).json({ message: "User not found" });
+            if (obj.password) {
+                obj.password = await argon.hash(obj.password);
+            }
 
-            const { _id, ...updates } = req.body;
-            if (updates.password) updates.password = await argonHash(updates.password);
-
-            Object.assign(existing, updates);
-            existing.dateModified = new Date();
-            const saved = await repo.save(existing);
-            return res.json(saved);
-        } catch(err) {
-            return res.status(500).json(err);
-        }
+            const result = await modelRoute.doUpdate(req.params.id, obj, { req: req as any, res: res as any, user: req.user as any });
+            res.json(result);
+        } catch (err) { next(err); }
     });
 
     /** PUT /:id/:property — patch a single property */
-    router.put("/:id/:property", jwtAuth, async (req, res) => {
+    router.put("/:id/:property", jwtAuth, async (req, res, next) => {
         try {
-            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
-                return res.status(401).json({ message: "Unauthorized "});
-            }
-
-            const { id, property } = req.params;
-            const query = [
-                {
-                    $match: {
-                        $or: [{ uid: req.params.id }, { name: req.params.id }]
-                    }
-                },
-                {
-                    $sort: { version: -1 },
-                },
-            ];
-            const existing = await repo.aggregate(query).limit(1).next();
-            if (!existing) return res.status(404).json({ message: "User not found" });
-
-            const value = req.body;
-            existing[property] = value;
-            existing.dateModified = new Date();
-            const saved = await repo.save(existing);
-            return res.json(saved);
-        } catch(err) {
-            return res.status(500).json(err);
-        }
+            const result = await modelRoute.doUpdateProperty(req.params.id, req.params.property, req.body, { req: req as any, res: res as any, user: req.user as any });
+            res.json(result);
+        } catch (err) { next(err); }
     });
 
     /** DELETE /:id — delete by uid */
-    router.delete("/:id", jwtAuth, async (req, res) => {
+    router.delete("/:id", jwtAuth, async (req, res, next) => {
         try {
-            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
-                return res.status(401).json({ message: "Unauthorized "});
-            }
-
-            const query = [
-                {
-                    $match: {
-                        $or: [{ uid: req.params.id }, { name: req.params.id }]
-                    }
-                },
-                {
-                    $sort: { version: -1 },
-                },
-            ];
-            const existing = await repo.aggregate(query).limit(1).next();
-            if (!existing) return res.status(404).json({ message: "User not found" });
-            await repo.deleteOne({ uid: existing.uid });
-            return res.status(204).end();
-        } catch(err) {
-            return res.status(500).json(err);
-        }
+            await modelRoute.doDelete(req.params.id, { req: req as any, res: res as any, user: req.user as any });
+            res.sendStatus(200);
+        } catch (err) { next(err); }
     });
 
     /** DELETE / — truncate all users */
-    router.delete("/", jwtAuth, async (req, res) => {
+    router.delete("/", jwtAuth, async (req, res, next) => {
         try {
-            if (!req.user || !UserUtils.hasRoles(req.user, trustedRoles)) {
-                return res.status(401).json({ message: "Unauthorized "});
-            }
-            
-            const query = ModelUtils.buildSearchQuery(User, repo, req.params, req.query);
-            await repo.deleteMany(query);
-            return res.status(204).end();
-        } catch(err) {
-            return res.status(500).json(err);
-        }
+            await modelRoute.doTruncate({
+                params: req.params, query: req.query, req: req as any, res: res as any, user: req.user as any
+            });
+            res.sendStatus(200);
+        } catch (err) { next(err); }
     });
 
     return router;

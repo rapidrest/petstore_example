@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-      "types": ["@types/node"],
+      "types": ["@types/node", "vitest/globals"],
       "noEmit": true,
       "allowJs": true
     },

@@ -3,26 +3,29 @@
 ///////////////////////////////////////////////////////////////////////////////
 import "reflect-metadata";
 import { hash } from "argon2";
-import jwt from "jsonwebtoken";
+import express from "express";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import supertest from "supertest";
-import { DataSource } from "typeorm";
 import config from "./config.js";
 import { createApp } from "../src/app.js";
-import { createDataSource } from "../src/data-source.js";
 import User, { UserStatus } from "../src/models/User.js";
+import { initDatabase } from "../src/database.js";
+import { JWTUtils, Logger } from "@rapidrest/core";
+import { ACLRecord, ACLUtils, ConnectionManager, MongoConnection, MongoRepository, ObjectFactory } from "@rapidrest/service-core";
 
 const mongod = new MongoMemoryServer({
     instance: { port: 9999, dbName: "petstore_test" },
 });
 
 describe("Auth Tests", () => {
-    let dataSource: DataSource;
-    let app: ReturnType<typeof createApp>;
-    let repo: ReturnType<typeof dataSource.getMongoRepository<User>>;
+    let app: express.Application;
+    const logger = Logger();
+    const objectFactory = new ObjectFactory(config, logger);
+    let aclRepo: MongoRepository<any>;
+    let userRepo: MongoRepository<User>;
 
-    const createUser = async (data?: any): Promise<User> => {
-        const user = new User({
+    const createUser = async function(data?: any): Promise<User> {
+        const obj: User = new User({
             name: "tutone",
             firstName: "Tommy",
             lastName: "Tutone",
@@ -30,29 +33,80 @@ describe("Auth Tests", () => {
             password: await hash("password"),
             phone: "555-867-5309",
             userStatus: UserStatus.OFFLINE,
-            ...data,
+            ...data
         });
-        return repo.save(user);
-    };
+
+        const result: User = await userRepo.save(obj);
+
+        const records: ACLRecord[] = [];
+
+        // Owner has CRUD access
+        records.push({
+            userOrRoleId: obj.uid,
+            create: true,
+            read: true,
+            update: true,
+            delete: true,
+            special: false,
+            full: false,
+        });
+
+        // Everyone has no access
+        records.push({
+            userOrRoleId: ".*",
+            create: false,
+            read: false,
+            update: false,
+            delete: false,
+            special: false,
+            full: false,
+        });
+
+        const acl: any = {
+            uid: result.uid,
+            dateCreated: new Date(),
+            dateModified: new Date(),
+            version: 0,
+            records,
+            parentUid: "User"
+        };
+        await aclRepo.save(acl);
+
+        return result;
+    }
 
     beforeAll(async () => {
         await mongod.start();
-        dataSource = createDataSource(config);
-        await dataSource.initialize();
-        app = createApp(config, dataSource);
-        repo = dataSource.getMongoRepository(User);
+        await initDatabase(config, objectFactory, logger);
+        await objectFactory.newInstance(ACLUtils, { name: "default" });
+        app = await createApp(config, objectFactory, logger);
+        
+        const connMgr: ConnectionManager | undefined = objectFactory.getInstance(ConnectionManager);
+        let conn: any = connMgr?.connections.get("acl");
+        if (conn instanceof MongoConnection) {
+            aclRepo = conn.getMongoRepository("AccessControlListMongo");
+        }
+        conn = connMgr?.connections.get("mongo");
+        if (conn instanceof MongoConnection) {
+            userRepo = conn.getMongoRepository("User");
+        } else {
+            throw new Error("Could not find user connection");
+        }
     });
 
     afterAll(async () => {
-        await dataSource.destroy();
         await mongod.stop();
+        await objectFactory.destroy();
     });
 
     beforeEach(async () => {
         try {
-            await repo.deleteMany({});
-        } catch {
-            // ignore "ns not found" on first run
+            await userRepo.clear();
+        } catch (err: any) {
+            // The error "ns not found" occurs when the collection doesn't exist yet. We can ignore this error.
+            if (err.message !== "ns not found") {
+                throw err;
+            }
         }
     });
 
@@ -68,7 +122,7 @@ describe("Auth Tests", () => {
         expect(result.status).toBeLessThan(300);
         expect(result.body).toHaveProperty("token");
 
-        const existing = await repo.findOne({ where: { uid: user.uid } });
+        const existing = await userRepo.findOne({ where: { uid: user.uid } });
         if (existing) {
             expect(existing.userStatus).toEqual(UserStatus.ONLINE);
         }
@@ -77,15 +131,7 @@ describe("Auth Tests", () => {
     it("Can make logout request.", async () => {
         const user = await createUser();
         const jwtConfig = config.get("auth");
-        const authToken = jwt.sign(
-            { uid: user.uid, name: user.name, email: user.email, roles: user.roles },
-            jwtConfig.secret,
-            {
-                expiresIn: jwtConfig.options.expiresIn,
-                audience: jwtConfig.options.audience,
-                issuer: jwtConfig.options.issuer,
-            }
-        );
+        const authToken = JWTUtils.createTokenSync(config.get("auth"), user);
 
         const result = await supertest(app)
             .get("/user/logout")
@@ -94,7 +140,7 @@ describe("Auth Tests", () => {
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
 
-        const existing = await repo.findOne({ where: { uid: user.uid } });
+        const existing = await userRepo.findOne({ where: { uid: user.uid } });
         if (existing) {
             expect(existing.userStatus).toEqual(UserStatus.OFFLINE);
         }

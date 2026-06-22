@@ -2,20 +2,19 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import { verify as argonVerify } from "argon2";
-import { DataSource } from "typeorm";
 import { BasicStrategy } from "passport-http";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import User from "../models/User.js";
+import { RepoUtils } from "@rapidrest/service-core";
 
-export function setupPassport(passportInstance: any, config: any, dataSource: DataSource): void {
-    const userRepo = dataSource.getMongoRepository(User);
+export function setupPassport(passportInstance: any, config: any, repoUtils: RepoUtils<User>): void {
     const jwtConfig = config.get("auth");
 
     // Basic strategy for the login endpoint (Authorization: Basic <base64>)
     passportInstance.use(
         new BasicStrategy(async (username: string, password: string, done: any) => {
             try {
-                const user = await userRepo.findOne({ where: { name: username } });
+                const user = await repoUtils.findOne(username);
                 if (!user) {
                     return done(null, false);
                 }
@@ -40,6 +39,13 @@ export function setupPassport(passportInstance: any, config: any, dataSource: Da
                 audience: jwtConfig.options?.audience,
             },
             (payload: any, done: any) => {
+                if (payload.profile) {
+                    try {
+                        return done(null, JSON.parse(payload.profile));
+                    } catch {
+                        return done(null, false);
+                    }
+                }
                 return done(null, payload);
             }
         )

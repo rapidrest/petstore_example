@@ -3,12 +3,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 import { Router } from "express";
 import jwt from "jsonwebtoken";
-import { DataSource } from "typeorm";
 import User, { UserStatus } from "../models/User.js";
+import { ObjectFactory, RepoUtils } from "@rapidrest/service-core";
 
-export function createAuthRouter(passportInstance: any, config: any, dataSource: DataSource): Router {
+export async function createAuthRouter(passportInstance: any, config: any, objectFactory: ObjectFactory): Promise<Router> {
     const router = Router();
-    const userRepo = dataSource.getMongoRepository(User);
+    const userRepo: RepoUtils<User> = await objectFactory.newInstance(RepoUtils, { name: User.name, initialize: true, args: [User] });
     const jwtConfig = config.get("auth");
 
     const basicAuth = passportInstance.authenticate("basic", { session: false });
@@ -20,11 +20,24 @@ export function createAuthRouter(passportInstance: any, config: any, dataSource:
      */
     router.get("/user/login", basicAuth, async (req, res) => {
         try {
-            const user = req.user as User;
+            if (!req.user) {
+                return res.status(401).end();
+            }
 
-            user.userStatus = UserStatus.ONLINE;
-            user.dateModified = new Date();
-            await userRepo.save(user);
+            let user = await userRepo.findOne((req.user as any).uid);
+            if (!user) {
+                return res.status(401).end();
+            }
+
+            user = await userRepo.update({
+                uid: user.uid,
+                version: user.version,
+                userStatus: UserStatus.ONLINE,
+                dateModified: new Date(),
+            }, user, {
+                ignoreACL: true,
+                user
+            });
 
             const payload = { uid: user.uid, name: user.name, email: user.email, roles: user.roles };
             const token = jwt.sign(payload, jwtConfig.secret, {
@@ -45,17 +58,26 @@ export function createAuthRouter(passportInstance: any, config: any, dataSource:
      */
     router.get("/user/logout", jwtAuth, async (req, res) => {
         try {
-            const payload = req.user as any;
-            const user = await userRepo.findOne({ where: { uid: payload.uid } });
-            if (!user) {
-                return res.status(404).json({ message: "User not found" });
+            if (!req.user) {
+                return res.status(401).end();
             }
 
-            user.userStatus = UserStatus.OFFLINE;
-            user.dateModified = new Date();
-            await userRepo.save(user);
+            let user = await userRepo.findOne((req.user as any).uid);
+            if (!user) {
+                return res.status(401).end();
+            }
 
-            return res.status(200).json({});
+            user = await userRepo.update({
+                uid: user.uid,
+                version: user.version,
+                userStatus: UserStatus.OFFLINE,
+                dateModified: new Date(),
+            }, user, {
+                ignoreACL: true,
+                user
+            });
+
+            return res.sendStatus(204);
         } catch(err) {
             return res.status(500).json(err);
         }

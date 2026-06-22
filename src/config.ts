@@ -71,6 +71,9 @@ conf.defaults({
     metrics: {
         authRequired: true,
     },
+    rbac: {
+        enabled: true,
+    },
     session: {
         secret: "SESSION_SECRET",
     },

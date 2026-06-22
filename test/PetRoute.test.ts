@@ -2,77 +2,133 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import "reflect-metadata";
-import jwt from "jsonwebtoken";
+import express from "express";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import supertest from "supertest";
-import { DataSource } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
 import config from "./config.js";
 import { createApp } from "../src/app.js";
-import { createDataSource } from "../src/data-source.js";
 import Pet, { PetStatus } from "../src/models/Pet.js";
 import Category from "../src/models/Category.js";
 import Tag from "../src/models/Tag.js";
+import { ACLRecord, ACLUtils, ConnectionManager, MongoConnection, MongoRepository, ObjectFactory } from "@rapidrest/service-core";
+import { initDatabase } from "../src/database.js";
+import { JWTUtils, Logger } from "@rapidrest/core";
 
 const mongod = new MongoMemoryServer({
     instance: { port: 9999, dbName: "petstore_test" },
 });
 
 describe("Pet Tests", () => {
-    let dataSource: DataSource;
-    let app: ReturnType<typeof createApp>;
-    let repo: ReturnType<typeof dataSource.getMongoRepository<Pet>>;
+    let app: express.Application;
+    const logger = Logger();
+    const objectFactory = new ObjectFactory(config, logger);
+    let repo: MongoRepository<Pet>;
+    let aclRepo: MongoRepository<any>;
 
     const jwtConfig = config.get("auth");
     const trustedRoles: string[] = config.get("trusted_roles");
 
-    const makeToken = (payload: any) =>
-        jwt.sign(payload, jwtConfig.secret, {
-            expiresIn: jwtConfig.options.expiresIn,
-            audience: jwtConfig.options.audience,
-            issuer: jwtConfig.options.issuer,
-        });
+    const admin: any = { uid: uuidv4(), name: "admin", roles: trustedRoles };
+    const adminToken = JWTUtils.createTokenSync(config.get("auth"), admin);
+    let user: any;
+    let userToken: string;
 
-    const adminToken = makeToken({ uid: uuidv4(), name: "admin", roles: trustedRoles });
-
-    const createPet = async (data?: any): Promise<Pet> => {
-        const pet = new Pet({
-            category: new Category({ name: "dog" }),
+    const createPet = async function(data?: any): Promise<Pet> {
+        const obj: Pet = new Pet({
+            category: new Category({
+                name: "dog"
+            }),
             name: "gigi",
             photoUrls: ["image1.jpg", "image2.jpg", "image3.jpg"],
             status: PetStatus.AVAILABLE,
             tags: [new Tag({ name: "friendly" }), new Tag({ name: "white" })],
-            ...data,
+            ...data
         });
-        return repo.save(pet);
-    };
 
-    const createPets = async (num: number, data?: any): Promise<Pet[]> => {
+        const result: Pet = await repo.save(obj);
+
+        const records: ACLRecord[] = [];
+
+        // Owner has CRUD access
+        records.push({
+            userOrRoleId: user.uid,
+            create: true,
+            read: true,
+            update: true,
+            delete: true,
+            special: false,
+            full: false,
+        });
+
+        // Everyone has no access
+        records.push({
+            userOrRoleId: ".*",
+            create: false,
+            read: false,
+            update: false,
+            delete: false,
+            special: false,
+            full: false,
+        });
+
+        const acl: any = {
+            uid: result.uid,
+            dateCreated: new Date(),
+            dateModified: new Date(),
+            version: 0,
+            records,
+            parentUid: "Pet"
+        };
+        await aclRepo.save(acl);
+
+        return result;
+    }
+
+    const createPets = async function(num: number, data?: any): Promise<Pet[]> {
         const results: Pet[] = [];
+
         for (let i = 0; i < num; i++) {
             results.push(await createPet(data));
         }
+
         return results;
-    };
+    }
 
     beforeAll(async () => {
         await mongod.start();
-        dataSource = createDataSource(config);
-        await dataSource.initialize();
-        app = createApp(config, dataSource);
-        repo = dataSource.getMongoRepository(Pet);
+        await initDatabase(config, objectFactory, logger);
+        await objectFactory.newInstance(ACLUtils, { name: "default" });
+        app = await createApp(config, objectFactory, logger);
+        
+        const connMgr: ConnectionManager | undefined = objectFactory.getInstance(ConnectionManager);
+        let conn: any = connMgr?.connections.get("acl");
+        if (conn instanceof MongoConnection) {
+            aclRepo = conn.getMongoRepository("AccessControlListMongo");
+        }
+        conn = connMgr?.connections.get("mongo");
+        if (conn instanceof MongoConnection) {
+            repo = conn.getMongoRepository("Pet");
+        } else {
+            throw new Error("Could not find user connection");
+        }
     });
 
     afterAll(async () => {
-        await dataSource.destroy();
         await mongod.stop();
+        await objectFactory.destroy();
     });
 
     beforeEach(async () => {
+        user = { uid: uuidv4(), name: "user", roles: [] };
+        userToken = JWTUtils.createTokenSync(config.get("auth"), user);
         try {
-            await repo.deleteMany({});
-        } catch {
-            // ignore "ns not found" on first run
+            await repo.clear();
+        } catch (err: any) {
+            // The error "ns not found" occurs when the collection doesn't exist yet. We can ignore this error.
+            if (err.message !== "ns not found") {
+                throw err;
+            }
         }
     });
 
