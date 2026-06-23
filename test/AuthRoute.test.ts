@@ -95,8 +95,8 @@ describe("Auth Tests", () => {
     });
 
     afterAll(async () => {
-        await mongod.stop();
         await objectFactory.destroy();
+        await mongod.stop();
     });
 
     beforeEach(async () => {

@@ -115,8 +115,8 @@ describe("Pet Tests", () => {
     });
 
     afterAll(async () => {
-        await mongod.stop();
         await objectFactory.destroy();
+        await mongod.stop();
     }, 30000);
 
     beforeEach(async () => {
