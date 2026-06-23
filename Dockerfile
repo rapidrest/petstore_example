@@ -7,6 +7,7 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY package.json yarn.lock .yarnrc.yml tsconfig.json RELEASE_NOTES.md ./
 COPY .yarn/releases ./.yarn/releases
+COPY ./scripts ./scripts
 COPY ./src /app/src
 
 ARG NODE_ENV=production
