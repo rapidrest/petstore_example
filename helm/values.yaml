@@ -2,7 +2,7 @@ host: localhost
 environment: dev
 auth:
   audience: '{{ .Values.host }}'
-  issuer: api.{{ .Values.host }}
+  issuer: 'api.{{ .Values.host }}'
   expiresIn: 1 hour
   secret: '{{ randAlphaNum 32 }}'
 cookies:
@@ -20,7 +20,7 @@ gateway:
   tls: true
 redis:
   create: true
-  url: redis://db-redis-master
+  url: 'redis://db-redis-master'
   architecture: standalone
   auth:
     enabled: false
@@ -45,7 +45,7 @@ service:
   image:
     registry: ghcr.io
     repository: rapidrest/petstore
-    tag: 1.0.31-cjs
+    tag: 1.1.0-fastify
   replicas: 1
   mongodb:
     acl:

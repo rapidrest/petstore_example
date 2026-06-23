@@ -4,7 +4,7 @@ HOSTNAME=`hostname`
 IS_WSL=false
 DOMAIN="cluster.local"
 TLS=true
-VERSION="1.0.31-cjs"
+VERSION="1.1.0-fastify"
 UNINSTALL=false
 SKIP_K3S=false
 # Internal vars
