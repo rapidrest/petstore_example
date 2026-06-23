@@ -60,6 +60,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
+      - name: Install system dependencies
+        run: apt-get update && apt-get install -y libcurl4t64
+      
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
