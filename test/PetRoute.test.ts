@@ -117,7 +117,7 @@ describe("Pet Tests", () => {
     afterAll(async () => {
         await mongod.stop();
         await objectFactory.destroy();
-    });
+    }, 30000);
 
     beforeEach(async () => {
         user = { uid: uuidv4(), name: "user", roles: [] };
