@@ -1,6 +1,6 @@
 import http from 'k6/http';
 import { check } from 'k6';
-import { login } from './login';
+import { login } from './login.ts';
 
 export const options = {
   vus: 200,
