@@ -1,6 +1,6 @@
 {
 	"name": "petstore",
-	"version": "1.1.0-express",
+	"version": "1.1.1-express",
 	"description": "An example Express+Passport+TypeORM server based upon OpenAPI's petstore example specification.",
 	"type": "module",
 	"repository": {

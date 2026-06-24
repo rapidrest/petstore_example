@@ -45,7 +45,7 @@ service:
   image:
     registry: ghcr.io
     repository: rapidrest/petstore
-    tag: 1.1.0-express
+    tag: 1.1.1-express
   replicas: 1
   mongodb:
     acl:
