@@ -582,9 +582,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rapidrest/service-core@npm:^1.0.0-rc.4":
-  version: 1.0.0-rc.4
-  resolution: "@rapidrest/service-core@npm:1.0.0-rc.4"
+"@rapidrest/service-core@npm:^1.0.0-rc.5":
+  version: 1.0.0-rc.5
+  resolution: "@rapidrest/service-core@npm:1.0.0-rc.5"
   dependencies:
     axios: "npm:^1.17.0"
     bson: "npm:^7.2.0"
@@ -612,7 +612,7 @@ __metadata:
       optional: true
     typeorm:
       optional: true
-  checksum: 10c0/9dcfa0052f9b0bb8719c38f440a9ee1efb7a7a9df9eadc53453b866ee80f2f6b0875eb77033236091ec21f20b00f5a20363efea51dea1f438769e8be40a6f506
+  checksum: 10c0/47e712d2e1e8cde9b1ab8c3c738c097f909e0c436eb5cad06b476db73a504f2c5e810afb36d533136434e96088549140ad6c83f2c2c2f15662eb00cdbc1a5d27
   languageName: node
   linkType: hard
 
@@ -5573,7 +5573,7 @@ __metadata:
   resolution: "petstore@workspace:."
   dependencies:
     "@rapidrest/core": "npm:^1.3.0"
-    "@rapidrest/service-core": "npm:^1.0.0-rc.4"
+    "@rapidrest/service-core": "npm:^1.0.0-rc.5"
     "@swc/core": "npm:^1.15.41"
     "@types/cors": "npm:^2.8.17"
     "@types/express": "npm:^4.17.21"
