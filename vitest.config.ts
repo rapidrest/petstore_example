@@ -1,7 +1,16 @@
 import { defineConfig } from 'vitest/config';
 import swc from 'unplugin-swc';
+import { fileURLToPath } from 'url';
+
+const root = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig({
+    resolve: {
+        alias: {
+            // Mirror the "@/*" path alias from tsconfig.json
+            '@': root,
+        },
+    },
     plugins: [
         swc.vite({
             jsc: {
@@ -22,6 +31,7 @@ export default defineConfig({
         environment: 'node',
         include: ['test/**/*.test.ts'],
         fileParallelism: false,
+        hookTimeout: 30000,
         pool: 'forks',
         forks: {
             execArgv: ['--no-experimental-strip-types'],
@@ -30,7 +40,7 @@ export default defineConfig({
         coverage: {
             enabled: true,
             provider: 'v8',
-            include: ['src/**/*.ts'],
+            include: ['src/**/*.ts', 'app/**/*.ts'],
             exclude: ['**/node_modules/**', '**/test/**'],
             reporter: ['text', 'json', 'html', 'lcov'],
             thresholds: {

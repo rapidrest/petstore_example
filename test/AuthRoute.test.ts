@@ -4,21 +4,21 @@
 import "reflect-metadata";
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { FastifyInstance } from "fastify";
 import { hash } from "argon2";
 import config from "./config.js";
-import { createApp } from "../src/app.js";
+import { GET as loginGET } from "../app/user/login/route.js";
+import { GET as logoutGET } from "../app/user/logout/route.js";
 import User, { UserStatus } from "../src/models/User.js";
-import { Logger } from "@rapidrest/core";
+import { JWTUtils, Logger } from "@rapidrest/core";
 import { ACLRecord, ACLUtils, ConnectionManager, MongoConnection, MongoRepository, ObjectFactory } from "@rapidrest/service-core";
 import { initDatabase } from "../src/database.js";
+import { inject, setupGlobals, teardownGlobals } from "./helpers.js";
 
 const mongod = new MongoMemoryServer({
     instance: { port: 9999, dbName: "petstore_test" },
 });
 
 describe("Auth Tests", () => {
-    let app: FastifyInstance;
     const logger = Logger();
     const objectFactory = new ObjectFactory(config, logger);
     let aclRepo: MongoRepository<any>;
@@ -39,8 +39,6 @@ describe("Auth Tests", () => {
         const result: User = await userRepo.save(obj);
 
         const records: ACLRecord[] = [];
-
-        // Owner has CRUD access
         records.push({
             userOrRoleId: obj.uid,
             create: true,
@@ -50,8 +48,6 @@ describe("Auth Tests", () => {
             special: false,
             full: false,
         });
-
-        // Everyone has no access
         records.push({
             userOrRoleId: ".*",
             create: false,
@@ -73,15 +69,18 @@ describe("Auth Tests", () => {
         await aclRepo.save(acl);
 
         return result;
-    }
+    };
 
     beforeAll(async () => {
         await mongod.start();
-        await initDatabase(config, objectFactory, logger);
+        const testDatastores = {
+            acl: { type: "mongodb", url: "mongodb://localhost:9999/acls", synchronize: true },
+            mongo: { type: "mongodb", url: "mongodb://localhost:9999/petstore_test" },
+        };
+        await initDatabase(config, objectFactory, logger, testDatastores);
         await objectFactory.newInstance(ACLUtils, { name: "default" });
-        app = await createApp(config, objectFactory, logger);
-        await app.ready();
-        
+        setupGlobals(objectFactory, logger);
+
         const connMgr: ConnectionManager | undefined = objectFactory.getInstance(ConnectionManager);
         let conn: any = connMgr?.connections.get("acl");
         if (conn instanceof MongoConnection) {
@@ -96,7 +95,7 @@ describe("Auth Tests", () => {
     });
 
     afterAll(async () => {
-        await app.close();
+        teardownGlobals();
         await objectFactory.destroy();
         await mongod.stop();
     });
@@ -113,7 +112,7 @@ describe("Auth Tests", () => {
         const user = await createUser();
         const credentials = Buffer.from(`${user.name}:password`).toString("base64");
 
-        const response = await app.inject({
+        const response = await inject(loginGET, {
             method: "GET",
             url: "/user/login",
             headers: { authorization: `basic ${credentials}` },
@@ -132,9 +131,9 @@ describe("Auth Tests", () => {
 
     it("Can make logout request.", async () => {
         const user = await createUser();
-        const authToken = (app as any).jwt.sign({ uid: user.uid });
+        const authToken = JWTUtils.createTokenSync(config.get("auth"), user);
 
-        const response = await app.inject({
+        const response = await inject(logoutGET, {
             method: "GET",
             url: "/user/logout",
             headers: { authorization: `jwt ${authToken}` },

@@ -4,108 +4,44 @@
 import "reflect-metadata";
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { FastifyInstance } from "fastify";
 import { v4 as uuidv4 } from "uuid";
 import config from "./config.js";
-import { createApp } from "../src/app.js";
+import { GET, HEAD, POST, DELETE } from "../app/store/order/route.js";
+import { GET as getById, PUT, DELETE as deleteById } from "../app/store/order/[id]/route.js";
 import Order, { OrderStatus } from "../src/models/Order.js";
 import Pet from "../src/models/Pet.js";
 import { ACLRecord, ACLUtils, ConnectionManager, MongoConnection, MongoRepository, ObjectFactory } from "@rapidrest/service-core";
 import { JWTUtils, Logger } from "@rapidrest/core";
 import { initDatabase } from "../src/database.js";
+import { inject, setupGlobals, teardownGlobals } from "./helpers.js";
 
 const mongod = new MongoMemoryServer({
     instance: { port: 9999, dbName: "petstore_test" },
 });
 
 describe("Order Tests", () => {
-    let app: FastifyInstance;
     const logger = Logger();
     const objectFactory = new ObjectFactory(config, logger);
     let repo: MongoRepository<Order>;
     let aclRepo: MongoRepository<any>;
     let petRepo: MongoRepository<Pet>;
 
-    const jwtConfig = config.get("auth");
     const trustedRoles: string[] = config.get("trusted_roles");
-
     const admin: any = { uid: uuidv4(), name: "admin", roles: trustedRoles };
     const adminToken = JWTUtils.createTokenSync(config.get("auth"), admin);
     let user: any;
     let userToken: string;
 
-    const createOrder = async function(data?: any): Promise<Order> {
-        const obj: Order = new Order({
-            petId: data?.petId || (await createPet()).uid,
-            quantity: 1,
-            shipDate: new Date(),
-            status: OrderStatus.PLACED,
-            complete: false,
-            ...data
-        });
-
-        const result: Order = await repo.save(obj);
-
-        const records: ACLRecord[] = [];
-
-        // Owner has CRUD access
-        records.push({
-            userOrRoleId: user.uid,
-            create: true,
-            read: true,
-            update: true,
-            delete: true,
-            special: false,
-            full: false,
-        });
-
-        // Everyone has no access
-        records.push({
-            userOrRoleId: ".*",
-            create: false,
-            read: false,
-            update: false,
-            delete: false,
-            special: false,
-            full: false,
-        });
-
-        const acl: any = {
-            uid: result.uid,
-            dateCreated: new Date(),
-            dateModified: new Date(),
-            version: 0,
-            records,
-            parentUid: "Order"
-        };
-        await aclRepo.save(acl);
-
-        return result;
-    }
-
-    const createOrders = async (num: number, data?: any): Promise<Order[]> => {
-        const results: Order[] = [];
-        for (let i = 0; i < num; i++) {
-            results.push(await createOrder(data));
-        }
-        return results;
-    };
-
     const createPet = async function(data?: any): Promise<Pet> {
         const obj: Pet = new Pet({
-            petId: uuidv4(),
-            quantity: 1,
-            shipDate: new Date(),
-            status: "",
-            complete: false,
+            name: "fido",
+            photoUrls: [],
             ...data
         });
 
         const result: Pet = await petRepo.save(obj);
 
         const records: ACLRecord[] = [];
-
-        // Owner has CRUD access
         records.push({
             userOrRoleId: user.uid,
             create: true,
@@ -115,8 +51,6 @@ describe("Order Tests", () => {
             special: false,
             full: false,
         });
-
-        // Everyone has no access
         records.push({
             userOrRoleId: ".*",
             create: false,
@@ -138,14 +72,70 @@ describe("Order Tests", () => {
         await aclRepo.save(acl);
 
         return result;
-    }
+    };
+
+    const createOrder = async function(data?: any): Promise<Order> {
+        const obj: Order = new Order({
+            petId: data?.petId || (await createPet()).uid,
+            quantity: 1,
+            shipDate: new Date(),
+            status: OrderStatus.PLACED,
+            complete: false,
+            ...data
+        });
+
+        const result: Order = await repo.save(obj);
+
+        const records: ACLRecord[] = [];
+        records.push({
+            userOrRoleId: user.uid,
+            create: true,
+            read: true,
+            update: true,
+            delete: true,
+            special: false,
+            full: false,
+        });
+        records.push({
+            userOrRoleId: ".*",
+            create: false,
+            read: false,
+            update: false,
+            delete: false,
+            special: false,
+            full: false,
+        });
+
+        const acl: any = {
+            uid: result.uid,
+            dateCreated: new Date(),
+            dateModified: new Date(),
+            version: 0,
+            records,
+            parentUid: "Order"
+        };
+        await aclRepo.save(acl);
+
+        return result;
+    };
+
+    const createOrders = async (num: number, data?: any): Promise<Order[]> => {
+        const results: Order[] = [];
+        for (let i = 0; i < num; i++) {
+            results.push(await createOrder(data));
+        }
+        return results;
+    };
 
     beforeAll(async () => {
         await mongod.start();
-        await initDatabase(config, objectFactory, logger);
+        const testDatastores = {
+            acl: { type: "mongodb", url: "mongodb://localhost:9999/acls", synchronize: true },
+            mongo: { type: "mongodb", url: "mongodb://localhost:9999/petstore_test" },
+        };
+        await initDatabase(config, objectFactory, logger, testDatastores);
         await objectFactory.newInstance(ACLUtils, { name: "default" });
-        app = await createApp(config, objectFactory, logger);
-        await app.ready();
+        setupGlobals(objectFactory, logger);
 
         const connMgr: ConnectionManager | undefined = objectFactory.getInstance(ConnectionManager);
         let conn: any = connMgr?.connections.get("acl");
@@ -157,12 +147,12 @@ describe("Order Tests", () => {
             repo = conn.getMongoRepository("Order");
             petRepo = conn.getMongoRepository("Pet");
         } else {
-            throw new Error("Could not find user connection");
+            throw new Error("Could not find order connection");
         }
     });
 
     afterAll(async () => {
-        await app.close();
+        teardownGlobals();
         await objectFactory.destroy();
         await mongod.stop();
     });
@@ -181,7 +171,7 @@ describe("Order Tests", () => {
     it("Can make count request.", async () => {
         const objs = await createOrders(5);
 
-        const response = await app.inject({
+        const response = await inject(HEAD, {
             method: "HEAD",
             url: "/store/order",
             headers: { authorization: `jwt ${adminToken}` },
@@ -197,7 +187,7 @@ describe("Order Tests", () => {
         const pet = await createPet();
         const obj = new Order({ petId: pet.uid, quantity: 1 });
 
-        const response = await app.inject({
+        const response = await inject(POST, {
             method: "POST",
             url: "/store/order",
             headers: { authorization: `jwt ${adminToken}` },
@@ -228,10 +218,11 @@ describe("Order Tests", () => {
     it("Can make delete request.", async () => {
         const obj = await createOrder();
 
-        const response = await app.inject({
+        const response = await inject(deleteById, {
             method: "DELETE",
             url: `/store/order/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
+            params: { id: obj.uid },
         });
 
         expect(response.statusCode).toBeGreaterThanOrEqual(200);
@@ -244,7 +235,7 @@ describe("Order Tests", () => {
     it("Can make findAll request.", async () => {
         const objs = await createOrders(5);
 
-        const response = await app.inject({
+        const response = await inject(GET, {
             method: "GET",
             url: "/store/order",
             headers: { authorization: `jwt ${adminToken}` },
@@ -259,10 +250,11 @@ describe("Order Tests", () => {
     it("Can make findById request.", async () => {
         const obj = await createOrder();
 
-        const response = await app.inject({
+        const response = await inject(getById, {
             method: "GET",
             url: `/store/order/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
+            params: { id: obj.uid },
         });
 
         expect(response.statusCode).toBeGreaterThanOrEqual(200);
@@ -281,7 +273,7 @@ describe("Order Tests", () => {
         let count = await repo.count();
         expect(count).toBe(objs.length);
 
-        const response = await app.inject({
+        const response = await inject(DELETE, {
             method: "DELETE",
             url: "/store/order",
             headers: { authorization: `jwt ${adminToken}` },
@@ -298,11 +290,12 @@ describe("Order Tests", () => {
         const obj = await createOrder();
         obj.quantity = 2;
 
-        const response = await app.inject({
+        const response = await inject(PUT, {
             method: "PUT",
             url: `/store/order/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
+            params: { id: obj.uid },
         });
 
         expect(response.statusCode).toBeGreaterThanOrEqual(200);

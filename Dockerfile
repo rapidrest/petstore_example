@@ -1,51 +1,44 @@
-# Use an official Python runtime as a parent image
 FROM node:lts-trixie-slim AS builder
 
-# Set the working directory to /app
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY package.json yarn.lock .yarnrc.yml tsconfig.json RELEASE_NOTES.md ./
+COPY package.json yarn.lock .yarnrc.yml tsconfig.json next.config.ts ./
 COPY .yarn/releases ./.yarn/releases
 COPY ./scripts /app/scripts
 COPY ./src /app/src
+COPY ./app /app/app
 
 ARG NODE_ENV=production
-ENV NODE_ENV ${NODE_ENV}
-RUN echo Building as $NODE_ENV
-# Install any needed packages specified in requirements.txt
+ENV NODE_ENV=${NODE_ENV}
+RUN echo "Building as $NODE_ENV"
 RUN apt update && apt upgrade -y
-RUN npm install --global nodemon
 RUN corepack enable
 RUN yarn install --immutable
 RUN yarn dbuild
 
 FROM node:lts-trixie-slim AS runner
 WORKDIR /app
-COPY --from=builder /app/package.json /app/yarn.lock /app/.yarnrc.yml /app/tsconfig.json /app/RELEASE_NOTES.md ./
-COPY --from=builder /app/.yarn/releases ./.yarn/releases
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/node_modules ./node_modules
-# Add curl for health check
-RUN apt update && apt upgrade -f && apt install curl -y
-RUN npm install --global nodemon
-RUN corepack enable
 
 ARG NODE_ENV=production
-ENV NODE_ENV ${NODE_ENV}
-RUN echo Running as $NODE_ENV
+ENV NODE_ENV=${NODE_ENV}
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
-# Make port 3000 available to the world outside this container
+# Copy the built Next.js output and the full node_modules.
+# We intentionally avoid standalone output here: Next.js's static file tracer
+# (@vercel/nft) cannot follow the dynamic subpath requires used throughout
+# @rapidrest/service-core and nconf's dependency trees, causing runtime
+# MODULE_NOT_FOUND errors. Copying node_modules in full is the correct
+# trade-off for a backend-only API container.
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
+
+RUN apt update && apt upgrade -f && apt install curl -y
+
 EXPOSE 3000
-# Make port 9229 available to the world for debugging
 EXPOSE 9229
 
-# Define environment variable
-ENV PORT 3000
-
-# Set a healthcheck to ensure the service is always alive
 HEALTHCHECK --interval=10s --timeout=60s --start-period=15s --retries=3 CMD curl -f http://localhost:3000/ || exit 1
 
-# Run app.js when the container launches
-CMD ["node", "dist/server.js"]
+CMD ["node", "node_modules/.bin/next", "start"]

@@ -4,31 +4,29 @@
 import "reflect-metadata";
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { FastifyInstance } from "fastify";
 import { v4 as uuidv4 } from "uuid";
 import config from "./config.js";
-import { createApp } from "../src/app.js";
+import { GET, HEAD, POST, DELETE } from "../app/pet/route.js";
+import { GET as getById, PUT, DELETE as deleteById } from "../app/pet/[id]/route.js";
 import Pet, { PetStatus } from "../src/models/Pet.js";
 import Category from "../src/models/Category.js";
 import Tag from "../src/models/Tag.js";
 import { JWTUtils, Logger } from "@rapidrest/core";
 import { ACLRecord, ACLUtils, ConnectionManager, MongoConnection, MongoRepository, ObjectFactory } from "@rapidrest/service-core";
 import { initDatabase } from "../src/database.js";
+import { inject, setupGlobals, teardownGlobals } from "./helpers.js";
 
 const mongod = new MongoMemoryServer({
     instance: { port: 9999, dbName: "petstore_test" },
 });
 
 describe("Pet Tests", () => {
-    let app: FastifyInstance;
     const logger = Logger();
     const objectFactory = new ObjectFactory(config, logger);
     let repo: MongoRepository<Pet>;
     let aclRepo: MongoRepository<any>;
 
-    const jwtConfig = config.get("auth");
     const trustedRoles: string[] = config.get("trusted_roles");
-
     const admin: any = { uid: uuidv4(), name: "admin", roles: trustedRoles };
     const adminToken = JWTUtils.createTokenSync(config.get("auth"), admin);
     let user: any;
@@ -36,9 +34,7 @@ describe("Pet Tests", () => {
 
     const createPet = async function(data?: any): Promise<Pet> {
         const obj: Pet = new Pet({
-            category: new Category({
-                name: "dog"
-            }),
+            category: new Category({ name: "dog" }),
             name: "gigi",
             photoUrls: ["image1.jpg", "image2.jpg", "image3.jpg"],
             status: PetStatus.AVAILABLE,
@@ -49,8 +45,6 @@ describe("Pet Tests", () => {
         const result: Pet = await repo.save(obj);
 
         const records: ACLRecord[] = [];
-
-        // Owner has CRUD access
         records.push({
             userOrRoleId: user.uid,
             create: true,
@@ -60,8 +54,6 @@ describe("Pet Tests", () => {
             special: false,
             full: false,
         });
-
-        // Everyone has no access
         records.push({
             userOrRoleId: ".*",
             create: false,
@@ -83,24 +75,25 @@ describe("Pet Tests", () => {
         await aclRepo.save(acl);
 
         return result;
-    }
+    };
 
     const createPets = async function(num: number, data?: any): Promise<Pet[]> {
         const results: Pet[] = [];
-
         for (let i = 0; i < num; i++) {
             results.push(await createPet(data));
         }
-
         return results;
-    }
+    };
 
     beforeAll(async () => {
         await mongod.start();
-        await initDatabase(config, objectFactory, logger);
+        const testDatastores = {
+            acl: { type: "mongodb", url: "mongodb://localhost:9999/acls", synchronize: true },
+            mongo: { type: "mongodb", url: "mongodb://localhost:9999/petstore_test" },
+        };
+        await initDatabase(config, objectFactory, logger, testDatastores);
         await objectFactory.newInstance(ACLUtils, { name: "default" });
-        app = await createApp(config, objectFactory, logger);
-        await app.ready();
+        setupGlobals(objectFactory, logger);
 
         const connMgr: ConnectionManager | undefined = objectFactory.getInstance(ConnectionManager);
         let conn: any = connMgr?.connections.get("acl");
@@ -111,12 +104,12 @@ describe("Pet Tests", () => {
         if (conn instanceof MongoConnection) {
             repo = conn.getMongoRepository("Pet");
         } else {
-            throw new Error("Could not find user connection");
+            throw new Error("Could not find pet connection");
         }
     });
 
     afterAll(async () => {
-        await app.close();
+        teardownGlobals();
         await objectFactory.destroy();
         await mongod.stop();
     });
@@ -127,17 +120,14 @@ describe("Pet Tests", () => {
         try {
             await repo.clear();
         } catch (err: any) {
-            // The error "ns not found" occurs when the collection doesn't exist yet. We can ignore this error.
-            if (err.message !== "ns not found") {
-                throw err;
-            }
+            if (err.message !== "ns not found") throw err;
         }
     });
 
     it("Can make count request.", async () => {
         const objs = await createPets(5);
 
-        const response = await app.inject({
+        const response = await inject(HEAD, {
             method: "HEAD",
             url: "/pet",
         });
@@ -157,7 +147,7 @@ describe("Pet Tests", () => {
             tags: [new Tag({ name: "timid" }), new Tag({ name: "black" })],
         });
 
-        const response = await app.inject({
+        const response = await inject(POST, {
             method: "POST",
             url: "/pet",
             headers: { authorization: `jwt ${adminToken}` },
@@ -188,10 +178,11 @@ describe("Pet Tests", () => {
     it("Can make delete request.", async () => {
         const obj = await createPet();
 
-        const response = await app.inject({
+        const response = await inject(deleteById, {
             method: "DELETE",
             url: `/pet/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
+            params: { id: obj.uid },
         });
 
         expect(response.statusCode).toBeGreaterThanOrEqual(200);
@@ -204,7 +195,7 @@ describe("Pet Tests", () => {
     it("Can make findAll request.", async () => {
         const objs = await createPets(5);
 
-        const response = await app.inject({
+        const response = await inject(GET, {
             method: "GET",
             url: "/pet",
         });
@@ -218,9 +209,10 @@ describe("Pet Tests", () => {
     it("Can make findById request.", async () => {
         const obj = await createPet();
 
-        const response = await app.inject({
+        const response = await inject(getById, {
             method: "GET",
             url: `/pet/${obj.uid}`,
+            params: { id: obj.uid },
         });
 
         expect(response.statusCode).toBeGreaterThanOrEqual(200);
@@ -239,7 +231,7 @@ describe("Pet Tests", () => {
         let count = await repo.count();
         expect(count).toBe(objs.length);
 
-        const response = await app.inject({
+        const response = await inject(DELETE, {
             method: "DELETE",
             url: "/pet",
             headers: { authorization: `jwt ${adminToken}` },
@@ -256,11 +248,12 @@ describe("Pet Tests", () => {
         const obj = await createPet();
         obj.status = PetStatus.ADOPTED;
 
-        const response = await app.inject({
+        const response = await inject(PUT, {
             method: "PUT",
             url: `/pet/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
+            params: { id: obj.uid },
         });
 
         expect(response.statusCode).toBeGreaterThanOrEqual(200);

@@ -18,19 +18,6 @@ conf.defaults({
     cors: {
         origin: ["http://localhost:3000"],
     },
-    datastores: {
-        acl: {
-            type: "mongodb",
-            url: "mongodb://localhost:9999/acls",
-            synchronize: true,
-        },
-        mongo: {
-            type: "mongodb",
-            host: "localhost",
-            port: 9999,
-            database: "petstore_test",
-        },
-    },
     trusted_roles: ["admin"],
     auth: {
         secret: "MyPasswordIsSecure",
@@ -48,6 +35,22 @@ conf.defaults({
     },
     session: {
         secret: "SESSION_SECRET",
+    },
+});
+
+// Use nconf.set() (memory store, highest priority below argv/env) so these
+// values are never overridden by src/config.ts defaults — which are loaded
+// transitively when tests import the Next.js route files.
+// Use host+port+database format: the ConnectionManager prefers it over url.
+conf.set("datastores", {
+    acl: {
+        type: "mongodb",
+        url: "mongodb://localhost:9999/acls",
+        synchronize: true,
+    },
+    mongo: {
+        type: "mongodb",
+        url: "mongodb://localhost:9999/petstore_test",
     },
 });
 
