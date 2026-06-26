@@ -1,6 +1,6 @@
 {
 	"name": "petstore",
-	"version": "1.1.1-fastify",
+	"version": "1.1.2-fastify",
 	"description": "An example Fastify server based upon OpenAPI's petstore example specification.",
 	"type": "module",
 	"repository": {
