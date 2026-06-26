@@ -45,7 +45,7 @@ service:
   image:
     registry: ghcr.io
     repository: rapidrest/petstore
-    tag: 1.1.2-fastify
+    tag: 1.1.2-nextjs
   replicas: 1
   mongodb:
     acl:
