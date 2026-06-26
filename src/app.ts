@@ -32,8 +32,8 @@ export async function createApp(config: any, objectFactory: ObjectFactory, logge
     app.use("/pet", await createPetRouter(passport, config, objectFactory));
     app.use("/store/order", await createOrderRouter(passport, config, objectFactory));
 
-    app.get("/", (_req, res) => res.json({ name: config.get("service_name"), time: new Date().toISOString(), version: config.get("version"), }));
-    app.get("/status", (_req, res) => res.json({ name: config.get("service_name"), time: new Date().toISOString(), version: config.get("version"), }));
+    app.get("/", (_req, res) => res.json({ name: config.get("service_name"), time: Date.now(), version: config.get("version"), }));
+    app.get("/status", (_req, res) => res.json({ name: config.get("service_name"), time: Date.now(), version: config.get("version"), }));
 
     app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
         const status: number = err.status ?? err.statusCode ?? 500;

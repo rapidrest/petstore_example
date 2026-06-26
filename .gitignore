@@ -19,3 +19,4 @@ loggererror.log
 !.yarn/versions
 **/.idea
 petstore-*.tgz
+profiles
