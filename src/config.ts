@@ -63,6 +63,11 @@ conf.defaults({
             type: "mongodb",
             host: "localhost",
             database: "petstore_user",
+            // clientOptions: {
+            //     maxPoolSize: 200,
+            //     maxConnecting: 10,
+            //     minPoolSize: 25
+            // }
         },
     },
     logger: {

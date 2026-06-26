@@ -11,6 +11,6 @@ export const config = {
 };
 
 export default function() {
-  const res = http.get(config.url + "/");
+  const res = http.get(config.url + "/status");
   check(res, { "status is 200": (res) => res.status === 200 });
 }
