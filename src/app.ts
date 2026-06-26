@@ -70,12 +70,12 @@ export async function createApp(config: any, objectFactory: ObjectFactory, logge
 
     app.get("/", async () => ({
         name: config.get("service_name"),
-        time: new Date().toISOString(),
+        time: Date.now(),
         version: config.get("version")
     }));
     app.get("/status", async () => ({
         name: config.get("service_name"),
-        time: new Date().toISOString(),
+        time: Date.now(),
         version: config.get("version")
     }));
 
