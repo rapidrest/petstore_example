@@ -18,7 +18,8 @@
 	"scripts": {
 		"build": "yarn lint && rimraf dist && tsc",
 		"dbuild": "rimraf dist && tsc",
-		"debug": "rapidrest dev",
+		"debug": "rapidrest dev --inspect",
+		"dev": "rapidrest dev",
 		"docs": "typedoc --plugin typedoc-plugin-markdown --out docs/reference --target esnext --mode file src",
 		"lint": "eslint ./src ./test",
 		"local-audit": "yarn install && yarn npm audit -A -R \"$@\"",
@@ -57,7 +58,7 @@
 		"winston-transport": "^4.9.0"
 	},
 	"devDependencies": {
-		"@rapidrest/cli": "^0.3.0",
+		"@rapidrest/cli": "^0.5.0",
 		"@swc/core": "^1.15.41",
 		"@types/nconf": "^0.10.7",
 		"@typescript-eslint/eslint-plugin": "^8.61.0",
