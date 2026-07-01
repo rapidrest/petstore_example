@@ -18,7 +18,7 @@
 	"scripts": {
 		"build": "yarn lint && rimraf dist && tsc",
 		"dbuild": "rimraf dist && tsc",
-		"debug": "nodemon --legacy-watch --watch 'src/**/*' --ext 'ts' --exec 'tsx --inspect=0.0.0.0:9229 src/server.ts'",
+		"debug": "rapidrest dev",
 		"docs": "typedoc --plugin typedoc-plugin-markdown --out docs/reference --target esnext --mode file src",
 		"lint": "eslint ./src ./test",
 		"local-audit": "yarn install && yarn npm audit -A -R \"$@\"",
@@ -27,7 +27,7 @@
 		"report-coverage": "cat ./coverage/lcov.info | coveralls",
 		"profile:process": "node --prof-process --call-graph",
 		"profile:view": "npx speedscope",
-		"start": "tsx src/server.ts",
+		"start": "rapidrest start",
 		"test": "vitest run --coverage",
 		"test:prod": "yarn lint && yarn test",
 		"test:watch": "vitest --coverage",
@@ -42,7 +42,7 @@
 		"trailingComma": "es5"
 	},
 	"dependencies": {
-		"@rapidrest/core": "^1.3.0",
+		"@rapidrest/core": "^1.3.1",
 		"@rapidrest/service-core": "^1.0.0-rc.10",
 		"@types/node": "^25.9.3",
 		"argon2": "^0.44.0",
@@ -57,6 +57,7 @@
 		"winston-transport": "^4.9.0"
 	},
 	"devDependencies": {
+		"@rapidrest/cli": "^0.3.0",
 		"@swc/core": "^1.15.41",
 		"@types/nconf": "^0.10.7",
 		"@typescript-eslint/eslint-plugin": "^8.61.0",

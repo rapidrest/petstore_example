@@ -1,64 +1,64 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="26" failures="0" errors="0" time="3.7850169">
-    <testsuite name="test/AuthRoute.test.ts" timestamp="2026-06-19T21:51:04.184Z" hostname="Jane" tests="2" failures="0" errors="0" skipped="1" time="0.6632393">
+<testsuites name="vitest tests" tests="26" failures="0" errors="0" time="3.2805042">
+    <testsuite name="test/AuthRoute.test.ts" timestamp="2026-07-01T00:34:17.665Z" hostname="Jane" tests="2" failures="0" errors="0" skipped="1" time="0.6142377">
         <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make login request." time="0">
             <skipped/>
         </testcase>
-        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make logout request." time="0.0606852">
+        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make logout request." time="0.0575705">
         </testcase>
     </testsuite>
-    <testsuite name="test/OrderRoute.test.ts" timestamp="2026-06-19T21:51:04.187Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="0.634918">
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make count request." time="0.0362937">
+    <testsuite name="test/OrderRoute.test.ts" timestamp="2026-07-01T00:34:17.668Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="0.6602527">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make count request." time="0.0308477">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make create request." time="0.0126816">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make create request." time="0.009972">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make delete request." time="0.0100864">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make delete request." time="0.0097515">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findAll request." time="0.0135314">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findAll request." time="0.0111301">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findById request." time="0.0062808">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findById request." time="0.0061325">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make truncate request." time="0.0163975">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make truncate request." time="0.0152424">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make update request." time="0.0086523">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make update request." time="0.0085017">
         </testcase>
         <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make update property request." time="0">
             <skipped/>
         </testcase>
     </testsuite>
-    <testsuite name="test/PetRoute.test.ts" timestamp="2026-06-19T21:51:04.192Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="0.5945333">
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make count request." time="0.0282909">
+    <testsuite name="test/PetRoute.test.ts" timestamp="2026-07-01T00:34:17.673Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="0.6196742">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make count request." time="0.0258914">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make create request." time="0.0057531">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make create request." time="0.0082408">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make delete request." time="0.0079828">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make delete request." time="0.0071049">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findAll request." time="0.0090046">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findAll request." time="0.009662">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findById request." time="0.0051324">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findById request." time="0.0067143">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make truncate request." time="0.0106718">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make truncate request." time="0.0083313">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make update request." time="0.0074812">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make update request." time="0.0072253">
         </testcase>
         <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make update property request." time="0">
             <skipped/>
         </testcase>
     </testsuite>
-    <testsuite name="test/UserRoute.test.ts" timestamp="2026-06-19T21:51:04.194Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="1.8923263">
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make count request." time="0.235636">
+    <testsuite name="test/UserRoute.test.ts" timestamp="2026-07-01T00:34:17.674Z" hostname="Jane" tests="8" failures="0" errors="0" skipped="1" time="1.3863396">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make count request." time="0.1740192">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make create request." time="0.0842897">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make create request." time="0.0655348">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make delete request." time="0.0459539">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make delete request." time="0.038583">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findAll request." time="0.1912819">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findAll request." time="0.1608495">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findById request." time="0.0419363">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findById request." time="0.0483134">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make truncate request." time="0.2179119">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make truncate request." time="0.1659769">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make update request." time="0.0939786">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make update request." time="0.0659353">
         </testcase>
         <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make update property request." time="0">
             <skipped/>
