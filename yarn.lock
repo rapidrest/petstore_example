@@ -1110,9 +1110,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rapidrest/cli@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@rapidrest/cli@npm:0.6.0"
+"@rapidrest/cli@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@rapidrest/cli@npm:0.8.0"
   dependencies:
     "@inquirer/prompts": "npm:^8.5.2"
     "@oclif/core": "npm:^4"
@@ -1129,7 +1129,7 @@ __metadata:
   bin:
     rapidrest: bin/run.js
     rr: bin/run.js
-  checksum: 10c0/f05b052bbc0f2af19fe6e3ce7562653a9bd43e415d5b9edb569d31fb68541c44cc60660dd7fe40ece76ec25c708a3ff5e991a10eac2567b346b0b387de318a76
+  checksum: 10c0/5ce524acab086c9d3f99cda1cdca708a6d1797762728421a641136e5d12c20bb18315835a08ba013466da19623f09d8a748bc763d96f86172905cd4762b6939e
   languageName: node
   linkType: hard
 
@@ -6543,7 +6543,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "petstore@workspace:."
   dependencies:
-    "@rapidrest/cli": "npm:^0.6.0"
+    "@rapidrest/cli": "npm:^0.8.0"
     "@rapidrest/core": "npm:^1.3.1"
     "@rapidrest/service-core": "npm:^1.0.0-rc.12"
     "@swc/core": "npm:^1.15.41"
