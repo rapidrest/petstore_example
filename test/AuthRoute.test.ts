@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 import config from "./config";
 import { hash } from "argon2";
-import { request } from "@rapidrest/service-core/dist/lib/test/request.js";
+import { request } from "@rapidrest/service-core/test";
 import { Server, ConnectionManager, ObjectFactory, ACLRecord, MongoConnection, MongoRepository } from "@rapidrest/service-core";
 import { JWTUtils, Logger } from "@rapidrest/core";
 import { MongoMemoryServer } from "mongodb-memory-server";
@@ -16,11 +16,12 @@ const mongod: MongoMemoryServer = new MongoMemoryServer({
     },
 });
 
+vi.setConfig({ testTimeout: 30000 });
 describe("Auth Tests", () => {
     const logger = Logger();
     const objectFactory: ObjectFactory = new ObjectFactory(config, logger);
-    const server: Server = new Server(config, "./src", logger, objectFactory);
-    const baseUrl = "/user/login";
+    const server: Server = new Server({ config, basePath: "./src", logger, objectFactory });
+    const baseUrl = "/auth";
     let aclRepo: MongoRepository<any>;
     let userRepo: MongoRepository<User>;
 
@@ -109,10 +110,11 @@ describe("Auth Tests", () => {
         }
     });
 
-    it.skip("Can make login request.", async () => {
+    it("Can make login request.", async () => {
         const user: User = await createUser();
+        const url: string = baseUrl + "/login";
         const result = await request(server.getApplication())
-            .get(baseUrl)
+            .get(url)
             .set("Authorization", "basic " + Buffer.from(`${user.name}:password`).toString("base64"));
 
         expect(result).toBeDefined();
@@ -130,7 +132,7 @@ describe("Auth Tests", () => {
     it("Can make logout request.", async () => {
         const user: User = await createUser();
         const authToken = await JWTUtils.createToken(config.get("auth"), user);
-        const url = "/user/logout";
+        const url = baseUrl + "/logout";
 
         const result = await request(server.getApplication())
             .get(url)

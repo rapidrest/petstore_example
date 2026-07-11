@@ -5,7 +5,7 @@
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import config from "./config.js";
-import { JWTUtils, EventUtils, Logger, OASUtils } from "@rapidrest/core";
+import { JWTUtils, EventUtils, Logger } from "@rapidrest/core";
 import { ObjectFactory, Server } from "@rapidrest/service-core";
 
 import * as fs from "fs";
@@ -45,7 +45,7 @@ const start = async function (config: any, logger: any) {
     await EventUtils.init(config, logger, token);
 
     // Create and start the server
-    server = new Server(config, _dirname, logger, objectFactory);
+    server = new Server({ config, basePath: _dirname, logger, objectFactory });
     await server.start();
 };
 

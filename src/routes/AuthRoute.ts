@@ -30,8 +30,8 @@ const AuthUser = RouteDecorators.User;
  * 
  * @author <AUTHOR>
  */
-@Description("Handles all REST API requests for the endpoint `/user/login`.")
-@Route("/")
+@Description("Handles all REST API requests for the endpoint `/auth`.")
+@Route("/auth")
 class AuthRoute {
     @Inject(AuthMiddleware)
     private authMiddleware?: AuthMiddleware;
@@ -63,7 +63,9 @@ class AuthRoute {
                 throw new Error("User repository not set.");
             }
 
-            let user: User | undefined = await this.userUtils.findOne(name);
+            let user: User | undefined = await this.userUtils.findOne(name, {
+                ignoreACL: true
+            });
             if (!user) {
                 throw new Error("Invalid name or password");
             }
@@ -95,7 +97,7 @@ class AuthRoute {
     @Description("Authenticates the user using HTTP Basic and returns a JSON Web Token access token to be used with future API requests.")
     @Returns([AuthToken, undefined])
     @Auth(["basic"])
-    @Get("/user/login")
+    @Get("/login")
     private async login(@AuthUser user: JWTUser): Promise<AuthToken | undefined> {
         if (!user) {
             throw new ApiError(ApiErrorMessages.AUTH_FAILED, 401, "Invalid user or password.");
@@ -114,13 +116,15 @@ class AuthRoute {
     @Description("Logs out the current user.")
     @Returns([null])
     @Auth(["jwt"])
-    @Get("/user/logout")
+    @Get("/logout")
     private async logout(@AuthUser user: JWTUser): Promise<void> {
         if (!this.userUtils) {
             throw new Error("User repository not set.");
         }
         
-        let foundUser: User | undefined = await this.userUtils.findOne(user.uid);
+        let foundUser: User | undefined = await this.userUtils.findOne(user.uid, {
+            user
+        });
         if (!foundUser) {
             throw new ApiError(ApiErrorMessages.NOT_FOUND, 404, "User not found.");
         }
@@ -129,7 +133,7 @@ class AuthRoute {
             uid: foundUser.uid,
             version: foundUser.version,
             userStatus: UserStatus.OFFLINE
-        }, foundUser, { ignoreACL: true });
+        }, foundUser, { user });
     }
 }
 

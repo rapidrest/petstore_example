@@ -2,7 +2,7 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import config from "./config";
-import { request } from "@rapidrest/service-core/dist/lib/test/request.js";
+import { request } from "@rapidrest/service-core/test";
 import { Server, ConnectionManager, ACLRecord, ObjectFactory, MongoConnection, MongoRepository } from "@rapidrest/service-core";
 import { EventUtils, JWTUtils, Logger } from "@rapidrest/core";
 import { MongoMemoryServer } from "mongodb-memory-server";
@@ -20,7 +20,7 @@ const mongod: MongoMemoryServer = new MongoMemoryServer({
 describe("Order Tests", () => {
     const logger = Logger();
     const objectFactory: ObjectFactory = new ObjectFactory(config, logger);
-    const server: Server = new Server(config, "./src", logger, objectFactory);
+    const server: Server = new Server({ config, basePath: "./src", logger, objectFactory });
     const baseUrl = "/store/order";
 
     const admin: any = {

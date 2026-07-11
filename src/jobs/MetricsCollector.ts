@@ -13,8 +13,8 @@ import * as prom from "prom-client";
 export default class MetricsCollector extends BackgroundService {
     private registry: prom.Registry;
 
-    constructor(config: any, logger: any) {
-        super(config, logger);
+    constructor() {
+        super();
         this.registry = prom.register;
     }
 
