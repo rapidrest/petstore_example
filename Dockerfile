@@ -13,6 +13,8 @@ COPY ./scripts /app/scripts
 ARG NODE_ENV=production
 ENV NODE_ENV ${NODE_ENV}
 RUN echo Building as $NODE_ENV
+ENV MONGOMS_DISABLE_POSTINSTALL=1
+ENV REDISMS_DISABLE_POSTINSTALL=true
 # Install any needed packages specified in requirements.txt
 RUN apt update && apt upgrade -y
 RUN npm install --global nodemon
@@ -31,7 +33,7 @@ COPY --from=builder /app/scripts ./scripts
 COPY ./scripts /app/scripts
 RUN chmod +x /app/scripts/*.sh
 # Add curl for health check
-RUN apt update && apt upgrade -f && apt install curl -y
+RUN apt-get update && apt-get upgrade -f -y && apt-get install curl -y
 RUN npm install --global nodemon
 RUN corepack enable
 
@@ -51,4 +53,4 @@ ENV PORT 3000
 HEALTHCHECK --interval=10s --timeout=60s --start-period=15s --retries=3 CMD curl -f http://localhost:3000/ || exit 1
 
 # Run app.js when the container launches
-CMD ["node", "dist/server.js"]
+CMD ["yarn", "rapidrest", "start", "--docker", "--no-build"]
