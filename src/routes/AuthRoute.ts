@@ -21,7 +21,7 @@ const { Summary, Description, Returns } = DocDecorators;
 const {
     Auth,
     Get,
-    Route,
+    ApiRoute,
 } = RouteDecorators;
 const AuthUser = RouteDecorators.User;
 
@@ -31,7 +31,7 @@ const AuthUser = RouteDecorators.User;
  * @author <AUTHOR>
  */
 @Description("Handles all REST API requests for the endpoint `/auth`.")
-@Route("/auth")
+@ApiRoute("/auth")
 class AuthRoute {
     @Inject(AuthMiddleware)
     private authMiddleware?: AuthMiddleware;

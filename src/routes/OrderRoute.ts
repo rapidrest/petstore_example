@@ -11,7 +11,7 @@ import Order from "../models/Order.js";
 const { Description } = DocDecorators;
 const {
     Model,
-    Route,
+    ApiRoute,
 } = RouteDecorators;
 
 /**
@@ -21,6 +21,6 @@ const {
  */
 @Description("Handles all REST API requests for the endpoint `/store/order`.")
 @Model(Order)
-@Route("/store/order")
+@ApiRoute("/store/order")
 export default class OrderRoute extends CRUDRoute<Order> {
 }

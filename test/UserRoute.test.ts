@@ -22,7 +22,7 @@ describe("User Tests", () => {
     const logger = Logger();
     const objectFactory: ObjectFactory = new ObjectFactory(config, logger);
     const server: Server = new Server({ config, basePath: "./src", logger, objectFactory });
-    const baseUrl = "/user";
+    const baseUrl = "/api/user";
 
     const admin: any = {
         uid: uuidv4(),

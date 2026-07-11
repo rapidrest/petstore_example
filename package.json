@@ -58,7 +58,7 @@
 		"winston-transport": "^4.9.0"
 	},
 	"devDependencies": {
-		"@rapidrest/cli": "^0.8.0",
+		"@rapidrest/cli": "^0.13.0",
 		"@swc/core": "^1.15.41",
 		"@types/nconf": "^0.10.7",
 		"@typescript-eslint/eslint-plugin": "^8.61.0",

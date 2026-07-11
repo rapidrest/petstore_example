@@ -14,7 +14,7 @@ import { ApiError, JWTUser, UserUtils} from "@rapidrest/core";
 const {
     Model,
     Param,
-    Route,
+    ApiRoute,
 } = RouteDecorators;
 const AuthUser = RouteDecorators.User;
 
@@ -24,7 +24,7 @@ const AuthUser = RouteDecorators.User;
  * @author <AUTHOR>
  */
 @Model(User)
-@Route("/user")
+@ApiRoute("/user")
 class UserRoute extends CRUDRoute<User> {
     protected async validateCreate(obj: Partial<User> | Partial<User>[], @AuthUser user: JWTUser) {
         await super.validateCreate(obj, user);

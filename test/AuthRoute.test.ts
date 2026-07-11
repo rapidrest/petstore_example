@@ -21,7 +21,7 @@ describe("Auth Tests", () => {
     const logger = Logger();
     const objectFactory: ObjectFactory = new ObjectFactory(config, logger);
     const server: Server = new Server({ config, basePath: "./src", logger, objectFactory });
-    const baseUrl = "/auth";
+    const baseUrl = "/api/auth";
     let aclRepo: MongoRepository<any>;
     let userRepo: MongoRepository<User>;
 

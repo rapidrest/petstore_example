@@ -9,7 +9,7 @@ import Pet from "../models/Pet.js";
 
 const {
     Model,
-    Route,
+    ApiRoute,
 } = RouteDecorators;
 
 /**
@@ -18,6 +18,6 @@ const {
  * @author <AUTHOR>
  */
 @Model(Pet)
-@Route("/pet")
+@ApiRoute("/pet")
 export default class PetRoute extends CRUDRoute<Pet> {
 }

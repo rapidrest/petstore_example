@@ -22,7 +22,7 @@ describe("Pet Tests", () => {
     const logger = Logger();
     const objectFactory: ObjectFactory = new ObjectFactory(config, logger);
     const server: Server = new Server({ config, basePath: "./src", logger, objectFactory });
-    const baseUrl = "/pet";
+    const baseUrl = "/api/pet";
 
     const admin: any = {
         uid: uuidv4(),
