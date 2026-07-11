@@ -10,7 +10,7 @@ export const options = {
 };
 
 export const config = {
-  url: __ENV.url || 'http://localhost:3000',
+  url: __ENV.url || 'http://localhost:3000/api',
   name: __ENV.name || "test_user",
   password: __ENV.password || "password",
   petId: __ENV.petid || "snowball"

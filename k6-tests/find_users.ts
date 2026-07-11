@@ -8,7 +8,7 @@ export const options = {
 };
 
 export const config = {
-  url: __ENV.url || 'http://localhost:3000',
+  url: __ENV.url || 'http://localhost:3000/api',
   admin_name: __ENV.admin_name || 'admin',
   admin_pass: __ENV.admin_pass || 'admin',
 };

@@ -7,7 +7,7 @@ export const options = {
 };
 
 export const config = {
-  url: __ENV.url || 'http://localhost:3000',
+  url: __ENV.url || 'http://localhost:3000/api',
   id: __ENV.category || "bunny"
 };
 

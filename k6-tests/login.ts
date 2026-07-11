@@ -8,7 +8,7 @@ export const options = {
 };
 
 export const config = {
-  url: __ENV.url || 'http://localhost:3000',
+  url: __ENV.url || 'http://localhost:3000/api',
   name: __ENV.name || "test_user",
   password: __ENV.password || "password"
 };
@@ -18,7 +18,7 @@ export function login(url: string, name: string, password: string) {
     'Content-Type': "application/json",
     'Authorization': `basic ${encoding.b64encode(`${name}:${password}`)}`
   };
-  const res = http.get(url + "/user/login", { headers });
+  const res = http.get(url + "/auth/login", { headers });
   check(res, { "status is 2XX": (res) => res.status >= 200 && res.status < 300 });
   check(res, { "res.body is defined": (res) => res.body !== undefined });
   if (res && res.body) {
