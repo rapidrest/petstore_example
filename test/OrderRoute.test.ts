@@ -1,6 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
+// This mock MUST be defined before we import ConnectionManager (or anything that pulls it in such as Server)
+vi.mock("ioredis", async () => {
+    const RedisMock = await import("ioredis-mock");
+    return { Redis: RedisMock.default || RedisMock };
+});
 import config from "./config";
 import { request } from "@rapidrest/service-core/test";
 import { Server, ConnectionManager, ACLRecord, ObjectFactory, MongoConnection, MongoRepository } from "@rapidrest/service-core";

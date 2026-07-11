@@ -29,6 +29,10 @@ conf.defaults({
             database: "acls",
             synchronize: true,
         },
+        events: {
+            type: "redis",
+            url: "redis://localhost"
+        },
         mongo: {
             type: "mongodb",
             host: "localhost",

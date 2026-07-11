@@ -724,7 +724,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ioredis/commands@npm:1.10.0":
+"@ioredis/as-callback@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@ioredis/as-callback@npm:3.0.0"
+  checksum: 10c0/cbeae0c4a8f8f8ea1987d105056fd595a5a1a781a73dfa3a13ac13027fd1de099af6f3590bd315fd20284efd8597430a7ba3b912570804d158dabbdb2071523b
+  languageName: node
+  linkType: hard
+
+"@ioredis/commands@npm:1.10.0, @ioredis/commands@npm:^1.4.0":
   version: 1.10.0
   resolution: "@ioredis/commands@npm:1.10.0"
   checksum: 10c0/baf91e62d0e64ef2b5f7ca4413dc2456fe250e87483beac4a1c8ef1fe5ad0d2fcdeb9b89d4556d8ef6c7455c64a964359d729601fdb06b2f4c76c35dd59afa99
@@ -1677,6 +1684,15 @@ __metadata:
   dependencies:
     "@types/unist": "npm:*"
   checksum: 10c0/3249781a511b38f1d330fd1e3344eed3c4e7ea8eff82e835d35da78e637480d36fad37a78be5a7aed8465d237ad0446abc1150859d0fde395354ea634decf9f7
+  languageName: node
+  linkType: hard
+
+"@types/ioredis-mock@npm:^8":
+  version: 8.2.7
+  resolution: "@types/ioredis-mock@npm:8.2.7"
+  peerDependencies:
+    ioredis: ">=5"
+  checksum: 10c0/cb3b30815d099f4e4652290618a8dc84aadf101027f3b996b0045bad363e9355b05076477fbec31495faac7aae9463a30a6ae8d1a366702010dbf6acca6af1ae
   languageName: node
   linkType: hard
 
@@ -3764,6 +3780,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fengari-interop@npm:^0.1.3":
+  version: 0.1.4
+  resolution: "fengari-interop@npm:0.1.4"
+  peerDependencies:
+    fengari: ^0.1.0
+  checksum: 10c0/ba8aca9b741b603a7740343b3f99dbd60c4536aab115a8e02caa33030e16e0dd13a0d03f0c31050f7fa1ead7945358040cead48531df41c3b3147e61b50f383c
+  languageName: node
+  linkType: hard
+
+"fengari@npm:^0.1.4":
+  version: 0.1.5
+  resolution: "fengari@npm:0.1.5"
+  dependencies:
+    readline-sync: "npm:^1.4.10"
+    sprintf-js: "npm:^1.1.3"
+    tmp: "npm:^0.2.5"
+  checksum: 10c0/8688c3483e00028b0b09928f71452bb2c8b4db5f7380e0e8dd65619bb4ccb38438557ebdfd977c55a6d3fb5e7601cbac26c62873317320ffd20b59936f464244
+  languageName: node
+  linkType: hard
+
 "file-entry-cache@npm:^8.0.0":
   version: 8.0.0
   resolution: "file-entry-cache@npm:8.0.0"
@@ -4427,6 +4463,22 @@ __metadata:
     hasown: "npm:^2.0.2"
     side-channel: "npm:^1.1.0"
   checksum: 10c0/03966f5e259b009a9bf1a78d60da920df198af4318ec004f57b8aef1dd3fe377fbc8cce63a96e8c810010302654de89f9e19de1cd8ad0061d15be28a695465c7
+  languageName: node
+  linkType: hard
+
+"ioredis-mock@npm:^8.13.1":
+  version: 8.13.1
+  resolution: "ioredis-mock@npm:8.13.1"
+  dependencies:
+    "@ioredis/as-callback": "npm:^3.0.0"
+    "@ioredis/commands": "npm:^1.4.0"
+    fengari: "npm:^0.1.4"
+    fengari-interop: "npm:^0.1.3"
+    semver: "npm:^7.7.2"
+  peerDependencies:
+    "@types/ioredis-mock": ^8
+    ioredis: ^5
+  checksum: 10c0/47e17a307301da01a89d041a6d6101828baefd3a1c216a09fe8ff9e1bd7d7239de93544365280f6cda4ad98af1f302e7497f9563f36cb24b528d9c7b3164301f
   languageName: node
   linkType: hard
 
@@ -6546,6 +6598,7 @@ __metadata:
     "@rapidrest/core": "npm:^1.3.1"
     "@rapidrest/service-core": "npm:^1.0.0-rc.17"
     "@swc/core": "npm:^1.15.41"
+    "@types/ioredis-mock": "npm:^8"
     "@types/nconf": "npm:^0.10.7"
     "@types/node": "npm:^25.9.3"
     "@typescript-eslint/eslint-plugin": "npm:^8.61.0"
@@ -6559,6 +6612,7 @@ __metadata:
     eslint-plugin-jsdoc: "npm:^63.0.2"
     globals: "npm:^17.6.0"
     ioredis: "npm:^5.11.1"
+    ioredis-mock: "npm:^8.13.1"
     lodash-es: "npm:^4.18.1"
     mongodb: "npm:^7.3.0"
     mongodb-memory-server: "npm:^11.2.0"
@@ -6938,6 +6992,13 @@ __metadata:
   dependencies:
     picomatch: "npm:^2.2.1"
   checksum: 10c0/6fa848cf63d1b82ab4e985f4cf72bd55b7dcfd8e0a376905804e48c3634b7e749170940ba77b32804d5fe93b3cc521aa95a8d7e7d725f830da6d93f3669ce66b
+  languageName: node
+  linkType: hard
+
+"readline-sync@npm:^1.4.10":
+  version: 1.4.10
+  resolution: "readline-sync@npm:1.4.10"
+  checksum: 10c0/0a4d0fe4ad501f8f005a3c9cbf3cc0ae6ca2ced93e9a1c7c46f226bdfcb6ef5d3f437ae7e9d2e1098ee13524a3739c830e4c8dbc7f543a693eecd293e41093a3
   languageName: node
   linkType: hard
 
@@ -7513,6 +7574,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sprintf-js@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "sprintf-js@npm:1.1.3"
+  checksum: 10c0/09270dc4f30d479e666aee820eacd9e464215cdff53848b443964202bf4051490538e5dd1b42e1a65cf7296916ca17640aebf63dae9812749c7542ee5f288dec
+  languageName: node
+  linkType: hard
+
 "sprintf-js@npm:~1.0.2":
   version: 1.0.3
   resolution: "sprintf-js@npm:1.0.3"
@@ -7868,7 +7936,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tmp@npm:^0.2.1, tmp@npm:^0.2.7":
+"tmp@npm:^0.2.1, tmp@npm:^0.2.5, tmp@npm:^0.2.7":
   version: 0.2.7
   resolution: "tmp@npm:0.2.7"
   checksum: 10c0/59eb55584f2f07210d3231b6a1f6b5c2b9794d8a7b509c8ee867ed2acad6d2245ee2448b7937b676ffbff3155a70077edde8a69f9d7cf0f90c86a62e8910c357
