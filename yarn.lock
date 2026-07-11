@@ -1187,9 +1187,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rapidrest/core@npm:^1.3.1":
-  version: 1.3.1
-  resolution: "@rapidrest/core@npm:1.3.1"
+"@rapidrest/core@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "@rapidrest/core@npm:1.4.0"
   dependencies:
     form-data: "npm:^4.0.5"
     handlebars: "npm:^4.7.9"
@@ -1197,7 +1197,6 @@ __metadata:
     jsonwebtoken: "npm:^9.0.3"
     jszip: "npm:^3.10.1"
     mkdirp: "npm:^3.0.1"
-    readline: "npm:^1.3.0"
     triple-beam: "npm:^1.4.1"
     uuid: "npm:^14.0.0"
     validator: "npm:^13.15.35"
@@ -1206,13 +1205,15 @@ __metadata:
     reflect-metadata: 0.2.x
     winston: 3.x
     winston-transport: 4.x
-  checksum: 10c0/222fda41adb5f52776103d0bce771dc9e0f671d6eab9767149988590c6687e91f1ca2a94772d925c80d04bc1b6c09a2ae5e017cbe742ca11747c24cc762435c8
+  checksum: 10c0/f185a8f6162ed834f74235c104ff00b589dd139491d9ef6cf9884cb652e6a486d6ccbe980b4bbbf700ebf9011409a318f7c56dbf8d2d3e26216d4b73335a99ce
   languageName: node
   linkType: hard
 
-"@rapidrest/react@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@rapidrest/react@npm:0.7.0"
+"@rapidrest/react@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@rapidrest/react@npm:0.8.0"
+  dependencies:
+    cross-spawn: "npm:^7.0.5"
   peerDependencies:
     "@rapidrest/core": 1.x
     "@rapidrest/service-core": 1.x
@@ -1233,13 +1234,13 @@ __metadata:
       optional: true
   bin:
     rapidreact: dist/cli/cli.js
-  checksum: 10c0/36b12a24b69e186a7f924af4b8c81e54380c7b76a177d6799794b9a817c66df925027f704e76aafb97c1b599a9639c80c7c6102b1e2cc7df036b9c59b3e01bc3
+  checksum: 10c0/41a297731c3335d127bb89b5ae2d747bcee060aabf282bac87200f59dcfadcc323f2fe999951b8d1b6476c4cc67f27afec655e504e4f37224e192cbc195f4294
   languageName: node
   linkType: hard
 
-"@rapidrest/service-core@npm:^1.0.0-rc.21":
-  version: 1.0.0-rc.21
-  resolution: "@rapidrest/service-core@npm:1.0.0-rc.21"
+"@rapidrest/service-core@npm:^1.0.0-rc.22":
+  version: 1.0.0-rc.22
+  resolution: "@rapidrest/service-core@npm:1.0.0-rc.22"
   dependencies:
     axios: "npm:^1.17.0"
     dayjs: "npm:^1.11.21"
@@ -1266,7 +1267,7 @@ __metadata:
       optional: true
     typeorm:
       optional: true
-  checksum: 10c0/66141e1cc1b6f2e1c9dde2d94af6f9e1b29a3ec36be4cf8a2d7786df54827b5fc9679eefaf6ca82bb7b64034096efbef7961fa8f6440dfdc4ceec11c9bc4b190
+  checksum: 10c0/da69cb8637d15fb8fbde9cf85defbb2d9b9b828ae8f5ab4048bcf2a078c0add46d951ec4c2bea84e9c9c94f9606a1c38576687e7ab4625df124e96473f00e7b3
   languageName: node
   linkType: hard
 
@@ -3124,7 +3125,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-spawn@npm:^7.0.3, cross-spawn@npm:^7.0.6":
+"cross-spawn@npm:^7.0.3, cross-spawn@npm:^7.0.5, cross-spawn@npm:^7.0.6":
   version: 7.0.6
   resolution: "cross-spawn@npm:7.0.6"
   dependencies:
@@ -6805,9 +6806,9 @@ __metadata:
   resolution: "petstore@workspace:."
   dependencies:
     "@rapidrest/cli": "npm:^0.15.0"
-    "@rapidrest/core": "npm:^1.3.1"
-    "@rapidrest/react": "npm:^0.7.0"
-    "@rapidrest/service-core": "npm:^1.0.0-rc.21"
+    "@rapidrest/core": "npm:^1.4.0"
+    "@rapidrest/react": "npm:^0.8.0"
+    "@rapidrest/service-core": "npm:^1.0.0-rc.22"
     "@swc/core": "npm:^1.15.41"
     "@types/ioredis-mock": "npm:^8"
     "@types/nconf": "npm:^0.10.7"
@@ -7250,13 +7251,6 @@ __metadata:
   version: 1.4.10
   resolution: "readline-sync@npm:1.4.10"
   checksum: 10c0/0a4d0fe4ad501f8f005a3c9cbf3cc0ae6ca2ced93e9a1c7c46f226bdfcb6ef5d3f437ae7e9d2e1098ee13524a3739c830e4c8dbc7f543a693eecd293e41093a3
-  languageName: node
-  linkType: hard
-
-"readline@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "readline@npm:1.3.0"
-  checksum: 10c0/7404c9edc3fd29430221ef1830867c8d87e50612e4ce70f84ecd55686f7db1c81d67c6a4dcb407839f4c459ad05dd34524a2c7a97681e91878367c68d0e38665
   languageName: node
   linkType: hard
 
