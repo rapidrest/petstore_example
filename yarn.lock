@@ -1117,9 +1117,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rapidrest/cli@npm:^0.13.0":
-  version: 0.13.0
-  resolution: "@rapidrest/cli@npm:0.13.0"
+"@rapidrest/cli@npm:^0.15.0":
+  version: 0.15.0
+  resolution: "@rapidrest/cli@npm:0.15.0"
   dependencies:
     "@inquirer/prompts": "npm:^8.5.2"
     "@oclif/core": "npm:^4"
@@ -1136,7 +1136,7 @@ __metadata:
   bin:
     rapidrest: bin/run.js
     rr: bin/run.js
-  checksum: 10c0/5a4b98f8132c0020f395404b3e30a12a959b3f6277970f950a2f377eed1b9ba6e3b98cf47bf096b86233b8b48e881f75291c96760eac8ac96da411f33c5df522
+  checksum: 10c0/15a4b3b0866313687b782d5ca6da72471d5911ef96ac1c43b2b0c6a5fbfd852f051c3e50fecc38a4d83bd213f895418d0e04789a10383c6d9c5954d179514d8f
   languageName: node
   linkType: hard
 
@@ -1163,9 +1163,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rapidrest/service-core@npm:^1.0.0-rc.17":
-  version: 1.0.0-rc.17
-  resolution: "@rapidrest/service-core@npm:1.0.0-rc.17"
+"@rapidrest/service-core@npm:^1.0.0-rc.21":
+  version: 1.0.0-rc.21
+  resolution: "@rapidrest/service-core@npm:1.0.0-rc.21"
   dependencies:
     axios: "npm:^1.17.0"
     dayjs: "npm:^1.11.21"
@@ -1192,7 +1192,7 @@ __metadata:
       optional: true
     typeorm:
       optional: true
-  checksum: 10c0/77cd50db83592839248a6873bfb9cede3761ce9c9674bbe454219c05b89c874fd5080d7adfe699f73672ae086841582d639e34af6ce965d217963ee43849f823
+  checksum: 10c0/66141e1cc1b6f2e1c9dde2d94af6f9e1b29a3ec36be4cf8a2d7786df54827b5fc9679eefaf6ca82bb7b64034096efbef7961fa8f6440dfdc4ceec11c9bc4b190
   languageName: node
   linkType: hard
 
@@ -6594,9 +6594,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "petstore@workspace:."
   dependencies:
-    "@rapidrest/cli": "npm:^0.13.0"
+    "@rapidrest/cli": "npm:^0.15.0"
     "@rapidrest/core": "npm:^1.3.1"
-    "@rapidrest/service-core": "npm:^1.0.0-rc.17"
+    "@rapidrest/service-core": "npm:^1.0.0-rc.21"
     "@swc/core": "npm:^1.15.41"
     "@types/ioredis-mock": "npm:^8"
     "@types/nconf": "npm:^0.10.7"
