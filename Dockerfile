@@ -5,10 +5,7 @@ FROM node:lts-trixie-slim AS builder
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY package.json yarn.lock .yarnrc.yml tsconfig.json RELEASE_NOTES.md ./
-COPY .yarn/releases ./.yarn/releases
-COPY ./src /app/src
-COPY ./scripts /app/scripts
+COPY . ./
 
 ARG NODE_ENV=production
 ENV NODE_ENV ${NODE_ENV}
@@ -20,7 +17,7 @@ RUN apt update && apt upgrade -y
 RUN npm install --global nodemon
 RUN corepack enable
 RUN yarn install --immutable
-RUN yarn dbuild
+RUN yarn build
 
 FROM node:lts-trixie-slim AS runner
 WORKDIR /app

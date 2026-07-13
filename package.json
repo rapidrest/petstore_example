@@ -17,7 +17,6 @@
   ],
   "scripts": {
     "build": "rimraf dist && tsc && tsc -p tsconfig.client.json && vite build",
-    "dbuild": "rimraf dist && tsc",
     "debug": "rapidrest dev --inspect",
     "dev": "rapidrest dev",
     "docs": "typedoc --plugin typedoc-plugin-markdown --out docs/reference --target esnext --mode file src",

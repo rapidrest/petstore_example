@@ -30,7 +30,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
-        run: export MONGOMS_DISABLE_POSTINSTALL=1 && export REDISMS_DISABLE_POSTINSTALL=true && yarn install
+        run: export REDISMS_DISABLE_POSTINSTALL=true && yarn install
 
       - name: Build
         run: yarn build
