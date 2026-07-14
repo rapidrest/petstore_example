@@ -44,10 +44,11 @@
   "dependencies": {
     "@rapidrest/core": "^1.4.0",
     "@rapidrest/react": "^0.8.0",
-    "@rapidrest/service-core": "^1.0.0-rc.22",
+    "@rapidrest/service-core": "1.0.0-bun.1",
     "@types/node": "^25.9.3",
     "argon2": "^0.44.0",
     "axios": "^1.17.0",
+    "bson": "^7.3.1",
     "lodash-es": "^4.18.1",
     "mongodb": "^7.3.0",
     "nconf": "^0.13.0",
@@ -60,7 +61,7 @@
     "winston-transport": "^4.9.0"
   },
   "devDependencies": {
-    "@rapidrest/cli": "^0.16.1",
+    "@rapidrest/cli": "^0.18.0",
     "@swc/core": "^1.15.41",
     "@types/ioredis-mock": "^8",
     "@types/nconf": "^0.10.7",
