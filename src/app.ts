@@ -20,6 +20,8 @@ class StatusRoute extends BaseStatusRoute {};
 export async function createApp(config: any, objectFactory: ObjectFactory, logger: any): Promise<express.Application> {
     await initDatabase(config, objectFactory, logger);
     await objectFactory.newInstance(ACLUtils, { name: "default" });
+    objectFactory.register(OpenAPIRoute);
+    objectFactory.register(StatusRoute);
     
     const app = express();
 
@@ -35,12 +37,12 @@ export async function createApp(config: any, objectFactory: ObjectFactory, logge
     app.use("/api/pet", await createPetRouter(passport, config, objectFactory));
     app.use("/api/store/order", await createOrderRouter(passport, config, objectFactory));
 
-    const openapiRoute = new OpenAPIRoute();
+    const openapiRoute: OpenAPIRoute = await objectFactory.newInstance(OpenAPIRoute);
     app.get("/", (_req, res) => res.json(openapiRoute.getHTML()));
     app.get("/api/openapi", (_req, res) => res.json(openapiRoute.getHTML()));
     app.get("/api/openapi.json", (_req, res) => res.json(openapiRoute.getJSON()));
     app.get("/api/openapi.yaml", (_req, res) => res.json(openapiRoute.getYAML()));
-    const statusRoute = new StatusRoute();
+    const statusRoute: StatusRoute = await objectFactory.newInstance(StatusRoute);
     app.get("/api/status", (_req, res) => res.json(statusRoute.get()));
 
     app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
