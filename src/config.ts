@@ -47,18 +47,18 @@ conf.defaults({
             database: "acls",
             synchronize: true,
         },
-        // cache: {
-        //     type: "redis",
-        //     url: "redis://localhost",
-        // },
-        // events: {
-        //     type: "redis",
-        //     url: "redis://localhost"
-        // },
-        // logs: {
-        //     type: "redis",
-        //     url: "redis://localhost"
-        // },
+        cache: {
+            type: "redis",
+            url: "redis://localhost",
+        },
+        events: {
+            type: "redis",
+            url: "redis://localhost"
+        },
+        logs: {
+            type: "redis",
+            url: "redis://localhost"
+        },
         mongo: {
             type: "mongodb",
             host: "localhost",
