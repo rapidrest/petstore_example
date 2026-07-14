@@ -1,6 +1,6 @@
 {
   "name": "petstore",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "An example RapidREST server based upon OpenAPI's petstore example specification.",
   "type": "module",
   "repository": {

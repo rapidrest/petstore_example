@@ -4,7 +4,7 @@ HOSTNAME=`hostname`
 IS_WSL=false
 DOMAIN="cluster.local"
 TLS=true
-VERSION="1.1.2"
+VERSION="1.2.0"
 UNINSTALL=false
 SKIP_K3S=false
 # Internal vars
