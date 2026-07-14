@@ -29,7 +29,7 @@ async function extractBasicUser(request: FastifyRequest, reply: FastifyReply, us
     const username = decoded.slice(0, colonIdx);
     const password = decoded.slice(colonIdx + 1);
 
-    const user = await userRepo.findOne(username);
+    const user = await userRepo.findOne(username, { ignoreACL: true });
     if (!user) {
         reply.status(401).send({ message: "Invalid credentials" });
         return null;
@@ -68,7 +68,7 @@ export async function authRoutes(fastify: FastifyInstance, opts: RouteOptions): 
     // GET /user/logout — JWT → set OFFLINE
     fastify.get("/logout", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         const payload = (request as any).user;
-        const user = await userRepo.findOne(payload.uid);
+        const user = await userRepo.findOne(payload.uid, { user: request.user as any });
         if (!user) return reply.status(404).send({ message: "User not found" });
 
         await userRepo.update({

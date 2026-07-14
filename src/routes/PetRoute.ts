@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import Pet from "../models/Pet.js";
-import { ModelRoute, ObjectFactory, RepoUtils } from "@rapidrest/service-core";
+import { CRUDRoute, ObjectFactory, RepoUtils } from "@rapidrest/service-core";
 
 interface RouteOptions {
     config: any;
@@ -13,13 +13,13 @@ interface RouteOptions {
 
 export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): Promise<void> {
     const authenticate = (fastify as any).authenticate;
-    class PetRoute extends ModelRoute<Pet> {
+    class PetRoute extends CRUDRoute<Pet> {
         get modelClass(): any {
             return Pet;
         }
         protected repoUtilsClass: any = RepoUtils<Pet>;
     }
-    const modelRoute: PetRoute = await opts.objectFactory.newInstance(PetRoute, { name: "default" });
+    const crudRoute: PetRoute = await opts.objectFactory.newInstance(PetRoute, { name: "default" });
 
     // GET + HEAD / — HEAD returns count in Content-Length, GET returns all pets.
     // Combined to prevent Fastify auto-HEAD from overriding the explicit HEAD handler.
@@ -37,14 +37,14 @@ export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): P
                         },
                         status(_code: number) { return this; },
                     };
-                    await modelRoute.doCount({ query: request.query, req: request as any, res: fakeRes, user: request.user as any });
+                    await crudRoute.count(request.params, request.query, fakeRes, request.user as any);
                     reply.hijack();
                     reply.raw.setHeader("content-length", String(countValue));
                     reply.raw.statusCode = 200;
                     reply.raw.end();
                     return;
                 } else {
-                    const result = await modelRoute.doFindAll({ query: request.query, req: request as any, res: reply as any, user: request.user as any });
+                    const result = await crudRoute.find(request.params, request.query, request.user as any);
                     reply.status(200).send(result);
                 }
             } catch (err: any) {
@@ -56,7 +56,7 @@ export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): P
     // POST / — create pet
     fastify.post("/", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            const result = await modelRoute.doCreate(request.body as any, { req: request as any, res: reply as any, user: request.user as any });
+            const result = await crudRoute.create(request.body as any, request as any, request.user as any);
             reply.status(201).send(result);
         } catch (err: any) {
             reply.status(400).send(err);
@@ -67,7 +67,7 @@ export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): P
     fastify.get("/:id", {}, async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const { id } = request.params as any;
-            const result = await modelRoute.doFindById(id, { query: request.query, req: request as any, res: reply as any, user: request.user as any });
+            const result = await crudRoute.findById(id, request.query, request.user as any);
             reply.status(200).send(result);
         } catch (err: any) {
             reply.status(400).send(err);
@@ -78,7 +78,7 @@ export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): P
     fastify.put("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const { id } = request.params as any;
-            const result = await modelRoute.doUpdate(id, request.body as any, { req: request as any, res: reply as any, user: request.user as any });
+            const result = await crudRoute.update(id, request.body as any, request as any, request.user as any);
             reply.status(200).send(result);
         } catch (err: any) {
             reply.status(400).send(err);
@@ -89,7 +89,8 @@ export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): P
     fastify.delete("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const { id } = request.params as any;
-            await modelRoute.doDelete(id, { req: request as any, res: reply as any, user: request.user as any });
+            const { purge, version } = request.query as any;
+            await crudRoute.delete(id, version, purge, request as any, request.user as any);
             reply.status(200).send();
         } catch (err: any) {
             reply.status(500).send(err);
@@ -99,7 +100,7 @@ export async function petRoutes(fastify: FastifyInstance, opts: RouteOptions): P
     // DELETE / — truncate all pets
     fastify.delete("/", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            await modelRoute.doTruncate({ params: request.params, query: request.query, req: request as any, res: reply as any, user: request.user as any });
+            await crudRoute.truncate(request.params, request.query, request.user as any);
             reply.status(200).send();
         } catch (err: any) {
             reply.status(400).send(err);

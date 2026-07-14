@@ -4,7 +4,7 @@
 import * as argon from "argon2";
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import User from "../models/User.js";
-import { ApiErrorMessages, ModelRoute, ObjectFactory, RepoUtils } from "@rapidrest/service-core";
+import { ApiErrorMessages, CRUDRoute, ObjectFactory, RepoUtils } from "@rapidrest/service-core";
 import { ApiError, UserUtils } from "@rapidrest/core";
 
 interface RouteOptions {
@@ -15,13 +15,13 @@ interface RouteOptions {
 
 export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): Promise<void> {
     const authenticate = (fastify as any).authenticate;
-    class UserRoute extends ModelRoute<User> {
+    class UserRoute extends CRUDRoute<User> {
         get modelClass(): any {
             return User;
         }
         protected repoUtilsClass: any = RepoUtils<User>;
     }
-    const modelRoute: UserRoute = await opts.objectFactory.newInstance(UserRoute, { name: "default" });
+    const crudRoute: UserRoute = await opts.objectFactory.newInstance(UserRoute, { name: "default" });
     const trustedRoles: [] = opts.config.get("trusted_roles");
 
     // GET + HEAD / — HEAD returns count in Content-Length, GET returns all users.
@@ -40,14 +40,14 @@ export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): 
                         },
                         status(_code: number) { return this; },
                     };
-                    await modelRoute.doCount({ query: request.query, req: request as any, res: fakeRes, user: request.user as any });
+                    await crudRoute.count(request.params, request.query, fakeRes, request.user as any);
                     reply.hijack();
                     reply.raw.setHeader("content-length", String(countValue));
                     reply.raw.statusCode = 200;
                     reply.raw.end();
                     return;
                 } else {
-                    const result = await modelRoute.doFindAll({ query: request.query, req: request as any, res: reply as any, user: request.user as any });
+                    const result = await crudRoute.find(request.params, request.query, request.user as any);
                     reply.status(200).send(result);
                 }
             } catch (err: any) {
@@ -59,14 +59,13 @@ export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): 
     // POST / — create user
     fastify.post("/", { preHandler: [] }, async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            await modelRoute.doValidate(request.body as any, { user: request.user as any });
             const obj = Array.isArray(request.body) ? request.body : [request.body];
             for (const user of obj) {
                 if (user.password) {
                     user.password = await argon.hash(user.password);
                 }
             }
-            const result = await modelRoute.doCreate(request.body as any, { req: request as any, res: reply as any, user: request.user as any });
+            const result = await crudRoute.create(request.body as any, request as any, request.user as any);
             reply.status(201).send(result);
         } catch (err: any) {
             reply.status(400).send(err);
@@ -77,7 +76,7 @@ export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): 
     fastify.get("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const { id } = request.params as any;
-            const result = await modelRoute.doFindById(id, { query: request.query, req: request as any, res: reply as any, user: request.user as any });
+            const result = await crudRoute.findById(id, request.query, request.user as any);
             reply.status(200).send(result);
         } catch (err: any) {
             reply.status(400).send(err);
@@ -89,7 +88,6 @@ export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): 
         try {
             const { id } = request.params as any;
             const obj: any = request.body;
-            await modelRoute.doValidate(obj, { user: request.user as any });
 
             // Only admins and the user itself can make changes
             const user = request.user as any;
@@ -101,7 +99,7 @@ export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): 
                 obj.password = await argon.hash(obj.password);
             }
 
-            const result = await modelRoute.doUpdate(id, request.body as any, { req: request as any, res: reply as any, user: request.user as any });
+            const result = await crudRoute.update(id, request.body as any, request as any, request.user as any);
             reply.status(200).send(result);
         } catch (err: any) {
             reply.status(400).send(err);
@@ -112,7 +110,8 @@ export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): 
     fastify.delete("/:id", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const { id } = request.params as any;
-            await modelRoute.doDelete(id, { req: request as any, res: reply as any, user: request.user as any });
+            const { purge, version } = request.query as any;
+            await crudRoute.delete(id, version, purge, request as any, request.user as any);
             reply.status(200).send();
         } catch (err: any) {
             reply.status(500).send(err);
@@ -122,7 +121,7 @@ export async function userRoutes(fastify: FastifyInstance, opts: RouteOptions): 
     // DELETE / — truncate all users
     fastify.delete("/", { preHandler: [authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            await modelRoute.doTruncate({ params: request.params, query: request.query, req: request as any, res: reply as any, user: request.user as any });
+            await crudRoute.truncate(request.params, request.query, request.user as any);
             reply.status(200).send();
         } catch (err: any) {
             reply.status(400).send(err);
