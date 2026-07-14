@@ -14,7 +14,7 @@ export function setupPassport(passportInstance: any, config: any, repoUtils: Rep
     passportInstance.use(
         new BasicStrategy(async (username: string, password: string, done: any) => {
             try {
-                const user = await repoUtils.findOne(username);
+                const user = await repoUtils.findOne(username, { ignoreACL: true });
                 if (!user) {
                     return done(null, false);
                 }

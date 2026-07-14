@@ -24,7 +24,7 @@ export async function createAuthRouter(passportInstance: any, config: any, objec
                 return res.status(401).end();
             }
 
-            let user = await userRepo.findOne((req.user as any).uid);
+            let user = await userRepo.findOne((req.user as any).uid, { ignoreACL: true });
             if (!user) {
                 return res.status(401).end();
             }
@@ -62,7 +62,7 @@ export async function createAuthRouter(passportInstance: any, config: any, objec
                 return res.status(401).end();
             }
 
-            let user = await userRepo.findOne((req.user as any).uid);
+            let user = await userRepo.findOne((req.user as any).uid, { user: req.user as any });
             if (!user) {
                 return res.status(401).end();
             }

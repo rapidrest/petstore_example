@@ -17,7 +17,7 @@ export async function createPetRouter(passportInstance: any, _config: any, objec
     const crudRoute: PetRoute = await objectFactory.newInstance(PetRoute, { name: "default" });
 
     /** HEAD / — return count in Content-Length */
-    router.head("/", jwtAuth, async (req, res, next) => {
+    router.head("/", async (req, res, next) => {
         try {
             await crudRoute.count(req.params, req.query, res as any, req.user as any);
             res.end();
@@ -33,7 +33,7 @@ export async function createPetRouter(passportInstance: any, _config: any, objec
     });
 
     /** GET / — find all pets */
-    router.get("/", jwtAuth, async (req, res, next) => {
+    router.get("/", async (req, res, next) => {
         try {
             const result = await crudRoute.find(req.params, req.query, req.user as any);
             res.json(result);
@@ -41,7 +41,7 @@ export async function createPetRouter(passportInstance: any, _config: any, objec
     });
 
     /** GET /:id — find pet by uid */
-    router.get("/:id", jwtAuth, async (req, res, next) => {
+    router.get("/:id", async (req, res, next) => {
         try {
             const result = await crudRoute.findById(req.params.id, req.query, req.user as any);
             res.json(result);

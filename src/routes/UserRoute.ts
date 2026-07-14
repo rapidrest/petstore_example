@@ -28,7 +28,7 @@ export async function createUserRouter(passportInstance: any, config: any, objec
     });
 
     /** POST / — create one or many users */
-    router.post("/", jwtAuth, async (req, res, next) => {
+    router.post("/", async (req, res, next) => {
         try {
             const objs = Array.isArray(req.body) ? req.body : [req.body];
             for (const obj of objs) {
