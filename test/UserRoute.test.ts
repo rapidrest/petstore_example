@@ -141,7 +141,7 @@ describe("User Tests", () => {
 
         const response = await app.inject({
             method: "HEAD",
-            url: "/user",
+            url: "/api/user",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -164,7 +164,7 @@ describe("User Tests", () => {
 
         const response = await app.inject({
             method: "POST",
-            url: "/user",
+            url: "/api/user",
             payload: obj,
         });
 
@@ -196,7 +196,7 @@ describe("User Tests", () => {
 
         const response = await app.inject({
             method: "DELETE",
-            url: `/user/${obj.uid}`,
+            url: `/api/user/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -212,7 +212,7 @@ describe("User Tests", () => {
 
         const response = await app.inject({
             method: "GET",
-            url: "/user",
+            url: "/api/user",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -227,7 +227,7 @@ describe("User Tests", () => {
 
         const response = await app.inject({
             method: "GET",
-            url: `/user/${obj.uid}`,
+            url: `/api/user/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -250,7 +250,7 @@ describe("User Tests", () => {
 
         const response = await app.inject({
             method: "DELETE",
-            url: "/user",
+            url: "/api/user",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -267,7 +267,7 @@ describe("User Tests", () => {
 
         const response = await app.inject({
             method: "PUT",
-            url: `/user/${obj.uid}`,
+            url: `/api/user/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
         });

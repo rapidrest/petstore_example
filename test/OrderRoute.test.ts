@@ -183,7 +183,7 @@ describe("Order Tests", () => {
 
         const response = await app.inject({
             method: "HEAD",
-            url: "/store/order",
+            url: "/api/store/order",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -199,7 +199,7 @@ describe("Order Tests", () => {
 
         const response = await app.inject({
             method: "POST",
-            url: "/store/order",
+            url: "/api/store/order",
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
         });
@@ -230,7 +230,7 @@ describe("Order Tests", () => {
 
         const response = await app.inject({
             method: "DELETE",
-            url: `/store/order/${obj.uid}`,
+            url: `/api/store/order/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -246,7 +246,7 @@ describe("Order Tests", () => {
 
         const response = await app.inject({
             method: "GET",
-            url: "/store/order",
+            url: "/api/store/order",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -261,7 +261,7 @@ describe("Order Tests", () => {
 
         const response = await app.inject({
             method: "GET",
-            url: `/store/order/${obj.uid}`,
+            url: `/api/store/order/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -283,7 +283,7 @@ describe("Order Tests", () => {
 
         const response = await app.inject({
             method: "DELETE",
-            url: "/store/order",
+            url: "/api/store/order",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -300,7 +300,7 @@ describe("Order Tests", () => {
 
         const response = await app.inject({
             method: "PUT",
-            url: `/store/order/${obj.uid}`,
+            url: `/api/store/order/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
         });

@@ -115,7 +115,7 @@ describe("Auth Tests", () => {
 
         const response = await app.inject({
             method: "GET",
-            url: "/user/login",
+            url: "/api/auth/login",
             headers: { authorization: `basic ${credentials}` },
         });
 
@@ -136,7 +136,7 @@ describe("Auth Tests", () => {
 
         const response = await app.inject({
             method: "GET",
-            url: "/user/logout",
+            url: "/api/auth/logout",
             headers: { authorization: `jwt ${authToken}` },
         });
 

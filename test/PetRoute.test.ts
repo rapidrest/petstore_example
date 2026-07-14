@@ -139,7 +139,7 @@ describe("Pet Tests", () => {
 
         const response = await app.inject({
             method: "HEAD",
-            url: "/pet",
+            url: "/api/pet",
         });
 
         expect(response.statusCode).toBeGreaterThanOrEqual(200);
@@ -159,7 +159,7 @@ describe("Pet Tests", () => {
 
         const response = await app.inject({
             method: "POST",
-            url: "/pet",
+            url: "/api/pet",
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
         });
@@ -190,7 +190,7 @@ describe("Pet Tests", () => {
 
         const response = await app.inject({
             method: "DELETE",
-            url: `/pet/${obj.uid}`,
+            url: `/api/pet/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -206,7 +206,7 @@ describe("Pet Tests", () => {
 
         const response = await app.inject({
             method: "GET",
-            url: "/pet",
+            url: "/api/pet",
         });
 
         expect(response.statusCode).toBeGreaterThanOrEqual(200);
@@ -220,7 +220,7 @@ describe("Pet Tests", () => {
 
         const response = await app.inject({
             method: "GET",
-            url: `/pet/${obj.uid}`,
+            url: `/api/pet/${obj.uid}`,
         });
 
         expect(response.statusCode).toBeGreaterThanOrEqual(200);
@@ -241,7 +241,7 @@ describe("Pet Tests", () => {
 
         const response = await app.inject({
             method: "DELETE",
-            url: "/pet",
+            url: "/api/pet",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -258,7 +258,7 @@ describe("Pet Tests", () => {
 
         const response = await app.inject({
             method: "PUT",
-            url: `/pet/${obj.uid}`,
+            url: `/api/pet/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
         });

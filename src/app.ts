@@ -5,13 +5,16 @@ import "reflect-metadata";
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import fastifyCors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
-import { ACLUtils, ObjectFactory, RepoUtils } from "@rapidrest/service-core";
+import { ACLUtils, BaseOpenAPIRoute, BaseStatusRoute, ObjectFactory, RepoUtils } from "@rapidrest/service-core";
 import { authRoutes } from "./routes/AuthRoute.js";
 import { userRoutes } from "./routes/UserRoute.js";
 import { petRoutes } from "./routes/PetRoute.js";
 import { orderRoutes } from "./routes/OrderRoute.js";
 import { initDatabase } from "./database.js";
 import jwt from "jsonwebtoken";
+
+class OpenAPIRoute extends BaseOpenAPIRoute {}
+class StatusRoute extends BaseStatusRoute {}
 
 export interface AppOptions {
     logger?: boolean;
@@ -63,21 +66,21 @@ export async function createApp(config: any, objectFactory: ObjectFactory, logge
     });
 
     const routeOpts = { config, objectFactory, logger };
-    await app.register(authRoutes, { prefix: "/user", ...routeOpts });
-    await app.register(userRoutes, { prefix: "/user", ...routeOpts });
-    await app.register(petRoutes, { prefix: "/pet", ...routeOpts });
-    await app.register(orderRoutes, { prefix: "/store/order", ...routeOpts });
+    await app.register(authRoutes, { prefix: "/api/auth", ...routeOpts });
+    await app.register(userRoutes, { prefix: "/api/user", ...routeOpts });
+    await app.register(petRoutes, { prefix: "/api/pet", ...routeOpts });
+    await app.register(orderRoutes, { prefix: "/api/store/order", ...routeOpts });
 
-    app.get("/", async () => ({
-        name: config.get("service_name"),
-        time: Date.now(),
-        version: config.get("version")
-    }));
-    app.get("/status", async () => ({
-        name: config.get("service_name"),
-        time: Date.now(),
-        version: config.get("version")
-    }));
+    objectFactory.register(OpenAPIRoute);
+    const openapiRoute: OpenAPIRoute = await objectFactory.newInstance(OpenAPIRoute);
+    app.get("/", async () => openapiRoute.getHTML());
+    app.get("/api/openapi", async () => openapiRoute.getHTML());
+    app.get("/api/openapi.json", async () => openapiRoute.getJSON());
+    app.get("/api/openapi.yaml", async () => openapiRoute.getYAML());
+
+    objectFactory.register(StatusRoute);
+    const statusRoute: StatusRoute = await objectFactory.newInstance(StatusRoute);
+    app.get("/api/status", async () => statusRoute.get());
 
     return app;
 }
