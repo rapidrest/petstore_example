@@ -21,6 +21,7 @@ const mongod = new MongoMemoryServer({
 
 describe("Pet Tests", () => {
     let app: express.Application;
+    const baseUrl = "/api/pet";
     const logger = Logger();
     const objectFactory = new ObjectFactory(config, logger);
     let repo: MongoRepository<Pet>;
@@ -135,7 +136,7 @@ describe("Pet Tests", () => {
     it("Can make count request.", async () => {
         const objs = await createPets(5);
 
-        const result = await supertest(app).head("/pet");
+        const result = await supertest(app).head(baseUrl);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
@@ -153,7 +154,7 @@ describe("Pet Tests", () => {
         });
 
         const result = await supertest(app)
-            .post("/pet")
+            .post(baseUrl)
             .set("Authorization", `jwt ${adminToken}`)
             .send(obj);
 
@@ -175,7 +176,7 @@ describe("Pet Tests", () => {
         const obj = await createPet();
 
         const result = await supertest(app)
-            .delete(`/pet/${obj.uid}`)
+            .delete(`${baseUrl}/${obj.uid}`)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -188,7 +189,7 @@ describe("Pet Tests", () => {
     it("Can make findAll request.", async () => {
         const objs = await createPets(5);
 
-        const result = await supertest(app).get("/pet");
+        const result = await supertest(app).get(baseUrl);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
@@ -198,7 +199,7 @@ describe("Pet Tests", () => {
     it("Can make findById request.", async () => {
         const obj = await createPet();
 
-        const result = await supertest(app).get(`/pet/${obj.uid}`);
+        const result = await supertest(app).get(`${baseUrl}/${obj.uid}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
@@ -212,7 +213,7 @@ describe("Pet Tests", () => {
         expect(await repo.count()).toBe(5);
 
         const result = await supertest(app)
-            .delete("/pet")
+            .delete(baseUrl)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -225,7 +226,7 @@ describe("Pet Tests", () => {
         obj.status = PetStatus.ADOPTED;
 
         const result = await supertest(app)
-            .put(`/pet/${obj.uid}`)
+            .put(`${baseUrl}/${obj.uid}`)
             .set("Authorization", `jwt ${adminToken}`)
             .send(obj);
 

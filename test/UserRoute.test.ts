@@ -20,6 +20,7 @@ const mongod = new MongoMemoryServer({
 
 describe("User Tests", () => {
     let app: express.Application;
+    const baseUrl: string = "/api/user";
     const logger = Logger();
     const objectFactory = new ObjectFactory(config, logger);
     let repo: MongoRepository<User>;
@@ -139,7 +140,7 @@ describe("User Tests", () => {
         const objs = await createUsers(5);
 
         const result = await supertest(app)
-            .head("/user")
+            .head(baseUrl)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -159,7 +160,7 @@ describe("User Tests", () => {
             userStatus: UserStatus.OFFLINE,
         });
 
-        const result = await supertest(app).post("/user").send(obj);
+        const result = await supertest(app).post(baseUrl).send(obj);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
         expect(result.status).toBeLessThan(300);
@@ -182,7 +183,7 @@ describe("User Tests", () => {
         const obj = await createUser();
 
         const result = await supertest(app)
-            .delete(`/user/${obj.uid}`)
+            .delete(`${baseUrl}/${obj.uid}`)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -196,7 +197,7 @@ describe("User Tests", () => {
         const objs = await createUsers(5);
 
         const result = await supertest(app)
-            .get("/user")
+            .get(baseUrl)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -208,7 +209,7 @@ describe("User Tests", () => {
         const obj = await createUser();
 
         const result = await supertest(app)
-            .get(`/user/${obj.uid}`)
+            .get(`${baseUrl}/${obj.uid}`)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -226,7 +227,7 @@ describe("User Tests", () => {
         expect(await repo.count()).toBe(5);
 
         const result = await supertest(app)
-            .delete("/user")
+            .delete(baseUrl)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -239,7 +240,7 @@ describe("User Tests", () => {
         obj.phone = "818-867-5309";
 
         const result = await supertest(app)
-            .put(`/user/${obj.uid}`)
+            .put(`${baseUrl}/${obj.uid}`)
             .set("Authorization", `jwt ${adminToken}`)
             .send(obj);
 

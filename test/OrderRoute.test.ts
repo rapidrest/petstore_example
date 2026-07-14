@@ -20,6 +20,7 @@ const mongod = new MongoMemoryServer({
 
 describe("Order Tests", () => {
     let app: express.Application;
+    const baseUrl = "/api/store/order";
     const logger = Logger();
     const objectFactory = new ObjectFactory(config, logger);
     let repo: MongoRepository<Order>;
@@ -183,7 +184,7 @@ describe("Order Tests", () => {
         const objs = await createOrders(5);
 
         const result = await supertest(app)
-            .head("/store/order")
+            .head(baseUrl)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -197,7 +198,7 @@ describe("Order Tests", () => {
         const obj = new Order({ petId: pet.uid, quantity: 1 });
 
         const result = await supertest(app)
-            .post("/store/order")
+            .post(baseUrl)
             .set("Authorization", `jwt ${userToken}`)
             .send(obj);
 
@@ -220,7 +221,7 @@ describe("Order Tests", () => {
         const obj = await createOrder();
 
         const result = await supertest(app)
-            .delete(`/store/order/${obj.uid}`)
+            .delete(`${baseUrl}/${obj.uid}`)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -234,7 +235,7 @@ describe("Order Tests", () => {
         const objs = await createOrders(5);
 
         const result = await supertest(app)
-            .get("/store/order")
+            .get(baseUrl)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -246,7 +247,7 @@ describe("Order Tests", () => {
         const obj = await createOrder();
 
         const result = await supertest(app)
-            .get(`/store/order/${obj.uid}`)
+            .get(`${baseUrl}/${obj.uid}`)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -262,7 +263,7 @@ describe("Order Tests", () => {
         expect(await repo.count()).toBe(5);
 
         const result = await supertest(app)
-            .delete("/store/order")
+            .delete(baseUrl)
             .set("Authorization", `jwt ${adminToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -275,7 +276,7 @@ describe("Order Tests", () => {
         obj.quantity = 2;
 
         const result = await supertest(app)
-            .put(`/store/order/${obj.uid}`)
+            .put(`${baseUrl}/${obj.uid}`)
             .set("Authorization", `jwt ${adminToken}`)
             .send(obj);
 

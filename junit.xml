@@ -1,29 +1,53 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="7" failures="1" errors="0" time="3.99765">
-    <testsuite name="test/PetRoute.test.ts" timestamp="2026-07-14T21:15:53.247Z" hostname="Jane" tests="7" failures="1" errors="0" skipped="6" time="3.99765">
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make count request." time="0">
+<testsuites name="vitest tests" tests="8" failures="1" errors="0" time="10.0266565">
+    <testsuite name="test/UserRoute.test.ts" timestamp="2026-07-14T21:37:17.628Z" hostname="Jane" tests="8" failures="1" errors="0" skipped="7" time="10.0266565">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make count request." time="0">
             <skipped/>
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make create request." time="0">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make create request." time="0">
             <skipped/>
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make delete request." time="0">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make delete request." time="0">
             <skipped/>
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findAll request." time="0.0254503">
-            <failure message="expected 401 to be less than 300" type="AssertionError">
-AssertionError: expected 401 to be less than 300
- ❯ test/PetRoute.test.ts:194:31
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findAll request." time="0">
+            <skipped/>
+        </testcase>
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findById request." time="0">
+            <skipped/>
+        </testcase>
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make truncate request." time="0">
+            <skipped/>
+        </testcase>
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make update request." time="0">
+            <skipped/>
+        </testcase>
+        <testcase classname="test/UserRoute.test.ts" name="User Tests" time="10.0258157">
+            <system-out>
+2026-07-14T21:37:17.387Z [32minfo[39m: Registering class ConnectionManager
+2026-07-14T21:37:17.388Z [34mdebug[39m: Creating new instance of class [ConnectionManager] with name [ConnectionManager:default]
+
+2026-07-14T21:37:17.389Z [32minfo[39m: Initializing database connection(s)...
+2026-07-14T21:37:17.389Z [32minfo[39m: Connecting to database acl [mongodb://localhost:9999/acls]...
+
+2026-07-14T21:37:17.421Z [34mdebug[39m: Created collection: access_control_list_mongo
+
+2026-07-14T21:37:17.423Z [34mdebug[39m: Creating index parentUid on collection access_control_list_mongo.
+
+2026-07-14T21:37:17.427Z [34mdebug[39m: Creating index uid on collection access_control_list_mongo.
+
+2026-07-14T21:37:17.432Z [34mdebug[39m: Destroying object: ConnectionManager:default
+2026-07-14T21:37:17.432Z [32minfo[39m: Successfully disconnected from all configured databases.
+
+2026-07-14T21:37:17.434Z [32minfo[39m: Connecting to database mongo [mongodb://localhost:9999/petstore_test]...
+
+            </system-out>
+            <failure message="Hook timed out in 10000ms.
+If this is a long-running hook, pass a timeout value as the last argument or configure it globally with &quot;hookTimeout&quot;." type="Error">
+Error: Hook timed out in 10000ms.
+If this is a long-running hook, pass a timeout value as the last argument or configure it globally with &quot;hookTimeout&quot;.
+ ❯ test/UserRoute.test.ts:101:5
             </failure>
-        </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findById request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make truncate request." time="0">
-            <skipped/>
-        </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make update request." time="0">
-            <skipped/>
         </testcase>
     </testsuite>
 </testsuites>

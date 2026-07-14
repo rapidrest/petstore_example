@@ -23,6 +23,7 @@ describe("Auth Tests", () => {
     const objectFactory = new ObjectFactory(config, logger);
     let aclRepo: MongoRepository<any>;
     let userRepo: MongoRepository<User>;
+    const baseUrl: string = "/api/auth";
 
     const createUser = async function(data?: any): Promise<User> {
         const obj: User = new User({
@@ -115,7 +116,7 @@ describe("Auth Tests", () => {
         const credentials = Buffer.from(`${user.name}:password`).toString("base64");
 
         const result = await supertest(app)
-            .get("/user/login")
+            .get(baseUrl + "/login")
             .set("Authorization", `basic ${credentials}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
@@ -134,7 +135,7 @@ describe("Auth Tests", () => {
         const authToken = JWTUtils.createTokenSync(config.get("auth"), user);
 
         const result = await supertest(app)
-            .get("/user/logout")
+            .get(baseUrl + "/logout")
             .set("Authorization", `jwt ${authToken}`);
 
         expect(result.status).toBeGreaterThanOrEqual(200);
