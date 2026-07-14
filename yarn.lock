@@ -1192,9 +1192,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rapidrest/service-core@npm:1.0.0-bun.1":
-  version: 1.0.0-bun.1
-  resolution: "@rapidrest/service-core@npm:1.0.0-bun.1"
+"@rapidrest/service-core@npm:1.0.0-rc.23":
+  version: 1.0.0-rc.23
+  resolution: "@rapidrest/service-core@npm:1.0.0-rc.23"
   dependencies:
     axios: "npm:^1.17.0"
     dayjs: "npm:^1.11.21"
@@ -1226,7 +1226,7 @@ __metadata:
       optional: true
     uWebSockets.js:
       optional: true
-  checksum: 10c0/b83e1a316325a27290f9fa7f39dbf5bf2ec5a5c2ff0877075b06320556fe0cec567f2c65855d4657a3a2d2e40e5e8dab7eae6ff15e3133ef5e2b6e36920dafd7
+  checksum: 10c0/abbb09f763110c44b73d4d1acd3afe688d925263a01d976d1ed7f1671cee764cf9d05ad08f7de1b7c7f2c4b6645c0dcf901b33de31880478fd6b908ba2ca5fec
   languageName: node
   linkType: hard
 
@@ -6655,7 +6655,7 @@ __metadata:
     "@rapidrest/cli": "npm:^0.18.0"
     "@rapidrest/core": "npm:^1.4.0"
     "@rapidrest/react": "npm:^0.8.0"
-    "@rapidrest/service-core": "npm:1.0.0-bun.1"
+    "@rapidrest/service-core": "npm:1.0.0-rc.23"
     "@swc/core": "npm:^1.15.41"
     "@types/ioredis-mock": "npm:^8"
     "@types/nconf": "npm:^0.10.7"
