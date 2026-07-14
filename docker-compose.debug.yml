@@ -1,8 +1,6 @@
 services:
     server:
-        build:
-            context: .
-        command: ["yarn", "debug"]
+        command: ["yarn", "debug", "--docker"]
         ports:
             - "3000:3000"
             - "9229:9229"
