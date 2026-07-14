@@ -4,40 +4,37 @@
 import * as argon from "argon2";
 import { Router } from "express";
 import User from "../models/User.js";
-import { ApiErrorMessages, ModelRoute, ObjectFactory, RepoUtils } from "@rapidrest/service-core";
+import { ApiErrorMessages, CRUDRoute, ObjectFactory, RepoUtils } from "@rapidrest/service-core";
 import { ApiError, UserUtils } from "@rapidrest/core";
 
 export async function createUserRouter(passportInstance: any, config: any, objectFactory: ObjectFactory): Promise<Router> {
     const router = Router();
     const jwtAuth = passportInstance.authenticate("jwt", { session: false });
-    class UserRoute extends ModelRoute<User> {
+    class UserRoute extends CRUDRoute<User> {
         get modelClass(): any {
             return User;
         }
         protected repoUtilsClass: any = RepoUtils<User>;
     }
-    const modelRoute: UserRoute = await objectFactory.newInstance(UserRoute, { name: "default" });
+    const crudRoute: UserRoute = await objectFactory.newInstance(UserRoute, { name: "default" });
     const trustedRoles: [] = config.get("trusted_roles");
 
     /** HEAD / — return count in Content-Length */
     router.head("/", jwtAuth, async (req, res, next) => {
         try {
-            await modelRoute.doCount({ query: req.query, req: req as any, res: res as any, user: req.user as any });
+            await crudRoute.count(req.params, req.query, res as any, req.user as any);
             res.end();
         } catch (err) { next(err); }
     });
 
     /** POST / — create one or many users */
-    router.post("/", async (req, res, next) => {
+    router.post("/", jwtAuth, async (req, res, next) => {
         try {
-            await modelRoute.doValidate(req.body, { user: req.user as any });
-            const obj = Array.isArray(req.body) ? req.body : [req.body];
-            for (const user of obj) {
-                if (user.password) {
-                    user.password = await argon.hash(user.password);
-                }
+            const objs = Array.isArray(req.body) ? req.body : [req.body];
+            for (const obj of objs) {
+                obj.password = await argon.hash(obj.password);
             }
-            const result = await modelRoute.doCreate(req.body, { req: req as any, res: res as any, user: req.user as any });
+            const result = await crudRoute.create(req.body, req as any, req.user as any);
             res.status(201).json(result);
         } catch (err) { next(err); }
     });
@@ -45,7 +42,7 @@ export async function createUserRouter(passportInstance: any, config: any, objec
     /** GET / — find all users */
     router.get("/", jwtAuth, async (req, res, next) => {
         try {
-            const result = await modelRoute.doFindAll({ query: req.query, req: req as any, res: res as any, user: req.user as any });
+            const result = await crudRoute.find(req.params, req.query, req.user as any);
             res.json(result);
         } catch (err) { next(err); }
     });
@@ -53,7 +50,7 @@ export async function createUserRouter(passportInstance: any, config: any, objec
     /** GET /:id — find user by uid */
     router.get("/:id", jwtAuth, async (req, res, next) => {
         try {
-            const result = await modelRoute.doFindById(req.params.id, { query: req.query, req: req as any, res: res as any, user: req.user as any });
+            const result = await crudRoute.findById(req.params.id, req.query, req.user as any);
             res.json(result);
         } catch (err) { next(err); }
     });
@@ -61,20 +58,10 @@ export async function createUserRouter(passportInstance: any, config: any, objec
     /** PUT /:id — full update */
     router.put("/:id", jwtAuth, async (req, res, next) => {
         try {
-            const obj: any = req.body;
-            await modelRoute.doValidate(obj, { user: req.user as any });
-
-            // Only admins and the user itself can make changes
-            const user = req.user as any;
-            if (!UserUtils.hasRoles(req.user, trustedRoles) && (req.params.id !== user.uid || obj.uid !== user.uid)) {
-                throw new ApiError(ApiErrorMessages.AUTH_PERMISSION_FAILURE, 403, ApiErrorMessages.AUTH_PERMISSION_FAILURE);
+            if (req.body.password) {
+                req.body.password = await argon.hash(req.body.password);
             }
-
-            if (obj.password) {
-                obj.password = await argon.hash(obj.password);
-            }
-
-            const result = await modelRoute.doUpdate(req.params.id, obj, { req: req as any, res: res as any, user: req.user as any });
+            const result = await crudRoute.update(req.params.id, req.body, req as any, req.user as any);
             res.json(result);
         } catch (err) { next(err); }
     });
@@ -82,7 +69,10 @@ export async function createUserRouter(passportInstance: any, config: any, objec
     /** PUT /:id/:property — patch a single property */
     router.put("/:id/:property", jwtAuth, async (req, res, next) => {
         try {
-            const result = await modelRoute.doUpdateProperty(req.params.id, req.params.property, req.body, { req: req as any, res: res as any, user: req.user as any });
+            if (req.params.property === "password") {
+                req.body = await argon.hash(req.body);
+            }
+            const result = await crudRoute.updateProperty(req.params.id, req.params.property, req.body, req.user as any);
             res.json(result);
         } catch (err) { next(err); }
     });
@@ -90,7 +80,7 @@ export async function createUserRouter(passportInstance: any, config: any, objec
     /** DELETE /:id — delete by uid */
     router.delete("/:id", jwtAuth, async (req, res, next) => {
         try {
-            await modelRoute.doDelete(req.params.id, { req: req as any, res: res as any, user: req.user as any });
+            await crudRoute.delete(req.params.id, req.query?.version as string, req.query?.purge as string, req as any, req.user as any);
             res.sendStatus(200);
         } catch (err) { next(err); }
     });
@@ -98,9 +88,7 @@ export async function createUserRouter(passportInstance: any, config: any, objec
     /** DELETE / — truncate all users */
     router.delete("/", jwtAuth, async (req, res, next) => {
         try {
-            await modelRoute.doTruncate({
-                params: req.params, query: req.query, req: req as any, res: res as any, user: req.user as any
-            });
+            await crudRoute.truncate(req.params, req.query, req.user as any);
             res.sendStatus(200);
         } catch (err) { next(err); }
     });

@@ -44,8 +44,7 @@ export enum PetStatus {
                 full: false,
             }
         ]
-    },
-    true
+    }
 )
 @Cache()
 export default class Pet extends BaseMongoEntity {

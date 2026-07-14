@@ -18,7 +18,7 @@ export async function createAuthRouter(passportInstance: any, config: any, objec
      * GET /user/login
      * Authenticates via HTTP Basic and returns a JWT token.
      */
-    router.get("/user/login", basicAuth, async (req, res) => {
+    router.get("/login", basicAuth, async (req, res) => {
         try {
             if (!req.user) {
                 return res.status(401).end();
@@ -56,7 +56,7 @@ export async function createAuthRouter(passportInstance: any, config: any, objec
      * GET /user/logout
      * Marks the authenticated user as OFFLINE.
      */
-    router.get("/user/logout", jwtAuth, async (req, res) => {
+    router.get("/logout", jwtAuth, async (req, res) => {
         try {
             if (!req.user) {
                 return res.status(401).end();
