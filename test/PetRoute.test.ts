@@ -6,8 +6,8 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { v4 as uuidv4 } from "uuid";
 import config from "./config.js";
-import { GET, HEAD, POST, DELETE } from "../app/pet/route.js";
-import { GET as getById, PUT, DELETE as deleteById } from "../app/pet/[id]/route.js";
+import { GET, HEAD, POST, DELETE } from "../app/api/pet/route.js";
+import { GET as getById, PUT, DELETE as deleteById } from "../app/api/pet/[id]/route.js";
 import Pet, { PetStatus } from "../src/models/Pet.js";
 import Category from "../src/models/Category.js";
 import Tag from "../src/models/Tag.js";
@@ -129,7 +129,7 @@ describe("Pet Tests", () => {
 
         const response = await inject(HEAD, {
             method: "HEAD",
-            url: "/pet",
+            url: "/api/pet",
         });
 
         expect(response.statusCode).toBeGreaterThanOrEqual(200);
@@ -149,7 +149,7 @@ describe("Pet Tests", () => {
 
         const response = await inject(POST, {
             method: "POST",
-            url: "/pet",
+            url: "/api/pet",
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
         });
@@ -180,7 +180,7 @@ describe("Pet Tests", () => {
 
         const response = await inject(deleteById, {
             method: "DELETE",
-            url: `/pet/${obj.uid}`,
+            url: `/api/pet/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             params: { id: obj.uid },
         });
@@ -197,7 +197,7 @@ describe("Pet Tests", () => {
 
         const response = await inject(GET, {
             method: "GET",
-            url: "/pet",
+            url: "/api/pet",
         });
 
         expect(response.statusCode).toBeGreaterThanOrEqual(200);
@@ -211,7 +211,7 @@ describe("Pet Tests", () => {
 
         const response = await inject(getById, {
             method: "GET",
-            url: `/pet/${obj.uid}`,
+            url: `/api/pet/${obj.uid}`,
             params: { id: obj.uid },
         });
 
@@ -233,7 +233,7 @@ describe("Pet Tests", () => {
 
         const response = await inject(DELETE, {
             method: "DELETE",
-            url: "/pet",
+            url: "/api/pet",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -250,7 +250,7 @@ describe("Pet Tests", () => {
 
         const response = await inject(PUT, {
             method: "PUT",
-            url: `/pet/${obj.uid}`,
+            url: `/api/pet/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
             params: { id: obj.uid },

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         args: [User],
     });
 
-    const user = await userRepo.findOne(auth.user.uid);
+    const user = await userRepo.findOne(auth.user.uid, { ignoreACL: true, user: auth.user });
     if (!user) return NextResponse.json({ message: "User not found" }, { status: 404 });
 
     await userRepo.update(

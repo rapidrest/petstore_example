@@ -10,6 +10,8 @@ COPY ./app /app/app
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
+ENV MONGOMS_DISABLE_POSTINSTALL=1
+ENV REDISMS_DISABLE_POSTINSTALL=true
 RUN echo "Building as $NODE_ENV"
 RUN apt update && apt upgrade -y
 RUN corepack enable

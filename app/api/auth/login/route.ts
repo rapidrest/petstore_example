@@ -22,7 +22,7 @@ async function extractBasicUser(request: NextRequest, userRepo: RepoUtils<User>)
     const username = decoded.slice(0, colonIdx);
     const password = decoded.slice(colonIdx + 1);
 
-    const user = await userRepo.findOne(username);
+    const user = await userRepo.findOne(username, { ignoreACL: true });
     if (!user) {
         return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
     }

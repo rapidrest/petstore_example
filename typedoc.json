@@ -15998,7 +15998,7 @@
 						},
 						{
 							"id": 605,
-							"name": "doCount",
+							"name": "count",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -16015,7 +16015,7 @@
 							"signatures": [
 								{
 									"id": 606,
-									"name": "doCount",
+									"name": "count",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -16141,13 +16141,13 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doCount"
+										"name": "AXRModelRoute.count"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doCount"
+								"name": "AXRModelRoute.count"
 							}
 						},
 						{
@@ -16245,7 +16245,7 @@
 						},
 						{
 							"id": 616,
-							"name": "doCreate",
+							"name": "create",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -16262,7 +16262,7 @@
 							"signatures": [
 								{
 									"id": 617,
-									"name": "doCreate",
+									"name": "create",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -16415,18 +16415,18 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doCreate"
+										"name": "AXRModelRoute.create"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doCreate"
+								"name": "AXRModelRoute.create"
 							}
 						},
 						{
 							"id": 623,
-							"name": "doDelete",
+							"name": "delete",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -16443,7 +16443,7 @@
 							"signatures": [
 								{
 									"id": 624,
-									"name": "doDelete",
+									"name": "delete",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -16575,13 +16575,13 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doDelete"
+										"name": "AXRModelRoute.delete"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doDelete"
+								"name": "AXRModelRoute.delete"
 							}
 						},
 						{
@@ -17231,7 +17231,7 @@
 						},
 						{
 							"id": 660,
-							"name": "doTruncate",
+							"name": "truncate",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -17248,7 +17248,7 @@
 							"signatures": [
 								{
 									"id": 661,
-									"name": "doTruncate",
+									"name": "truncate",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -17398,18 +17398,18 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doTruncate"
+										"name": "AXRModelRoute.truncate"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doTruncate"
+								"name": "AXRModelRoute.truncate"
 							}
 						},
 						{
 							"id": 667,
-							"name": "doUpdate",
+							"name": "update",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -17426,7 +17426,7 @@
 							"signatures": [
 								{
 									"id": 668,
-									"name": "doUpdate",
+									"name": "update",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -17567,13 +17567,13 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doUpdate"
+										"name": "AXRModelRoute.update"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doUpdate"
+								"name": "AXRModelRoute.update"
 							}
 						},
 						{
@@ -20306,7 +20306,7 @@
 						},
 						{
 							"id": 786,
-							"name": "doCount",
+							"name": "count",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -20323,7 +20323,7 @@
 							"signatures": [
 								{
 									"id": 787,
-									"name": "doCount",
+									"name": "count",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -20449,13 +20449,13 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doCount"
+										"name": "AXRModelRoute.count"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doCount"
+								"name": "AXRModelRoute.count"
 							}
 						},
 						{
@@ -20553,7 +20553,7 @@
 						},
 						{
 							"id": 797,
-							"name": "doCreate",
+							"name": "create",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -20570,7 +20570,7 @@
 							"signatures": [
 								{
 									"id": 798,
-									"name": "doCreate",
+									"name": "create",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -20723,18 +20723,18 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doCreate"
+										"name": "AXRModelRoute.create"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doCreate"
+								"name": "AXRModelRoute.create"
 							}
 						},
 						{
 							"id": 804,
-							"name": "doDelete",
+							"name": "delete",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -20751,7 +20751,7 @@
 							"signatures": [
 								{
 									"id": 805,
-									"name": "doDelete",
+									"name": "delete",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -20883,13 +20883,13 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doDelete"
+										"name": "AXRModelRoute.delete"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doDelete"
+								"name": "AXRModelRoute.delete"
 							}
 						},
 						{
@@ -21539,7 +21539,7 @@
 						},
 						{
 							"id": 841,
-							"name": "doTruncate",
+							"name": "truncate",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -21556,7 +21556,7 @@
 							"signatures": [
 								{
 									"id": 842,
-									"name": "doTruncate",
+									"name": "truncate",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -21706,18 +21706,18 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doTruncate"
+										"name": "AXRModelRoute.truncate"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doTruncate"
+								"name": "AXRModelRoute.truncate"
 							}
 						},
 						{
 							"id": 848,
-							"name": "doUpdate",
+							"name": "update",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -21734,7 +21734,7 @@
 							"signatures": [
 								{
 									"id": 849,
-									"name": "doUpdate",
+									"name": "update",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -21875,13 +21875,13 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doUpdate"
+										"name": "AXRModelRoute.update"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doUpdate"
+								"name": "AXRModelRoute.update"
 							}
 						},
 						{
@@ -25036,7 +25036,7 @@
 						},
 						{
 							"id": 948,
-							"name": "doCount",
+							"name": "count",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -25053,7 +25053,7 @@
 							"signatures": [
 								{
 									"id": 949,
-									"name": "doCount",
+									"name": "count",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -25179,13 +25179,13 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doCount"
+										"name": "AXRModelRoute.count"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doCount"
+								"name": "AXRModelRoute.count"
 							}
 						},
 						{
@@ -25283,7 +25283,7 @@
 						},
 						{
 							"id": 959,
-							"name": "doCreate",
+							"name": "create",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -25300,7 +25300,7 @@
 							"signatures": [
 								{
 									"id": 960,
-									"name": "doCreate",
+									"name": "create",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -25453,18 +25453,18 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doCreate"
+										"name": "AXRModelRoute.create"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doCreate"
+								"name": "AXRModelRoute.create"
 							}
 						},
 						{
 							"id": 966,
-							"name": "doDelete",
+							"name": "delete",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -25481,7 +25481,7 @@
 							"signatures": [
 								{
 									"id": 967,
-									"name": "doDelete",
+									"name": "delete",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -25613,13 +25613,13 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doDelete"
+										"name": "AXRModelRoute.delete"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doDelete"
+								"name": "AXRModelRoute.delete"
 							}
 						},
 						{
@@ -26269,7 +26269,7 @@
 						},
 						{
 							"id": 1003,
-							"name": "doTruncate",
+							"name": "truncate",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -26286,7 +26286,7 @@
 							"signatures": [
 								{
 									"id": 1004,
-									"name": "doTruncate",
+									"name": "truncate",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -26436,18 +26436,18 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doTruncate"
+										"name": "AXRModelRoute.truncate"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doTruncate"
+								"name": "AXRModelRoute.truncate"
 							}
 						},
 						{
 							"id": 1010,
-							"name": "doUpdate",
+							"name": "update",
 							"kind": 2048,
 							"kindString": "Method",
 							"flags": {
@@ -26464,7 +26464,7 @@
 							"signatures": [
 								{
 									"id": 1011,
-									"name": "doUpdate",
+									"name": "update",
 									"kind": 4096,
 									"kindString": "Call signature",
 									"flags": {
@@ -26605,13 +26605,13 @@
 									},
 									"inheritedFrom": {
 										"type": "reference",
-										"name": "AXRModelRoute.doUpdate"
+										"name": "AXRModelRoute.update"
 									}
 								}
 							],
 							"inheritedFrom": {
 								"type": "reference",
-								"name": "AXRModelRoute.doUpdate"
+								"name": "AXRModelRoute.update"
 							}
 						},
 						{

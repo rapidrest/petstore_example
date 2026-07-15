@@ -6,8 +6,8 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { hash } from "argon2";
 import config from "./config.js";
-import { GET as loginGET } from "../app/user/login/route.js";
-import { GET as logoutGET } from "../app/user/logout/route.js";
+import { GET as loginGET } from "../app/api/auth/login/route.js";
+import { GET as logoutGET } from "../app/api/auth/logout/route.js";
 import User, { UserStatus } from "../src/models/User.js";
 import { JWTUtils, Logger } from "@rapidrest/core";
 import { ACLRecord, ACLUtils, ConnectionManager, MongoConnection, MongoRepository, ObjectFactory } from "@rapidrest/service-core";
@@ -114,7 +114,7 @@ describe("Auth Tests", () => {
 
         const response = await inject(loginGET, {
             method: "GET",
-            url: "/user/login",
+            url: "/api/auth/login",
             headers: { authorization: `basic ${credentials}` },
         });
 
@@ -135,7 +135,7 @@ describe("Auth Tests", () => {
 
         const response = await inject(logoutGET, {
             method: "GET",
-            url: "/user/logout",
+            url: "/api/auth/logout",
             headers: { authorization: `jwt ${authToken}` },
         });
 

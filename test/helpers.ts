@@ -68,9 +68,9 @@ export function setupGlobals(objectFactory: ObjectFactory, logger: any) {
     g._objectFactory = objectFactory;
     g._appInitialized = true;
     // Reset cached model-route singletons so they bind to the new factory.
-    g._userModelRoute = undefined;
-    g._petModelRoute = undefined;
-    g._orderModelRoute = undefined;
+    g._userCRUDRoute = undefined;
+    g._petCRUDRoute = undefined;
+    g._orderCRUDRoute = undefined;
 }
 
 export function teardownGlobals() {
@@ -78,7 +78,7 @@ export function teardownGlobals() {
     g._appInitialized = false;
     g._objectFactory = undefined;
     g._logger = undefined;
-    g._userModelRoute = undefined;
-    g._petModelRoute = undefined;
-    g._orderModelRoute = undefined;
+    g._userCRUDRoute = undefined;
+    g._petCRUDRoute = undefined;
+    g._orderCRUDRoute = undefined;
 }

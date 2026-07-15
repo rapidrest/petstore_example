@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 import { requireAuth } from "@/src/lib/auth";
 import { apiError } from "@/src/lib/errors";
-import { getOrderModelRoute } from "@/src/routes/orderRouteHelper";
+import { getOrderCRUDRoute } from "@/src/routes/orderRouteHelper";
 import { NextRequest, NextResponse } from "next/server";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -19,13 +19,8 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
     try {
         const { id } = await params;
-        const modelRoute = await getOrderModelRoute();
-        const result = await modelRoute.doFindById(id, {
-            query: queryFromUrl(request),
-            req: request as any,
-            res: {} as any,
-            user: auth.user,
-        });
+        const modelRoute = await getOrderCRUDRoute();
+        const result = await modelRoute.findById(id, queryFromUrl(request), auth.user);
         return NextResponse.json(result);
     } catch (err: any) {
         return apiError(err, 400);
@@ -40,12 +35,8 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     try {
         const { id } = await params;
         const body = await request.json();
-        const modelRoute = await getOrderModelRoute();
-        const result = await modelRoute.doUpdate(id, body, {
-            req: request as any,
-            res: {} as any,
-            user: auth.user,
-        });
+        const modelRoute = await getOrderCRUDRoute();
+        const result = await modelRoute.update(id, body, request as any, auth.user);
         return NextResponse.json(result);
     } catch (err: any) {
         return apiError(err, 400);
@@ -59,8 +50,8 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 
     try {
         const { id } = await params;
-        const modelRoute = await getOrderModelRoute();
-        await modelRoute.doDelete(id, { req: request as any, res: {} as any, user: auth.user });
+        const modelRoute = await getOrderCRUDRoute();
+        await modelRoute.delete(id, undefined, undefined, request as any, auth.user);
         return new Response(null, { status: 200 });
     } catch (err: any) {
         return apiError(err, 500);

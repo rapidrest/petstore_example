@@ -2,10 +2,10 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import Order from "../models/Order.js";
-import { ModelRoute, RepoUtils } from "@rapidrest/service-core";
+import { CRUDRoute, RepoUtils } from "@rapidrest/service-core";
 import { getApp } from "../lib/startup.js";
 
-class OrderRoute extends ModelRoute<Order> {
+class OrderRoute extends CRUDRoute<Order> {
     get modelClass(): any {
         return Order;
     }
@@ -14,10 +14,10 @@ class OrderRoute extends ModelRoute<Order> {
 
 const g = globalThis as any;
 
-export async function getOrderModelRoute(): Promise<OrderRoute> {
-    if (!g._orderModelRoute) {
+export async function getOrderCRUDRoute(): Promise<OrderRoute> {
+    if (!g._orderCRUDRoute) {
         const { objectFactory } = await getApp();
-        g._orderModelRoute = await objectFactory.newInstance(OrderRoute, { name: "default" });
+        g._orderCRUDRoute = await objectFactory.newInstance(OrderRoute, { name: "default" });
     }
-    return g._orderModelRoute;
+    return g._orderCRUDRoute;
 }

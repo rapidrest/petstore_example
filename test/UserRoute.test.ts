@@ -7,8 +7,8 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import { hash } from "argon2";
 import { v4 as uuidv4 } from "uuid";
 import config from "./config.js";
-import { GET, HEAD, POST, DELETE } from "../app/user/route.js";
-import { GET as getById, PUT, DELETE as deleteById } from "../app/user/[id]/route.js";
+import { GET, HEAD, POST, DELETE } from "../app/api/user/route.js";
+import { GET as getById, PUT, DELETE as deleteById } from "../app/api/user/[id]/route.js";
 import User, { UserStatus } from "../src/models/User.js";
 import { ACLRecord, ACLUtils, ConnectionManager, MongoConnection, MongoRepository, ObjectFactory } from "@rapidrest/service-core";
 import { JWTUtils, Logger } from "@rapidrest/core";
@@ -133,7 +133,7 @@ describe("User Tests", () => {
 
         const response = await inject(HEAD, {
             method: "HEAD",
-            url: "/user",
+            url: "/api/user",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -156,7 +156,7 @@ describe("User Tests", () => {
 
         const response = await inject(POST, {
             method: "POST",
-            url: "/user",
+            url: "/api/user",
             payload: obj,
         });
 
@@ -188,7 +188,7 @@ describe("User Tests", () => {
 
         const response = await inject(deleteById, {
             method: "DELETE",
-            url: `/user/${obj.uid}`,
+            url: `/api/user/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             params: { id: obj.uid },
         });
@@ -205,7 +205,7 @@ describe("User Tests", () => {
 
         const response = await inject(GET, {
             method: "GET",
-            url: "/user",
+            url: "/api/user",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -220,7 +220,7 @@ describe("User Tests", () => {
 
         const response = await inject(getById, {
             method: "GET",
-            url: `/user/${obj.uid}`,
+            url: `/api/user/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             params: { id: obj.uid },
         });
@@ -244,7 +244,7 @@ describe("User Tests", () => {
 
         const response = await inject(DELETE, {
             method: "DELETE",
-            url: "/user",
+            url: "/api/user",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -261,7 +261,7 @@ describe("User Tests", () => {
 
         const response = await inject(PUT, {
             method: "PUT",
-            url: `/user/${obj.uid}`,
+            url: `/api/user/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
             params: { id: obj.uid },

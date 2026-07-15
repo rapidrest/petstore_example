@@ -1,99 +1,99 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="23" failures="0" errors="0" time="2.8004137">
-    <testsuite name="test/AuthRoute.test.ts" timestamp="2026-06-26T17:55:46.336Z" hostname="Jane" tests="2" failures="0" errors="0" skipped="0" time="0.5519725">
-        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make login request." time="0.0830733">
+<testsuites name="vitest tests" tests="23" failures="0" errors="0" time="12.7482789">
+    <testsuite name="test/AuthRoute.test.ts" timestamp="2026-07-15T01:22:30.897Z" hostname="Jane" tests="2" failures="0" errors="0" skipped="0" time="0.7955641">
+        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make login request." time="0.0933182">
             <system-out>
-2026-06-26T17:55:42.474Z [32minfo[39m: Registering class RepoUtils
-2026-06-26T17:55:42.474Z [34mdebug[39m: Creating new instance of class [RepoUtils] with name [RepoUtils:User]
-2026-06-26T17:55:42.474Z [32minfo[39m: Unable to register class undefined for ACLUtils/undefined
-2026-06-26T17:55:42.474Z [32minfo[39m: Registering class ObjectFactory
-2026-06-26T17:55:42.474Z [32minfo[39m: Registering class NotificationUtils
-2026-06-26T17:55:42.474Z [34mdebug[39m: Creating new instance of class [NotificationUtils] with name [NotificationUtils:default]
+2026-07-15T01:22:14.501Z [32minfo[39m: Registering class RepoUtils
+2026-07-15T01:22:14.501Z [34mdebug[39m: Creating new instance of class [RepoUtils] with name [RepoUtils:User]
+2026-07-15T01:22:14.502Z [32minfo[39m: Unable to register class undefined for ACLUtils/undefined
+2026-07-15T01:22:14.502Z [32minfo[39m: Registering class ObjectFactory
+2026-07-15T01:22:14.502Z [32minfo[39m: Registering class NotificationUtils
+2026-07-15T01:22:14.502Z [34mdebug[39m: Creating new instance of class [NotificationUtils] with name [NotificationUtils:default]
 
             </system-out>
         </testcase>
-        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make logout request." time="0.0351139">
+        <testcase classname="test/AuthRoute.test.ts" name="Auth Tests &gt; Can make logout request." time="0.0352272">
         </testcase>
     </testsuite>
-    <testsuite name="test/OrderRoute.test.ts" timestamp="2026-06-26T17:55:46.339Z" hostname="Jane" tests="7" failures="0" errors="0" skipped="0" time="0.5779986">
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make count request." time="0.0275854">
+    <testsuite name="test/OrderRoute.test.ts" timestamp="2026-07-15T01:22:30.900Z" hostname="Jane" tests="7" failures="0" errors="0" skipped="0" time="0.7589434">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make count request." time="0.0276506">
             <system-out>
-2026-06-26T17:55:44.320Z [32minfo[39m: Registering class OrderRoute
-2026-06-26T17:55:44.320Z [34mdebug[39m: Creating new instance of class [OrderRoute] with name [OrderRoute:default]
-2026-06-26T17:55:44.321Z [32minfo[39m: Registering class NotificationUtils
-2026-06-26T17:55:44.321Z [34mdebug[39m: Creating new instance of class [NotificationUtils] with name [NotificationUtils:default]
-2026-06-26T17:55:44.321Z [32minfo[39m: Registering class ObjectFactory
-2026-06-26T17:55:44.321Z [32minfo[39m: Registering class RepoUtils
-2026-06-26T17:55:44.321Z [34mdebug[39m: Creating new instance of class [RepoUtils] with name [RepoUtils:Order]
-2026-06-26T17:55:44.321Z [32minfo[39m: Unable to register class undefined for ACLUtils/undefined
+2026-07-15T01:22:30.694Z [32minfo[39m: Registering class OrderRoute
+2026-07-15T01:22:30.694Z [34mdebug[39m: Creating new instance of class [OrderRoute] with name [OrderRoute:default]
+2026-07-15T01:22:30.694Z [32minfo[39m: Registering class NotificationUtils
+2026-07-15T01:22:30.694Z [34mdebug[39m: Creating new instance of class [NotificationUtils] with name [NotificationUtils:default]
+2026-07-15T01:22:30.694Z [32minfo[39m: Registering class ObjectFactory
+2026-07-15T01:22:30.694Z [32minfo[39m: Registering class RepoUtils
+2026-07-15T01:22:30.694Z [34mdebug[39m: Creating new instance of class [RepoUtils] with name [RepoUtils:Order]
+2026-07-15T01:22:30.695Z [32minfo[39m: Unable to register class undefined for ACLUtils/undefined
 
             </system-out>
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make create request." time="0.0062782">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make create request." time="0.0076666">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make delete request." time="0.0066968">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make delete request." time="0.0078501">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findAll request." time="0.00908">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findAll request." time="0.008687">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findById request." time="0.0073041">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make findById request." time="0.0042762">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make truncate request." time="0.0134909">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make truncate request." time="0.0091932">
         </testcase>
-        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make update request." time="0.0061367">
+        <testcase classname="test/OrderRoute.test.ts" name="Order Tests &gt; Can make update request." time="0.0071989">
         </testcase>
     </testsuite>
-    <testsuite name="test/PetRoute.test.ts" timestamp="2026-06-26T17:55:46.340Z" hostname="Jane" tests="7" failures="0" errors="0" skipped="0" time="0.5067461">
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make count request." time="0.0214715">
+    <testsuite name="test/PetRoute.test.ts" timestamp="2026-07-15T01:22:30.902Z" hostname="Jane" tests="7" failures="0" errors="0" skipped="0" time="10.0539274">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make count request." time="0.0219288">
             <system-out>
-2026-06-26T17:55:46.151Z [32minfo[39m: Registering class PetRoute
-2026-06-26T17:55:46.151Z [34mdebug[39m: Creating new instance of class [PetRoute] with name [PetRoute:default]
-2026-06-26T17:55:46.152Z [32minfo[39m: Registering class NotificationUtils
-2026-06-26T17:55:46.152Z [34mdebug[39m: Creating new instance of class [NotificationUtils] with name [NotificationUtils:default]
-2026-06-26T17:55:46.152Z [32minfo[39m: Registering class ObjectFactory
-2026-06-26T17:55:46.152Z [32minfo[39m: Registering class RepoUtils
-2026-06-26T17:55:46.152Z [34mdebug[39m: Creating new instance of class [RepoUtils] with name [RepoUtils:Pet]
-2026-06-26T17:55:46.152Z [32minfo[39m: Unable to register class undefined for ACLUtils/undefined
+2026-07-15T01:22:28.548Z [32minfo[39m: Registering class PetRoute
+2026-07-15T01:22:28.549Z [34mdebug[39m: Creating new instance of class [PetRoute] with name [PetRoute:default]
+2026-07-15T01:22:28.549Z [32minfo[39m: Registering class NotificationUtils
+2026-07-15T01:22:28.549Z [34mdebug[39m: Creating new instance of class [NotificationUtils] with name [NotificationUtils:default]
+2026-07-15T01:22:28.549Z [32minfo[39m: Registering class ObjectFactory
+2026-07-15T01:22:28.549Z [32minfo[39m: Registering class RepoUtils
+2026-07-15T01:22:28.549Z [34mdebug[39m: Creating new instance of class [RepoUtils] with name [RepoUtils:Pet]
+2026-07-15T01:22:28.550Z [32minfo[39m: Unable to register class undefined for ACLUtils/undefined
 
             </system-out>
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make create request." time="0.0060721">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make create request." time="0.0059428">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make delete request." time="0.0049783">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make delete request." time="0.005985">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findAll request." time="0.0068957">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findAll request." time="0.0065617">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findById request." time="0.0034654">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make findById request." time="0.0036061">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make truncate request." time="0.0061004">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make truncate request." time="0.0065654">
         </testcase>
-        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make update request." time="0.0050034">
+        <testcase classname="test/PetRoute.test.ts" name="Pet Tests &gt; Can make update request." time="0.0062671">
         </testcase>
     </testsuite>
-    <testsuite name="test/UserRoute.test.ts" timestamp="2026-06-26T17:55:46.341Z" hostname="Jane" tests="7" failures="0" errors="0" skipped="0" time="1.1636965">
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make count request." time="0.1686907">
+    <testsuite name="test/UserRoute.test.ts" timestamp="2026-07-15T01:22:30.903Z" hostname="Jane" tests="7" failures="0" errors="0" skipped="0" time="1.139844">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make count request." time="0.1816147">
             <system-out>
-2026-06-26T17:55:40.158Z [32minfo[39m: Registering class UserRoute
-2026-06-26T17:55:40.158Z [34mdebug[39m: Creating new instance of class [UserRoute] with name [UserRoute:default]
-2026-06-26T17:55:40.159Z [32minfo[39m: Registering class NotificationUtils
-2026-06-26T17:55:40.159Z [34mdebug[39m: Creating new instance of class [NotificationUtils] with name [NotificationUtils:default]
-2026-06-26T17:55:40.159Z [32minfo[39m: Registering class ObjectFactory
-2026-06-26T17:55:40.159Z [32minfo[39m: Registering class RepoUtils
-2026-06-26T17:55:40.159Z [34mdebug[39m: Creating new instance of class [RepoUtils] with name [RepoUtils:User]
-2026-06-26T17:55:40.159Z [32minfo[39m: Unable to register class undefined for ACLUtils/undefined
+2026-07-15T01:22:16.630Z [32minfo[39m: Registering class UserRoute
+2026-07-15T01:22:16.630Z [34mdebug[39m: Creating new instance of class [UserRoute] with name [UserRoute:default]
+2026-07-15T01:22:16.631Z [32minfo[39m: Registering class NotificationUtils
+2026-07-15T01:22:16.631Z [34mdebug[39m: Creating new instance of class [NotificationUtils] with name [NotificationUtils:default]
+2026-07-15T01:22:16.631Z [32minfo[39m: Registering class ObjectFactory
+2026-07-15T01:22:16.631Z [32minfo[39m: Registering class RepoUtils
+2026-07-15T01:22:16.631Z [34mdebug[39m: Creating new instance of class [RepoUtils] with name [RepoUtils:User]
+2026-07-15T01:22:16.631Z [32minfo[39m: Unable to register class undefined for ACLUtils/undefined
 
             </system-out>
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make create request." time="0.0682021">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make create request." time="0.0699909">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make delete request." time="0.0360268">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make delete request." time="0.0366922">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findAll request." time="0.1659633">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findAll request." time="0.1449137">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findById request." time="0.0360532">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make findById request." time="0.0340536">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make truncate request." time="0.1596952">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make truncate request." time="0.1403107">
         </testcase>
-        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make update request." time="0.064626">
+        <testcase classname="test/UserRoute.test.ts" name="User Tests &gt; Can make update request." time="0.0693872">
         </testcase>
     </testsuite>
 </testsuites>

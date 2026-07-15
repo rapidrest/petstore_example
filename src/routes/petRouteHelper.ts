@@ -2,10 +2,10 @@
 // Copyright (C) 2026 Jean-Philippe Steinmetz
 ///////////////////////////////////////////////////////////////////////////////
 import Pet from "../models/Pet.js";
-import { ModelRoute, RepoUtils } from "@rapidrest/service-core";
+import { CRUDRoute, RepoUtils } from "@rapidrest/service-core";
 import { getApp } from "../lib/startup.js";
 
-class PetRoute extends ModelRoute<Pet> {
+class PetRoute extends CRUDRoute<Pet> {
     get modelClass(): any {
         return Pet;
     }
@@ -14,10 +14,10 @@ class PetRoute extends ModelRoute<Pet> {
 
 const g = globalThis as any;
 
-export async function getPetModelRoute(): Promise<PetRoute> {
-    if (!g._petModelRoute) {
+export async function getPetCRUDRoute(): Promise<PetRoute> {
+    if (!g._petCRUDRoute) {
         const { objectFactory } = await getApp();
-        g._petModelRoute = await objectFactory.newInstance(PetRoute, { name: "default" });
+        g._petCRUDRoute = await objectFactory.newInstance(PetRoute, { name: "default" });
     }
-    return g._petModelRoute;
+    return g._petCRUDRoute;
 }

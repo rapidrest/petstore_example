@@ -6,8 +6,8 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { v4 as uuidv4 } from "uuid";
 import config from "./config.js";
-import { GET, HEAD, POST, DELETE } from "../app/store/order/route.js";
-import { GET as getById, PUT, DELETE as deleteById } from "../app/store/order/[id]/route.js";
+import { GET, HEAD, POST, DELETE } from "../app/api/order/route.js";
+import { GET as getById, PUT, DELETE as deleteById } from "../app/api/order/[id]/route.js";
 import Order, { OrderStatus } from "../src/models/Order.js";
 import Pet from "../src/models/Pet.js";
 import { ACLRecord, ACLUtils, ConnectionManager, MongoConnection, MongoRepository, ObjectFactory } from "@rapidrest/service-core";
@@ -173,7 +173,7 @@ describe("Order Tests", () => {
 
         const response = await inject(HEAD, {
             method: "HEAD",
-            url: "/store/order",
+            url: "/api/store/order",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -189,7 +189,7 @@ describe("Order Tests", () => {
 
         const response = await inject(POST, {
             method: "POST",
-            url: "/store/order",
+            url: "/api/store/order",
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
         });
@@ -220,7 +220,7 @@ describe("Order Tests", () => {
 
         const response = await inject(deleteById, {
             method: "DELETE",
-            url: `/store/order/${obj.uid}`,
+            url: `/api/store/order/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             params: { id: obj.uid },
         });
@@ -237,7 +237,7 @@ describe("Order Tests", () => {
 
         const response = await inject(GET, {
             method: "GET",
-            url: "/store/order",
+            url: "/api/store/order",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -252,7 +252,7 @@ describe("Order Tests", () => {
 
         const response = await inject(getById, {
             method: "GET",
-            url: `/store/order/${obj.uid}`,
+            url: `/api/store/order/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             params: { id: obj.uid },
         });
@@ -275,7 +275,7 @@ describe("Order Tests", () => {
 
         const response = await inject(DELETE, {
             method: "DELETE",
-            url: "/store/order",
+            url: "/api/store/order",
             headers: { authorization: `jwt ${adminToken}` },
         });
 
@@ -292,7 +292,7 @@ describe("Order Tests", () => {
 
         const response = await inject(PUT, {
             method: "PUT",
-            url: `/store/order/${obj.uid}`,
+            url: `/api/store/order/${obj.uid}`,
             headers: { authorization: `jwt ${adminToken}` },
             payload: obj,
             params: { id: obj.uid },
