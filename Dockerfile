@@ -27,8 +27,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/scripts ./scripts
-COPY ./scripts /app/scripts
-RUN chmod +x /app/scripts/*.sh
+RUN chmod +x /app/scripts/*
 # Add curl for health check
 RUN apt-get update && apt-get upgrade -f -y && apt-get install curl -y
 RUN npm install --global nodemon
